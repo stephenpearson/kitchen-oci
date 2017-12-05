@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Author:: Stephen Pearson (<stevieweavie@gmail.com>)
 #
@@ -18,7 +17,7 @@
 
 module Kitchen
   module Driver
-    # Version string for Obmc Kitchen driver
-    OBMC_VERSION = '0.1.0.dev'.freeze
+    # Version string for Oracle OCI Kitchen driver
+    OCI_VERSION = '1.0.0'.freeze
   end
 end
