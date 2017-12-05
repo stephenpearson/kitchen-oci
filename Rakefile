@@ -16,6 +16,6 @@ task :stats do
 end
 
 desc 'Run all quality tasks'
-task quality: [:cane, :tailor, :stats]
+task quality: %i[cane tailor stats]
 
-task default: [:quality]
+task default: %i[quality]
