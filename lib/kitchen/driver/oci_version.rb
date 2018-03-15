@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #
 # Author:: Stephen Pearson (<stevieweavie@gmail.com>)
 #
@@ -18,6 +20,6 @@
 module Kitchen
   module Driver
     # Version string for Oracle OCI Kitchen driver
-    OCI_VERSION = '1.0.0'.freeze
+    OCI_VERSION = '1.1.0'
   end
 end

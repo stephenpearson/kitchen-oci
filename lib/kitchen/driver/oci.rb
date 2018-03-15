@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #
 # Author:: Stephen Pearson (<stevieweavie@gmail.com>)
 #
@@ -23,13 +25,14 @@ module Kitchen
     # Oracle OCI driver for Kitchen.
     #
     # @author Stephen Pearson <stevieweavie@gmail.com>
-    class Oci < Kitchen::Driver::Base
+    class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       required_config :compartment_id
       required_config :availability_domain
       required_config :image_id
       required_config :shape
       required_config :subnet_id
 
+      default_config :use_private_ip, false
       default_config :oci_config_file, nil
       default_config :oci_profile_name, nil
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
@@ -41,7 +44,7 @@ module Kitchen
 
         instance_id = launch_instance(config)
         state[:server_id] = instance_id
-        state[:hostname] = public_ip(config, instance_id)
+        state[:hostname] = instance_ip(config, instance_id)
 
         instance.transport.connection(state).wait_until_ready
 
@@ -97,13 +100,24 @@ module Kitchen
         instance_id
       end
 
-      def public_ip(config, instance_id)
-        vnics = comp_api(config).list_vnic_attachments(
+      def vnic_attachments(config, instance_id)
+        att = comp_api(config).list_vnic_attachments(
           config[:compartment_id],
           instance_id: instance_id
-        )
-        vnic_id = vnics.data.first.vnic_id
-        net_api(config).get_vnic(vnic_id).data.public_ip
+        ).data
+        raise 'Could not find any VNIC attachments' unless att.any?
+        att
+      end
+
+      def vnics(config, instance_id)
+        vnic_attachments(config, instance_id).map do |att|
+          net_api(config).get_vnic(att.vnic_id).data
+        end
+      end
+
+      def instance_ip(config, instance_id)
+        vnic = vnics(config, instance_id).select(&:is_primary).first
+        config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
       end
 
       def pubkey(config)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bundler/gem_tasks'
 require 'cane/rake_task'
 require 'tailor/rake_task'
