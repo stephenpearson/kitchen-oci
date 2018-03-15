@@ -52,6 +52,8 @@ Adjust below template as required.  The following configuration is mandatory:
    - shape
    - subnet\_id
 
+Note: The availability domain should be the full AD name including the tenancy specific prefix.  For example: "AaBb:US-ASHBURN-AD-1".  Look in the OCI console to get your tenancy specific string.
+
 These settings are optional:
 
    - oci\_config\_file, by default this is ~/.oci/config
@@ -74,15 +76,22 @@ verifier:
 platforms:
   - name: ubuntu-16.04
     driver:
-      availability_domain: "ad1"
+      # These are mandatory
       compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      availability_domain: "XyAb:US-ASHBURN-AD-1"
       image_id: "ocid1.image.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
       shape: "VM.Standard1.2"
       subnet_id: "ocid1.subnet.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+      # These are optional
+      use_private_ip: false
+      oci_config_file: "~/.oci/config"
+      oci_profile_name: "DEFAULT"
+      ssh_keypath: "~/.ssh/id_rsa.pub"
       post_create_script: >-
         touch /tmp/example.txt;
     transport:
-      username: "opc"
+      username: "ubuntu"
 
 suites:
   - name: default
