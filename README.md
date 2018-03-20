@@ -2,8 +2,6 @@
 
 A Test Kitchen Driver for Oracle Bare Metal Cloud
 
-WARNING: This is alpha quality.  Use at your own risk!
-
 ## Prerequisites
 
 You need an ssh keypair defined for your current user.  By default the driver
@@ -56,10 +54,10 @@ Note: The availability domain should be the full AD name including the tenancy s
 
 These settings are optional:
 
-   - oci\_config\_file, by default this is ~/.oci/config
-   - oci\_profile\_name, default value is "DEFAULT"
-   - ssh\_keypath, default is ~/.ssh/id\_rsa.pub
-   - post\_create\_script, does not run a script by default
+   - oci\_config\_file, OCI configuration file, by default this is ~/.oci/config
+   - oci\_profile\_name, OCI profile to use, default value is "DEFAULT"
+   - ssh\_keypath, SSH public key, default is ~/.ssh/id\_rsa.pub
+   - post\_create\_script, run a script on compute_instance after deployment
 
 ```
 ---
@@ -103,7 +101,7 @@ suites:
     attributes:
 ```
 
-Created and maintained by [Stephen Pearson][author] (<stevieweavie@gmail.com>)
+Created and maintained by Stephen Pearson (<stevieweavie@gmail.com>)
 
 ## License
 
