@@ -126,14 +126,19 @@ module Kitchen
 
       def instance_source_details(config)
         OCI::Core::Models::InstanceSourceViaImageDetails.new(
-          source_type: 'image',
+          sourceType: 'image',
           imageId: config[:image_id]
         )
       end
 
+      def public_ip_allowed?(config)
+        subnet = net_api(config).get_subnet(config[:subnet_id]).data
+        !subnet.prohibit_public_ip_on_vnic
+      end
+
       def create_vnic_details(config)
         OCI::Core::Models::CreateVnicDetails.new(
-          assign_public_ip: true,
+          assign_public_ip: public_ip_allowed?(config),
           display_name: 'primary_nic',
           subnetId: config[:subnet_id]
         )
