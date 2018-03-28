@@ -54,10 +54,15 @@ Note: The availability domain should be the full AD name including the tenancy s
 
 These settings are optional:
 
+   - use\_private\_ip, Whether to connect to the instance using a private IP, default is false (public ip)
    - oci\_config\_file, OCI configuration file, by default this is ~/.oci/config
    - oci\_profile\_name, OCI profile to use, default value is "DEFAULT"
    - ssh\_keypath, SSH public key, default is ~/.ssh/id\_rsa.pub
-   - post\_create\_script, run a script on compute_instance after deployment
+   - post\_create\_script, run a script on compute\_instance after deployment
+
+The use\_private\_ip influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
+
+If the subnet\_id refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the use\_private\_ip flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the use\_private\_ip flag can still be used to override whether the private or public IP will be used.
 
 ```
 ---
