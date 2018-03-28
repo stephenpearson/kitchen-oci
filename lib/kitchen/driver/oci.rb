@@ -117,7 +117,11 @@ module Kitchen
 
       def instance_ip(config, instance_id)
         vnic = vnics(config, instance_id).select(&:is_primary).first
-        config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
+        if public_ip_allowed?(config)
+          config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
+        else
+          vnic.private_ip
+        end
       end
 
       def pubkey(config)
