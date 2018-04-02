@@ -19,6 +19,7 @@
 
 require 'kitchen'
 require 'oci'
+require 'uri'
 
 module Kitchen
   module Driver
@@ -38,13 +39,14 @@ module Kitchen
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
+      default_config :proxy_url, nil
 
       def create(state) # rubocop:disable Metrics/AbcSize
         return if state[:server_id]
 
-        instance_id = launch_instance(config)
+        instance_id = launch_instance
         state[:server_id] = instance_id
-        state[:hostname] = instance_ip(config, instance_id)
+        state[:hostname] = instance_ip(instance_id)
 
         instance.transport.connection(state).wait_until_ready
 
@@ -59,7 +61,7 @@ module Kitchen
         return unless state[:server_id]
 
         instance.transport.connection(state).close
-        comp_api(config).terminate_instance(state[:server_id])
+        comp_api.terminate_instance(state[:server_id])
 
         state.delete(:server_id)
         state.delete(:hostname)
@@ -67,7 +69,7 @@ module Kitchen
 
       private
 
-      def oci_config(config)
+      def oci_config
         params = [:load_config]
         opts = {}
         if config[:oci_config_file]
@@ -80,28 +82,56 @@ module Kitchen
         OCI::ConfigFileLoader.send(*params)
       end
 
-      def comp_api(config)
-        OCI::Core::ComputeClient.new(config: oci_config(config))
+      def proxy_config
+        if config[:proxy_url]
+          URI.parse(config[:proxy_url])
+        else
+          URI.parse('http://').find_proxy
+        end
       end
 
-      def net_api(config)
-        OCI::Core::VirtualNetworkClient.new(config: oci_config(config))
+      def api_proxy
+        prx = proxy_config
+        return nil unless prx
+        if prx.user
+          OCI::ApiClientProxySettings.new(prx.host, prx.port, prx.user,
+                                          prx.password)
+        else
+          OCI::ApiClientProxySettings.new(prx.host, prx.port)
+        end
       end
 
-      def launch_instance(config)
-        request = compute_instance_request(config)
+      def generic_api(klass)
+        api_prx = api_proxy
+        if api_prx
+          klass.new(config: oci_config, proxy_settings: api_prx)
+        else
+          klass.new(config: oci_config)
+        end
+      end
 
-        response = comp_api(config).launch_instance(request)
+      def comp_api
+        generic_api(OCI::Core::ComputeClient)
+      end
+
+      def net_api
+        generic_api(OCI::Core::VirtualNetworkClient)
+      end
+
+      def launch_instance
+        request = compute_instance_request
+
+        response = comp_api.launch_instance(request)
         instance_id = response.data.id
-        comp_api(config).get_instance(instance_id).wait_until(
+        comp_api.get_instance(instance_id).wait_until(
           :lifecycle_state,
           OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING
         )
         instance_id
       end
 
-      def vnic_attachments(config, instance_id)
-        att = comp_api(config).list_vnic_attachments(
+      def vnic_attachments(instance_id)
+        att = comp_api.list_vnic_attachments(
           config[:compartment_id],
           instance_id: instance_id
         ).data
@@ -109,54 +139,54 @@ module Kitchen
         att
       end
 
-      def vnics(config, instance_id)
-        vnic_attachments(config, instance_id).map do |att|
-          net_api(config).get_vnic(att.vnic_id).data
+      def vnics(instance_id)
+        vnic_attachments(instance_id).map do |att|
+          net_api.get_vnic(att.vnic_id).data
         end
       end
 
-      def instance_ip(config, instance_id)
-        vnic = vnics(config, instance_id).select(&:is_primary).first
-        if public_ip_allowed?(config)
+      def instance_ip(instance_id)
+        vnic = vnics(instance_id).select(&:is_primary).first
+        if public_ip_allowed?
           config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
         else
           vnic.private_ip
         end
       end
 
-      def pubkey(config)
+      def pubkey
         File.readlines(config[:ssh_keypath]).first.chomp
       end
 
-      def instance_source_details(config)
+      def instance_source_details
         OCI::Core::Models::InstanceSourceViaImageDetails.new(
           sourceType: 'image',
           imageId: config[:image_id]
         )
       end
 
-      def public_ip_allowed?(config)
-        subnet = net_api(config).get_subnet(config[:subnet_id]).data
+      def public_ip_allowed?
+        subnet = net_api.get_subnet(config[:subnet_id]).data
         !subnet.prohibit_public_ip_on_vnic
       end
 
-      def create_vnic_details(config)
+      def create_vnic_details
         OCI::Core::Models::CreateVnicDetails.new(
-          assign_public_ip: public_ip_allowed?(config),
+          assign_public_ip: public_ip_allowed?,
           display_name: 'primary_nic',
           subnetId: config[:subnet_id]
         )
       end
 
-      def compute_instance_request(config)
+      def compute_instance_request # rubocop:disable Metrics/AbcSize
         request = OCI::Core::Models::LaunchInstanceDetails.new
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = random_hostname(instance.name)
-        request.source_details = instance_source_details(config)
+        request.source_details = instance_source_details
         request.shape = config[:shape]
-        request.create_vnic_details = create_vnic_details(config)
-        request.metadata = { 'ssh_authorized_keys' => pubkey(config) }
+        request.create_vnic_details = create_vnic_details
+        request.metadata = { 'ssh_authorized_keys' => pubkey }
         request
       end
 
