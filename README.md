@@ -59,6 +59,7 @@ These settings are optional:
    - oci\_profile\_name, OCI profile to use, default value is "DEFAULT"
    - ssh\_keypath, SSH public key, default is ~/.ssh/id\_rsa.pub
    - post\_create\_script, run a script on compute\_instance after deployment
+   - proxy\_url, Connect via the specified proxy URL
 
 The use\_private\_ip influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
 
@@ -104,6 +105,33 @@ suites:
       inspec_tests:
         - test/smoke/default
     attributes:
+```
+
+## Proxy support
+
+If running Kitchen on a private subnet with no public IPs permitted, it may be necessary to connect to the OCI API via a web proxy.  The proxy URL can either be specified on the command line:
+```
+# With authentication
+export http_proxy=http://<proxy_user>:<proxy_password>@<proxy_host>:<proxy_port>"
+# Without authentication
+export http_proxy=http://<proxy_host>:<proxy_port>"
+```
+.. or if preferred in the cookbook's .kitchen.yml file.
+```
+driver:
+  ...
+  proxy_url: "http://<proxy_user>:<proxy_password>@<proxy_host>:<proxy_port>"
+```
+
+The SSH transport can also be tunneled via the web proxy using the CONNECT http method, but note that this is not handled by the kitchen-oci gem.  Configuration is provided here for convenience only:
+
+```
+transport:
+  username: "<os_username>"
+  ssh_http_proxy: "<proxy_host>"
+  ssh_http_proxy_port: <proxy_port>
+  ssh_http_proxy_user: <proxy_user>
+  ssh_http_proxy_password: <proxy_password>
 ```
 
 Created and maintained by Stephen Pearson (<stevieweavie@gmail.com>)
