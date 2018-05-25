@@ -170,22 +170,24 @@ module Kitchen
         !subnet.prohibit_public_ip_on_vnic
       end
 
-      def create_vnic_details
+      def create_vnic_details(name)
         OCI::Core::Models::CreateVnicDetails.new(
           assign_public_ip: public_ip_allowed?,
-          display_name: 'primary_nic',
+          display_name: name,
+          hostname_label: name,
           subnetId: config[:subnet_id]
         )
       end
 
       def compute_instance_request # rubocop:disable Metrics/AbcSize
+        hostname = random_hostname(instance.name)
         request = OCI::Core::Models::LaunchInstanceDetails.new
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
-        request.display_name = random_hostname(instance.name)
+        request.display_name = hostname
         request.source_details = instance_source_details
         request.shape = config[:shape]
-        request.create_vnic_details = create_vnic_details
+        request.create_vnic_details = create_vnic_details(hostname)
         request.metadata = { 'ssh_authorized_keys' => pubkey }
         request
       end
