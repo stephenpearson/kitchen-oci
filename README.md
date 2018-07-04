@@ -134,7 +134,7 @@ transport:
   ssh_http_proxy_password: <proxy_password>
 ```
 
-Created and maintained by Stephen Pearson (<stevieweavie@gmail.com>)
+Created and maintained by Stephen Pearson (<stephen.pearson@oracle.com>)
 
 ## License
 
