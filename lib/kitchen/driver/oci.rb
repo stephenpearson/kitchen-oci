@@ -3,7 +3,7 @@
 #
 # Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
 #
-# Copyright (C) 2017, Stephen Pearson
+# Copyright (C) 2019, Stephen Pearson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'base64'
+require 'erb'
 require 'kitchen'
 require 'oci'
 require 'uri'
+require 'zlib'
 
 module Kitchen
   module Driver
@@ -40,11 +43,21 @@ module Kitchen
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
       default_config :proxy_url, nil
+      default_config :user_data, []
+      default_config :setup_winrm, false
+      default_config :winrm_user, 'opc'
 
       def create(state) # rubocop:disable Metrics/AbcSize
         return if state[:server_id]
 
-        instance_id = launch_instance
+        state[:username] = config[:winrm_user] if config[:setup_winrm]
+        if config[:setup_winrm] == true and
+          config[:password].nil? and
+          state[:password].nil?
+          state[:password] = random_password
+        end
+
+        instance_id = launch_instance(state)
         state[:server_id] = instance_id
         state[:hostname] = instance_ip(instance_id)
 
@@ -118,8 +131,8 @@ module Kitchen
         generic_api(OCI::Core::VirtualNetworkClient)
       end
 
-      def launch_instance
-        request = compute_instance_request
+      def launch_instance(state)
+        request = compute_instance_request(state)
 
         response = comp_api.launch_instance(request)
         instance_id = response.data.id
@@ -179,7 +192,45 @@ module Kitchen
         )
       end
 
-      def compute_instance_request # rubocop:disable Metrics/AbcSize
+      def winrm_ps1(state)
+        tpl = ERB.new File.read(File.join(__dir__,
+          %w[.. .. .. tpl setup_winrm.ps1.erb]))
+        tpl.result(binding)
+      end
+
+      def user_data
+        boundary = "MIMEBOUNDARY_#{random_string(20)}"
+        msg = [
+          "Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
+          'MIME-Version: 1.0',
+          ''
+        ]
+        config[:user_data].each do |m|
+          if m[:path]
+            part = File.read m[:path]
+          elsif m[:inline]
+            part = m[:inline]
+          else
+            raise 'Invalid user data'
+          end
+          msg << "--#{boundary}"
+          msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
+          msg << "Content-Transfer-Encoding: 7bit"
+          msg << "Content-Type: text/#{m[:type]}"
+          msg << "Mime-Version: 1.0"
+          msg << ""
+          msg << part.split("\n")
+          msg << ""
+        end
+        msg << "--#{boundary}--"
+
+        txt = msg.join("\n") + "\n"
+        gzip = Zlib::GzipWriter.new(StringIO.new)
+        gzip << txt
+        Base64.encode64(gzip.close.string).gsub("\n", '')
+      end
+
+      def compute_instance_request(state) # rubocop:disable Metrics/AbcSize
         hostname = random_hostname(instance.name)
         request = OCI::Core::Models::LaunchInstanceDetails.new
         request.availability_domain = config[:availability_domain]
@@ -188,13 +239,38 @@ module Kitchen
         request.source_details = instance_source_details
         request.shape = config[:shape]
         request.create_vnic_details = create_vnic_details(hostname)
-        request.metadata = { 'ssh_authorized_keys' => pubkey }
+
+        if config[:setup_winrm] == true
+          data = winrm_ps1(state)
+          config[:user_data] ||= []
+          config[:user_data] << {
+            type: 'x-shellscript',
+            inline: data,
+            filename: 'setup_winrm.ps1'
+          }
+        end
+
+        metadata = {}
+        metadata.store('ssh_authorized_keys', pubkey)
+        data = user_data
+        metadata.store('user_data', data) if config[:user_data].any?
+        request.metadata = metadata
         request
       end
 
       def random_hostname(prefix)
-        randstr = Array.new(6) { ('a'..'z').to_a.sample }.join
-        "#{prefix}-#{randstr}"
+        "#{prefix}-#{random_string(6)}"
+      end
+
+      def random_password
+        ( 5.times.map {%w[! " # & ( ) * + , - . /].sample} +
+          5.times.map {('a'..'z').to_a.sample} +
+          5.times.map {('A'..'Z').to_a.sample} +
+          5.times.map {('0'..'9').to_a.sample}).shuffle.join
+      end
+
+      def random_string(length)
+        Array.new(length) { ('a'..'z').to_a.sample }.join
       end
     end
   end

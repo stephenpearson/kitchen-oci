@@ -60,6 +60,12 @@ These settings are optional:
    - ssh\_keypath, SSH public key, default is ~/.ssh/id\_rsa.pub
    - post\_create\_script, run a script on compute\_instance after deployment
    - proxy\_url, Connect via the specified proxy URL
+   - user\_data, Add user data scripts
+
+Optional settings for WinRM support in Windows:
+
+   - setup\_winrm, Inject Windows powershell to set password and enable WinRM, default false.
+   - winrm\_username, Used to set the WinRM transport username, defaults to 'opc'.
 
 The use\_private\_ip influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
 
@@ -107,6 +113,26 @@ suites:
     attributes:
 ```
 
+## Support for user data scripts and cloud-init
+
+The driver has support for adding user data that can be executed as scripts by cloud-init.  These can either be specified inline or by referencing a file.  Examples:
+
+```
+      user_data:
+        - type: x-shellscript
+          inline: |
+            #!/bin/bash
+            touch /tmp/foo.txt
+          filename: init.sh
+        - type: x-shellscript
+          path: myscript.sh
+          filename: myscript.sh
+```
+
+The `filename` parameter must be specified for each entry, and determines the destination filename for the script.  If the user data is to be read from a file then the `path` parameter should be specified to indicate where the file is to be read from.
+
+The scripts will be encoded into a gzipped, base64 encoded multipart mime message and added as user data when launching the instance.
+
 ## Proxy support
 
 If running Kitchen on a private subnet with no public IPs permitted, it may be necessary to connect to the OCI API via a web proxy.  The proxy URL can either be specified on the command line:
@@ -133,6 +159,64 @@ transport:
   ssh_http_proxy_user: <proxy_user>
   ssh_http_proxy_password: <proxy_password>
 ```
+
+## Windows support
+
+When launching Oracle provided Windows images, it may be helpful to allow Kitchen-oci to inject powershell to configure WinRM and to set a randomized password that does not need to be changed on first login.  If the `setup_winrm` parameter is set to true then the following steps will happen:
+
+  - A random password will be generated and stored into the Kitchen state
+  - A powershell script will be generated which sets the password for whatever username is defined in the transport section.
+  - The script, along with any other user data, will be added to the user data and passed to the new instance.
+  - The random password will be injected into the WinRM transport.
+
+Make sure that the transport name is set to `winrm` and that the os\_type in the driver is set to `windows`.  See the following example.
+
+Full example (.kitchen.yml):
+
+```
+---
+driver:
+  name: oci
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: windows
+    os_type: windows
+    driver:
+      # These are mandatory
+      compartment_id: ocid1.compartment.oc1..aaaaaaaa...
+      availability_domain: UhTe:PHX-AD-1
+      image_id: ocid1.image.oc1.phx.aaaaaaaa...
+      shape: VM.Standard2.2
+      subnet_id: ocid1.subnet.oc1.phx.aaaaaaaa...
+
+      # These are optional
+      use_private_ip: false
+      oci_config_file: ~/.oci/config
+      oci_profile_name: DEFAULT
+      ssh_keypath: "/home/<user>/.ssh/id_rsa.pub"
+      setup_winrm: true
+    transport:
+      name: winrm
+      username: opc
+
+suites:
+  - name: default
+    run_list:
+      - recipe[my_cookbook::default]
+    verifier:
+      inspec_tests:
+        - test/smoke/default
+    attributes:
+```
+
+## Maintainer
 
 Created and maintained by Stephen Pearson (<stephen.pearson@oracle.com>)
 

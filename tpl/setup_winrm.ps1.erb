@@ -1,0 +1,25 @@
+#ps1_sysnative
+
+Write-Output "Setting <%= state[:username] %> password"
+net user <%= state[:username] %> '<%= state[:password] %>'
+
+Write-Output "Configuring WinRM"
+Set-NetFirewallRule -Name "WINRM-HTTP-In-TCP" -RemoteAddress Any
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm quickconfig -quiet
+Enable-PSRemoting -Force
+
+winrm set winrm/config/client/auth '@{Basic="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="300"}'
+winrm set winrm/config '@{MaxTimeoutms="1800000"}'
+
+netsh advfirewall firewall add rule name="WinRM HTTP" protocol=TCP dir=in profile=any localport=5985 remoteip=any localip=any action=allow
+netsh advfirewall firewall add rule name="WinRM HTTPS" protocol=TCP dir=in profile=any localport=5986 remoteip=any localip=any action=allow
+
+net stop winrm
+sc.exe config winrm start=auto
+net start winrm
+
+Write-Output "Configured WinRM"

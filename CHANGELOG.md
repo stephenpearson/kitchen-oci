@@ -1,3 +1,5 @@
-## 0.1.0 / Unreleased
+## 1.5.0 Windows support
 
-* Initial release
+- Added cloud-init support.
+- Added support for Windows targets.
+  - Can inject powershell script to set a random password and enable WinRM
