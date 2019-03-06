@@ -160,7 +160,7 @@ transport:
   ssh_http_proxy_password: <proxy_password>
 ```
 
-## Windows support
+## Windows Support
 
 When launching Oracle provided Windows images, it may be helpful to allow Kitchen-oci to inject powershell to configure WinRM and to set a randomized password that does not need to be changed on first login.  If the `setup_winrm` parameter is set to true then the following steps will happen:
 
@@ -201,10 +201,12 @@ platforms:
       oci_config_file: ~/.oci/config
       oci_profile_name: DEFAULT
       ssh_keypath: "/home/<user>/.ssh/id_rsa.pub"
+
+      # This optional, but for Windows only
       setup_winrm: true
+      winrm_username: opc
     transport:
       name: winrm
-      username: opc
 
 suites:
   - name: default

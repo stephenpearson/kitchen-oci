@@ -47,15 +47,20 @@ module Kitchen
       default_config :setup_winrm, false
       default_config :winrm_user, 'opc'
 
+      def process_windows_options(state)
+        state[:username] = config[:winrm_user] if config[:setup_winrm]
+        if config[:setup_winrm] == true &&
+           config[:password].nil? &&
+           state[:password].nil?
+          state[:password] = random_password
+        end
+        state
+      end
+
       def create(state) # rubocop:disable Metrics/AbcSize
         return if state[:server_id]
 
-        state[:username] = config[:winrm_user] if config[:setup_winrm]
-        if config[:setup_winrm] == true and
-          config[:password].nil? and
-          state[:password].nil?
-          state[:password] = random_password
-        end
+        state = process_windows_options(state)
 
         instance_id = launch_instance(state)
         state[:server_id] = instance_id
@@ -106,6 +111,7 @@ module Kitchen
       def api_proxy
         prx = proxy_config
         return nil unless prx
+
         if prx.user
           OCI::ApiClientProxySettings.new(prx.host, prx.port, prx.user,
                                           prx.password)
@@ -148,7 +154,9 @@ module Kitchen
           config[:compartment_id],
           instance_id: instance_id
         ).data
+
         raise 'Could not find any VNIC attachments' unless att.any?
+
         att
       end
 
@@ -193,62 +201,72 @@ module Kitchen
       end
 
       def winrm_ps1(state)
-        tpl = ERB.new File.read(File.join(__dir__,
-          %w[.. .. .. tpl setup_winrm.ps1.erb]))
+        filename = File.join(__dir__, %w[.. .. .. tpl setup_winrm.ps1.erb])
+        tpl = ERB.new(File.read(filename))
         tpl.result(binding)
+      end
+
+      def read_part(part)
+        if part[:path]
+          content = File.read part[:path]
+        elsif m[:inline]
+          content = part[:inline]
+        else
+          raise 'Invalid user data'
+        end
+        content.split("\n")
+      end
+
+      def mime_parts(boundary) # rubocop:disable Metrics/AbcSize
+        msg = []
+        config[:user_data].each do |m|
+          msg << "--#{boundary}"
+          msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
+          msg << 'Content-Transfer-Encoding: 7bit'
+          msg << "Content-Type: text/#{m[:type]}" << 'Mime-Version: 1.0' << ''
+          msg << read_part(m) << ''
+        end
+        msg << "--#{boundary}--"
+        msg
       end
 
       def user_data
         boundary = "MIMEBOUNDARY_#{random_string(20)}"
-        msg = [
-          "Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
-          'MIME-Version: 1.0',
-          ''
-        ]
-        config[:user_data].each do |m|
-          if m[:path]
-            part = File.read m[:path]
-          elsif m[:inline]
-            part = m[:inline]
-          else
-            raise 'Invalid user data'
-          end
-          msg << "--#{boundary}"
-          msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
-          msg << "Content-Transfer-Encoding: 7bit"
-          msg << "Content-Type: text/#{m[:type]}"
-          msg << "Mime-Version: 1.0"
-          msg << ""
-          msg << part.split("\n")
-          msg << ""
-        end
-        msg << "--#{boundary}--"
-
+        msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
+               'MIME-Version: 1.0', '']
+        msg += mime_parts(boundary)
         txt = msg.join("\n") + "\n"
         gzip = Zlib::GzipWriter.new(StringIO.new)
         gzip << txt
-        Base64.encode64(gzip.close.string).gsub("\n", '')
+        Base64.encode64(gzip.close.string).delete("\n")
       end
 
-      def compute_instance_request(state) # rubocop:disable Metrics/AbcSize
-        hostname = random_hostname(instance.name)
+      def inject_powershell(state)
+        data = winrm_ps1(state)
+        config[:user_data] ||= []
+        config[:user_data] << {
+          type: 'x-shellscript',
+          inline: data,
+          filename: 'setup_winrm.ps1'
+        }
+      end
+
+      def base_oci_launch_details
         request = OCI::Core::Models::LaunchInstanceDetails.new
+        hostname = random_hostname(instance.name)
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = hostname
         request.source_details = instance_source_details
         request.shape = config[:shape]
         request.create_vnic_details = create_vnic_details(hostname)
+        request
+      end
 
-        if config[:setup_winrm] == true
-          data = winrm_ps1(state)
-          config[:user_data] ||= []
-          config[:user_data] << {
-            type: 'x-shellscript',
-            inline: data,
-            filename: 'setup_winrm.ps1'
-          }
-        end
+      def compute_instance_request(state)
+        request = base_oci_launch_details
+
+        inject_powershell(state) if config[:setup_winrm] == true
 
         metadata = {}
         metadata.store('ssh_authorized_keys', pubkey)
@@ -262,11 +280,11 @@ module Kitchen
         "#{prefix}-#{random_string(6)}"
       end
 
-      def random_password
-        ( 5.times.map {%w[! " # & ( ) * + , - . /].sample} +
-          5.times.map {('a'..'z').to_a.sample} +
-          5.times.map {('A'..'Z').to_a.sample} +
-          5.times.map {('0'..'9').to_a.sample}).shuffle.join
+      def random_password # rubocop:disable Metrics/AbcSize
+        (Array.new(5) { %w[! " # & ( ) * + , - . /].sample } +
+         Array.new(5) { ('a'..'z').to_a.sample } +
+         Array.new(5) { ('A'..'Z').to_a.sample } +
+         Array.new(5) { ('0'..'9').to_a.sample }).shuffle.join
       end
 
       def random_string(length)
