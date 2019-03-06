@@ -3,7 +3,7 @@
 #
 # Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
 #
-# Copyright (C) 2017, Stephen Pearson
+# Copyright (C) 2019, Stephen Pearson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'base64'
+require 'erb'
 require 'kitchen'
 require 'oci'
 require 'uri'
+require 'zlib'
 
 module Kitchen
   module Driver
@@ -40,11 +43,26 @@ module Kitchen
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
       default_config :proxy_url, nil
+      default_config :user_data, []
+      default_config :setup_winrm, false
+      default_config :winrm_user, 'opc'
+
+      def process_windows_options(state)
+        state[:username] = config[:winrm_user] if config[:setup_winrm]
+        if config[:setup_winrm] == true &&
+           config[:password].nil? &&
+           state[:password].nil?
+          state[:password] = random_password
+        end
+        state
+      end
 
       def create(state) # rubocop:disable Metrics/AbcSize
         return if state[:server_id]
 
-        instance_id = launch_instance
+        state = process_windows_options(state)
+
+        instance_id = launch_instance(state)
         state[:server_id] = instance_id
         state[:hostname] = instance_ip(instance_id)
 
@@ -93,6 +111,7 @@ module Kitchen
       def api_proxy
         prx = proxy_config
         return nil unless prx
+
         if prx.user
           OCI::ApiClientProxySettings.new(prx.host, prx.port, prx.user,
                                           prx.password)
@@ -118,8 +137,8 @@ module Kitchen
         generic_api(OCI::Core::VirtualNetworkClient)
       end
 
-      def launch_instance
-        request = compute_instance_request
+      def launch_instance(state)
+        request = compute_instance_request(state)
 
         response = comp_api.launch_instance(request)
         instance_id = response.data.id
@@ -135,7 +154,9 @@ module Kitchen
           config[:compartment_id],
           instance_id: instance_id
         ).data
+
         raise 'Could not find any VNIC attachments' unless att.any?
+
         att
       end
 
@@ -179,22 +200,95 @@ module Kitchen
         )
       end
 
-      def compute_instance_request # rubocop:disable Metrics/AbcSize
-        hostname = random_hostname(instance.name)
+      def winrm_ps1(state)
+        filename = File.join(__dir__, %w[.. .. .. tpl setup_winrm.ps1.erb])
+        tpl = ERB.new(File.read(filename))
+        tpl.result(binding)
+      end
+
+      def read_part(part)
+        if part[:path]
+          content = File.read part[:path]
+        elsif part[:inline]
+          content = part[:inline]
+        else
+          raise 'Invalid user data'
+        end
+        content.split("\n")
+      end
+
+      def mime_parts(boundary) # rubocop:disable Metrics/AbcSize
+        msg = []
+        config[:user_data].each do |m|
+          msg << "--#{boundary}"
+          msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
+          msg << 'Content-Transfer-Encoding: 7bit'
+          msg << "Content-Type: text/#{m[:type]}" << 'Mime-Version: 1.0' << ''
+          msg << read_part(m) << ''
+        end
+        msg << "--#{boundary}--"
+        msg
+      end
+
+      def user_data
+        boundary = "MIMEBOUNDARY_#{random_string(20)}"
+        msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
+               'MIME-Version: 1.0', '']
+        msg += mime_parts(boundary)
+        txt = msg.join("\n") + "\n"
+        gzip = Zlib::GzipWriter.new(StringIO.new)
+        gzip << txt
+        Base64.encode64(gzip.close.string).delete("\n")
+      end
+
+      def inject_powershell(state)
+        data = winrm_ps1(state)
+        config[:user_data] ||= []
+        config[:user_data] << {
+          type: 'x-shellscript',
+          inline: data,
+          filename: 'setup_winrm.ps1'
+        }
+      end
+
+      def base_oci_launch_details
         request = OCI::Core::Models::LaunchInstanceDetails.new
+        hostname = random_hostname(instance.name)
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = hostname
         request.source_details = instance_source_details
         request.shape = config[:shape]
         request.create_vnic_details = create_vnic_details(hostname)
-        request.metadata = { 'ssh_authorized_keys' => pubkey }
+        request
+      end
+
+      def compute_instance_request(state)
+        request = base_oci_launch_details
+
+        inject_powershell(state) if config[:setup_winrm] == true
+
+        metadata = {}
+        metadata.store('ssh_authorized_keys', pubkey)
+        data = user_data
+        metadata.store('user_data', data) if config[:user_data].any?
+        request.metadata = metadata
         request
       end
 
       def random_hostname(prefix)
-        randstr = Array.new(6) { ('a'..'z').to_a.sample }.join
-        "#{prefix}-#{randstr}"
+        "#{prefix}-#{random_string(6)}"
+      end
+
+      def random_password # rubocop:disable Metrics/AbcSize
+        (Array.new(5) { %w[! " # & ( ) * + , - . /].sample } +
+         Array.new(5) { ('a'..'z').to_a.sample } +
+         Array.new(5) { ('A'..'Z').to_a.sample } +
+         Array.new(5) { ('0'..'9').to_a.sample }).shuffle.join
+      end
+
+      def random_string(length)
+        Array.new(length) { ('a'..'z').to_a.sample }.join
       end
     end
   end
