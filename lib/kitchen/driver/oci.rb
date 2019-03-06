@@ -209,7 +209,7 @@ module Kitchen
       def read_part(part)
         if part[:path]
           content = File.read part[:path]
-        elsif m[:inline]
+        elsif part[:inline]
           content = part[:inline]
         else
           raise 'Invalid user data'
