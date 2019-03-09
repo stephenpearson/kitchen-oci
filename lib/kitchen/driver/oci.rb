@@ -46,13 +46,14 @@ module Kitchen
       default_config :user_data, []
       default_config :setup_winrm, false
       default_config :winrm_user, 'opc'
+      default_config :winrm_password, nil
 
       def process_windows_options(state)
         state[:username] = config[:winrm_user] if config[:setup_winrm]
         if config[:setup_winrm] == true &&
            config[:password].nil? &&
            state[:password].nil?
-          state[:password] = random_password
+          state[:password] = config[:winrm_password] || random_password
         end
         state
       end
