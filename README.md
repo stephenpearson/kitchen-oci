@@ -66,6 +66,7 @@ Optional settings for WinRM support in Windows:
 
    - setup\_winrm, Inject Windows powershell to set password and enable WinRM, default false.
    - winrm\_username, Used to set the WinRM transport username, defaults to 'opc'.
+   - winrm\_password, Set the winrm password.  By default a randomly generated password will be used, so don't set this unless you have to.  Beware that the password must meet the Windows password complexity requirements otherwise the bootstrapping procedure will fail silently and Kitchen will eventually time out.
 
 The use\_private\_ip influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
 
