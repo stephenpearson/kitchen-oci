@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This require fixes bug in ChefDK 4.0.60-1 on Linux.
+require 'forwardable'
+
 require 'base64'
 require 'erb'
 require 'kitchen'
