@@ -61,7 +61,7 @@ These settings are optional:
    - post\_create\_script, run a script on compute\_instance after deployment
    - proxy\_url, Connect via the specified proxy URL
    - user\_data, Add user data scripts
-   - hostname\_prefix, Prefix for the generated hostnames
+   - hostname\_prefix, Prefix for the generated hostnames (note that OCI doesn't like underscores)
 
 Optional settings for WinRM support in Windows:
 
