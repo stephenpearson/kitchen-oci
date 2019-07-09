@@ -48,6 +48,7 @@ module Kitchen
       default_config :post_create_script, nil
       default_config :proxy_url, nil
       default_config :user_data, []
+      default_config :freeform_tags, {}
       default_config :setup_winrm, false
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
@@ -266,11 +267,13 @@ module Kitchen
         request.source_details = instance_source_details
         request.shape = config[:shape]
         request.create_vnic_details = create_vnic_details(hostname)
+        request.freeform_tags = config[:freeform_tags]
         request
       end
 
       def compute_instance_request(state)
         request = base_oci_launch_details
+
 
         inject_powershell(state) if config[:setup_winrm] == true
 
