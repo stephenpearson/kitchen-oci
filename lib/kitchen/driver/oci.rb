@@ -42,6 +42,7 @@ module Kitchen
       default_config :use_private_ip, false
       default_config :oci_config_file, nil
       default_config :oci_profile_name, nil
+      default_config :hostname_prefix, ""
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
@@ -257,7 +258,8 @@ module Kitchen
 
       def base_oci_launch_details
         request = OCI::Core::Models::LaunchInstanceDetails.new
-        hostname = random_hostname(instance.name)
+        prefix = config[:hostname_prefix]
+        hostname = random_hostname(prefix + instance.name)
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = hostname
