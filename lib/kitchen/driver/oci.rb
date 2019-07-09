@@ -259,7 +259,7 @@ module Kitchen
       def base_oci_launch_details
         request = OCI::Core::Models::LaunchInstanceDetails.new
         prefix = config[:hostname_prefix]
-        hostname = random_hostname(prefix + instance.name)
+        hostname = random_hostname(prefix + '-' + instance.name)
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = hostname
