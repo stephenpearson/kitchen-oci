@@ -53,6 +53,18 @@ module Kitchen
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
 
+      def process_freeform_tags(freeform_tags)
+        prov = instance.provisioner.instance_variable_get(:@config)
+        tags = ['run_list' , 'policyfile']
+        tags.each do |tag|
+          if prov[tag.to_sym] != nil && prov[tag.to_sym].empty? == false
+            freeform_tags[tag] = prov[tag.to_sym].join(',')
+          end
+        end
+        freeform_tags[:kitchen] = true
+        freeform_tags
+      end
+
       def process_windows_options(state)
         state[:username] = config[:winrm_user] if config[:setup_winrm]
         if config[:setup_winrm] == true &&
@@ -260,14 +272,19 @@ module Kitchen
       def base_oci_launch_details
         request = OCI::Core::Models::LaunchInstanceDetails.new
         prefix = config[:hostname_prefix]
-        hostname = random_hostname(prefix + '-' + instance.name)
+        if prefix.empty?
+          hostname = random_hostname(instance.name)
+        else
+          hostname = random_hostname(prefix + '-' + instance.name)
+        end
+
         request.availability_domain = config[:availability_domain]
         request.compartment_id = config[:compartment_id]
         request.display_name = hostname
         request.source_details = instance_source_details
         request.shape = config[:shape]
         request.create_vnic_details = create_vnic_details(hostname)
-        request.freeform_tags = config[:freeform_tags]
+        request.freeform_tags = process_freeform_tags(config[:freeform_tags])
         request
       end
 
