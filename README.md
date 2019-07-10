@@ -62,6 +62,7 @@ These settings are optional:
    - proxy\_url, Connect via the specified proxy URL
    - user\_data, Add user data scripts
    - hostname\_prefix, Prefix for the generated hostnames (note that OCI doesn't like underscores)
+   - freeform\_tags, Hash containing tag name(s) and values(s)
 
 Optional settings for WinRM support in Windows:
 
