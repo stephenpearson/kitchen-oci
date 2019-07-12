@@ -17,6 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# rubocop:disable Metrics/AbcSize
+
 # This require fixes bug in ChefDK 4.0.60-1 on Linux.
 require 'forwardable'
 
@@ -42,7 +44,7 @@ module Kitchen
       default_config :use_private_ip, false
       default_config :oci_config_file, nil
       default_config :oci_profile_name, nil
-      default_config :hostname_prefix, ""
+      default_config :hostname_prefix, nil
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
@@ -55,9 +57,9 @@ module Kitchen
 
       def process_freeform_tags(freeform_tags)
         prov = instance.provisioner.instance_variable_get(:@config)
-        tags = ['run_list' , 'policyfile']
+        tags = %w[run_list policyfile]
         tags.each do |tag|
-          if prov[tag.to_sym] != nil && prov[tag.to_sym].empty? == false
+          unless prov[tag.to_sym].nil? || prov[tag.to_sym].empty?
             freeform_tags[tag] = prov[tag.to_sym].join(',')
           end
         end
@@ -75,7 +77,7 @@ module Kitchen
         state
       end
 
-      def create(state) # rubocop:disable Metrics/AbcSize
+      def create(state)
         return if state[:server_id]
 
         state = process_windows_options(state)
@@ -235,7 +237,7 @@ module Kitchen
         content.split("\n")
       end
 
-      def mime_parts(boundary) # rubocop:disable Metrics/AbcSize
+      def mime_parts(boundary)
         msg = []
         config[:user_data].each do |m|
           msg << "--#{boundary}"
@@ -269,28 +271,26 @@ module Kitchen
         }
       end
 
-      def base_oci_launch_details
-        request = OCI::Core::Models::LaunchInstanceDetails.new
+      def generate_hostname
         prefix = config[:hostname_prefix]
-        if prefix.empty?
-          hostname = random_hostname(instance.name)
-        else
-          hostname = random_hostname(prefix + '-' + instance.name)
-        end
+        [prefix, random_hostname(instance.name)].compact.join('-')
+      end
 
-        request.availability_domain = config[:availability_domain]
-        request.compartment_id = config[:compartment_id]
-        request.display_name = hostname
-        request.source_details = instance_source_details
-        request.shape = config[:shape]
-        request.create_vnic_details = create_vnic_details(hostname)
-        request.freeform_tags = process_freeform_tags(config[:freeform_tags])
-        request
+      def base_oci_launch_details
+        OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
+          hostname = generate_hostname
+          l.availability_domain = config[:availability_domain]
+          l.compartment_id = config[:compartment_id]
+          l.display_name = hostname
+          l.source_details = instance_source_details
+          l.shape = config[:shape]
+          l.create_vnic_details = create_vnic_details(hostname)
+          l.freeform_tags = process_freeform_tags(config[:freeform_tags])
+        end
       end
 
       def compute_instance_request(state)
         request = base_oci_launch_details
-
 
         inject_powershell(state) if config[:setup_winrm] == true
 
@@ -306,7 +306,7 @@ module Kitchen
         "#{prefix}-#{random_string(6)}"
       end
 
-      def random_password # rubocop:disable Metrics/AbcSize
+      def random_password
         (Array.new(5) { %w[! " # & ( ) * + , - . /].sample } +
          Array.new(5) { ('a'..'z').to_a.sample } +
          Array.new(5) { ('A'..'Z').to_a.sample } +
@@ -319,3 +319,5 @@ module Kitchen
     end
   end
 end
+
+# rubocop:enable Metrics/AbcSize
