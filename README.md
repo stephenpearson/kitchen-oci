@@ -10,7 +10,7 @@ overridden in .kitchen.yml.
 
 You need to create suitable configuration for OCI in ~/.oci/config and this
 can be created using the CLI:
-```
+```bash
 oci setup config
 ```
 
@@ -20,23 +20,29 @@ pull the Chef binaries.
 
 ## Building the gem
 
-```
+```bash
 rake build
 ```
 
 ## Installing the gem
 
-You must install the gem into whatever Ruby is used to run knife.  On a
+You must install the gem into whatever Ruby is used to run kitchen.  On a
 workstation this will likely be the ChefDK environment.  To switch to
 ChefDK if you haven't already:
 
-```
+```bash
 eval "$(chef shell-init bash)"
 ```
 
-Then install the package you built earlier:
+You can install the gem from RubyGems.org with:
 
+```bash
+gem install kitchen-oci
 ```
+
+To install a gem you built yourself:
+
+```bash
 gem install pkg/kitchen-oci-<VERSION>.gem
 ```
 
@@ -74,7 +80,7 @@ The use\_private\_ip influences whether the public or private IP will be used by
 
 If the subnet\_id refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the use\_private\_ip flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the use\_private\_ip flag can still be used to override whether the private or public IP will be used.
 
-```
+```yml
 ---
 driver:
   name: oci
@@ -120,7 +126,7 @@ suites:
 
 The driver has support for adding user data that can be executed as scripts by cloud-init.  These can either be specified inline or by referencing a file.  Examples:
 
-```
+```yml
       user_data:
         - type: x-shellscript
           inline: |
@@ -139,14 +145,14 @@ The scripts will be encoded into a gzipped, base64 encoded multipart mime messag
 ## Proxy support
 
 If running Kitchen on a private subnet with no public IPs permitted, it may be necessary to connect to the OCI API via a web proxy.  The proxy URL can either be specified on the command line:
-```
+```bash
 # With authentication
 export http_proxy=http://<proxy_user>:<proxy_password>@<proxy_host>:<proxy_port>"
 # Without authentication
 export http_proxy=http://<proxy_host>:<proxy_port>"
 ```
 .. or if preferred in the cookbook's .kitchen.yml file.
-```
+```yml
 driver:
   ...
   proxy_url: "http://<proxy_user>:<proxy_password>@<proxy_host>:<proxy_port>"
@@ -154,7 +160,7 @@ driver:
 
 The SSH transport can also be tunneled via the web proxy using the CONNECT http method, but note that this is not handled by the kitchen-oci gem.  Configuration is provided here for convenience only:
 
-```
+```yml
 transport:
   username: "<os_username>"
   ssh_http_proxy: "<proxy_host>"
@@ -176,7 +182,7 @@ Make sure that the transport name is set to `winrm` and that the os\_type in the
 
 Full example (.kitchen.yml):
 
-```
+```yml
 ---
 driver:
   name: oci
