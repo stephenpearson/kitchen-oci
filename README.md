@@ -1,6 +1,6 @@
 # Kitchen::OCI
 
-A Test Kitchen Driver for Oracle Bare Metal Cloud
+A Test Kitchen Driver for Oracle Cloud Infrastructure (OCI)
 
 ## Prerequisites
 
