@@ -20,6 +20,9 @@ pull the Chef binaries.
 
 ## Building the gem
 
+This step is only necessary if you wish to make local modifications.  The gem
+has already been published to rubygems.org.
+
 ```bash
 rake build
 ```
@@ -69,6 +72,7 @@ These settings are optional:
    - user\_data, Add user data scripts
    - hostname\_prefix, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - freeform\_tags, Hash containing tag name(s) and values(s)
+   - use\_instance\_principals, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
 
 Optional settings for WinRM support in Windows:
 
@@ -120,6 +124,19 @@ suites:
       inspec_tests:
         - test/smoke/default
     attributes:
+```
+
+## Instance Principals
+
+If you are launching Kitchen from a compute instance running in OCI then you might prefer to use Instance Principals to authenticate to the OCI APIs.  To set this up you can omit the `oci_config_file` and `oci_profile_name` settings and insert `use_instance_principals: true` into your .kitchen.yml instead.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      use_instance_principals: true
+      ...
 ```
 
 ## Support for user data scripts and cloud-init
