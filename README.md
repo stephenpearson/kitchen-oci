@@ -130,14 +130,6 @@ suites:
 
 If you are launching Kitchen from a compute instance running in OCI then you might prefer to use Instance Principals to authenticate to the OCI APIs.  To set this up you can omit the `oci_config_file` and `oci_profile_name` settings and insert `use_instance_principals: true` into your .kitchen.yml instead.
 
-__Important__: If you want to configure a proxy when using Instance Principals, ensure you define the `no_proxy` environment variable so that all link-local access bypasses the proxy.  For example:
-
-```sh
-export no_proxy=169.254.0.0/16
-```
-
-This will allow the OCI lib to retrieve the certificate, key and ca-chain from the metadata service.
-
 ```yml
 platforms:
   - name: ubuntu-18.04
@@ -146,6 +138,14 @@ platforms:
       use_instance_principals: true
       ...
 ```
+
+__Important__: If you want to configure a proxy when using Instance Principals, ensure you define the `no_proxy` environment variable so that all link-local access bypasses the proxy.  For example:
+
+```sh
+export no_proxy=169.254.0.0/16
+```
+
+This will allow the OCI lib to retrieve the certificate, key and ca-chain from the metadata service.
 
 ## Support for user data scripts and cloud-init
 
