@@ -1,8 +1,10 @@
 
-## 2.0.0 Freeform tags
+## 2.0.0 DBaaS support
 - Added support for DBaaS.
   - instance_type is new required parameter (compute or dbaas)
 
+## 1.9.0 Use instance principals
+- Added support for `use_instance_principals`
 
 ## 1.8.0 Freeform tags
 - Added optional parameter `freeform_tags`
