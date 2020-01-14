@@ -65,6 +65,7 @@ module Kitchen
       default_config :database_edition, OCI::Database::Models::DbSystem::DATABASE_EDITION_ENTERPRISE_EDITION
       default_config :license_model, OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
       default_config :db_name, nil
+      default_config :pdb_name, nil
       default_config :admin_password, nil
       default_config :db_version, nil
       default_config :storage_management, 'ASM'

@@ -102,6 +102,7 @@ The following is a list of optional items for the DBaaS `instance_type`:
    - `database_edition`, The edition of the Oracle database software to be installed.  Default value is ENTERPRISE_EDITION
    - `license_model`, The licensing model for the Oracle database software.  Default value is BRING_YOUR_OWN_LICENSE
    - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric.  Default value is nil (OCI will assign at random)
+   - `pdb_name`, The name of the pdb to be provisioned.  Only valid if `db_version` is 12cR1 or higher.  Default value is nil (OCI will create a single pdb with the name `db_name`\_PDB1)
    - `admin_password`, The SYS password of the database to be provisioned.  Password must be 9 to 30 characters and contain at least 2 uppercase, 2 lowercase, 2 special, and 2 numeric characters. The special characters must be `_`, `#`, or `-`.  Default value will be a randomly generated password
    - `db_version`, The specific version of the Oracle database software to be installed. Values can be at either the major version level (eg. 12.1.0.2) or at a PSU level (eg. 12.1.0.2.191015). If no PSU is provided, the latest available will be installed.
    - `storage_management`, The storage method for database files. Acceptable values are 'ASM' or 'LVM'.  Default value is 'ASM'
@@ -111,6 +112,7 @@ The following is a list of optional items for the DBaaS `instance_type`:
    - `db_workload`, The desired workload configuration for the database.  Acceptable values are 'OLTP' and 'DSS'.  Default value is 'OLTP'
 
 Note: At this time, `node_count` is forced to be 1.  RAC provisioning is not supported.
+
 ```yml
 ---
 driver:
@@ -225,7 +227,7 @@ See also the section above on Instance Principals if you plan to use a proxy in 
 
 ## Windows Support
 
-When launching Oracle provided Windows images, it may be helpful to allow Kitchen-oci to inject powershell to configure WinRM and to set a randomized password that does not need to be changed on first login.  If the `setup_winrm` parameter is set to true then the following steps will happen:
+When launching Oracle provided Windows images, it may be helpful to allow kitchen-oci to inject powershell to configure WinRM and to set a randomized password that does not need to be changed on first login.  If the `setup_winrm` parameter is set to true then the following steps will happen:
 
   - A random password will be generated and stored into the Kitchen state
   - A powershell script will be generated which sets the password for whatever username is defined in the transport section.
@@ -233,6 +235,23 @@ When launching Oracle provided Windows images, it may be helpful to allow Kitche
   - The random password will be injected into the WinRM transport.
 
 Make sure that the transport name is set to `winrm` and that the os\_type in the driver is set to `windows`.  See the following example.
+
+## DBaaS Support
+The driver has support for provisioning DBaaS. Examples:
+```yml
+  driver:
+    name: oci
+    instance_type: dbaas
+    hostname_prefix: "<hostname prefix>"
+    compartment_id: "ocid1.compartment.oc1..aaaaaaaa..."
+    availability_domain: UhTe:PHX-AD-1
+    shape: VM.Standard2.8
+    cpu_core_count: 16
+    db_name: <db name>
+    pdb_name: <pdb name>
+    db_version: "12.1.0.2.190416"
+    subnet_id: "ocid1.subnet.oc1.iad.aaaaaaaa..."
+```
 
 Full example (.kitchen.yml):
 
