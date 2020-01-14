@@ -58,6 +58,7 @@ module Kitchen
       default_config :setup_winrm, false
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
+      default_config :use_instance_principals, false
 
       # dbaas config items
       default_config :cpu_core_count, 2
@@ -169,11 +170,14 @@ module Kitchen
       #############
       def generic_api(klass)
         api_prx = api_proxy
-        if api_prx
-          klass.new(config: oci_config, proxy_settings: api_prx)
+        if config[:use_instance_principals]
+          sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
+          params = { signer: sign }
         else
-          klass.new(config: oci_config)
+          params = { config: oci_config }
         end
+        params[:proxy_settings] = api_prx if api_prx
+        klass.new(**params)
       end
 
       def comp_api

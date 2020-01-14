@@ -20,6 +20,9 @@ pull the Chef binaries.
 
 ## Building the gem
 
+This step is only necessary if you wish to make local modifications.  The gem
+has already been published to rubygems.org.
+
 ```bash
 rake build
 ```
@@ -79,6 +82,7 @@ These settings are optional:
    - `user_data`, Add user data scripts
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `freeform_tags`, Hash containing tag name(s) and values(s)
+   - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
 
 Optional settings for WinRM support in Windows:
 
@@ -149,6 +153,27 @@ suites:
     attributes:
 ```
 
+## Instance Principals
+
+If you are launching Kitchen from a compute instance running in OCI then you might prefer to use Instance Principals to authenticate to the OCI APIs.  To set this up you can omit the `oci_config_file` and `oci_profile_name` settings and insert `use_instance_principals: true` into your .kitchen.yml instead.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      use_instance_principals: true
+      ...
+```
+
+__Important__: If you want to configure a proxy when using Instance Principals, ensure you define the `no_proxy` environment variable so that all link-local access bypasses the proxy.  For example:
+
+```sh
+export no_proxy=169.254.0.0/16
+```
+
+This will allow the OCI lib to retrieve the certificate, key and ca-chain from the metadata service.
+
 ## Support for user data scripts and cloud-init
 
 The driver has support for adding user data that can be executed as scripts by cloud-init.  These can either be specified inline or by referencing a file.  Examples:
@@ -195,6 +220,8 @@ transport:
   ssh_http_proxy_user: <proxy_user>
   ssh_http_proxy_password: <proxy_password>
 ```
+
+See also the section above on Instance Principals if you plan to use a proxy in conjunction with a proxy.  The proxy needs to be avoided when accessing the metadata address.
 
 ## Windows Support
 
