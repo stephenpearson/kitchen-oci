@@ -1,0 +1,8 @@
+Style/MutableConstant:
+    Enabled : false
+
+Metrics/LineLength:
+    Max : 125
+
+Style/NumericLiterals:
+    Enabled : false

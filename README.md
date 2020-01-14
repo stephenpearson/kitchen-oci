@@ -48,38 +48,65 @@ gem install pkg/kitchen-oci-<VERSION>.gem
 
 ## Example .kitchen.yml
 
-Adjust below template as required.  The following configuration is mandatory:
+Adjust below template as required.  The following configuration is mandatory for all instance types:
 
-   - compartment\_id
-   - availability\_domain
-   - image\_id
-   - shape
-   - subnet\_id
+   - `instance_type`
+   - `compartment_id`
+   - `availability_domain`
+   - `shape`
+   - `subnet_id`
+
+`instance_type` is a mandatory item with permitted values of:
+   - compute
+   - dbaas
 
 Note: The availability domain should be the full AD name including the tenancy specific prefix.  For example: "AaBb:US-ASHBURN-AD-1".  Look in the OCI console to get your tenancy specific string.
 
+### Compute Instance Type
+
+The following configuration is mandatory:
+
+   - `image_id`
+
 These settings are optional:
 
-   - use\_private\_ip, Whether to connect to the instance using a private IP, default is false (public ip)
-   - oci\_config\_file, OCI configuration file, by default this is ~/.oci/config
-   - oci\_profile\_name, OCI profile to use, default value is "DEFAULT"
-   - ssh\_keypath, SSH public key, default is ~/.ssh/id\_rsa.pub
-   - post\_create\_script, run a script on compute\_instance after deployment
-   - proxy\_url, Connect via the specified proxy URL
-   - user\_data, Add user data scripts
-   - hostname\_prefix, Prefix for the generated hostnames (note that OCI doesn't like underscores)
-   - freeform\_tags, Hash containing tag name(s) and values(s)
+   - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
+   - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
+   - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
+   - `ssh_keypath`, SSH public key, default is ~/.ssh/id\_rsa.pub
+   - `post_create_script`, run a script on compute\_instance after deployment
+   - `proxy_url`, Connect via the specified proxy URL
+   - `user_data`, Add user data scripts
+   - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
+   - `freeform_tags`, Hash containing tag name(s) and values(s)
 
 Optional settings for WinRM support in Windows:
 
-   - setup\_winrm, Inject Windows powershell to set password and enable WinRM, default false.
-   - winrm\_username, Used to set the WinRM transport username, defaults to 'opc'.
-   - winrm\_password, Set the winrm password.  By default a randomly generated password will be used, so don't set this unless you have to.  Beware that the password must meet the Windows password complexity requirements otherwise the bootstrapping procedure will fail silently and Kitchen will eventually time out.
+   - `setup_winrm`, Inject Windows powershell to set password and enable WinRM, default false.
+   - `winrm_username`, Used to set the WinRM transport username, defaults to 'opc'.
+   - `winrm_password`, Set the winrm password.  By default a randomly generated password will be used, so don't set this unless you have to.  Beware that the password must meet the Windows password complexity requirements otherwise the bootstrapping procedure will fail silently and Kitchen will eventually time out.
 
-The use\_private\_ip influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
+The `use_private_ip` influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
 
-If the subnet\_id refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the use\_private\_ip flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the use\_private\_ip flag can still be used to override whether the private or public IP will be used.
+If the `subnet_id` refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the `use_private_ip` flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the `use_private_ip` flag can still be used to override whether the private or public IP will be used.
 
+### DBaaS Instance Type
+
+The following is a list of optional items for the DBaaS `instance_type`:
+
+   - `cpu_core_count`, CPU core count for DBaaS nodes.  Default value is 2
+   - `database_edition`, The edition of the Oracle database software to be installed.  Default value is ENTERPRISE_EDITION
+   - `license_model`, The licensing model for the Oracle database software.  Default value is BRING_YOUR_OWN_LICENSE
+   - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric.  Default value is nil (OCI will assign at random)
+   - `admin_password`, The SYS password of the database to be provisioned.  Password must be 9 to 30 characters and contain at least 2 uppercase, 2 lowercase, 2 special, and 2 numeric characters. The special characters must be `_`, `#`, or `-`.  Default value will be a randomly generated password
+   - `db_version`, The specific version of the Oracle database software to be installed. Values can be at either the major version level (eg. 12.1.0.2) or at a PSU level (eg. 12.1.0.2.191015). If no PSU is provided, the latest available will be installed.
+   - `storage_management`, The storage method for database files. Acceptable values are 'ASM' or 'LVM'.  Default value is 'ASM'
+   - `initial_data_storage_size_in_gb`, The desired amount of database storage in GB.  Default value is 256
+   - `character_set`, The characterset of the database.  Default value is AL32UTF8
+   - `ncharacter_set`, The national characterset of the database.  Default value is AL16UTF16
+   - `db_workload`, The desired workload configuration for the database.  Acceptable values are 'OLTP' and 'DSS'.  Default value is 'OLTP'
+
+Note: At this time, `node_count` is forced to be 1.  RAC provisioning is not supported.
 ```yml
 ---
 driver:
