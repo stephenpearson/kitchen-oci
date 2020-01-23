@@ -53,15 +53,16 @@ gem install pkg/kitchen-oci-<VERSION>.gem
 
 Adjust below template as required.  The following configuration is mandatory for all instance types:
 
-   - `instance_type`
    - `compartment_id`
    - `availability_domain`
    - `shape`
    - `subnet_id`
 
-`instance_type` is a mandatory item with permitted values of:
-   - compute
-   - dbaas
+There is an additional configuration item that allows for toggling instance types.  If this item is not included, it defaults to `compute`.
+
+   - Permitted values of `instance_type`:
+      - compute
+      - dbaas
 
 Note: The availability domain should be the full AD name including the tenancy specific prefix.  For example: "AaBb:US-ASHBURN-AD-1".  Look in the OCI console to get your tenancy specific string.
 
@@ -96,16 +97,18 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
 
 ### DBaaS Instance Type
 
+The following configuration item is mandatory for the DBaaS `instance_type`:
+
+   - `db_version`, The specific version of the Oracle database software to be installed. Values can be at either the major version level (eg. 12.1.0.2) or at a PSU level (eg. 12.1.0.2.191015). If no PSU is provided, the latest available will be installed.
+
 The following is a list of optional items for the DBaaS `instance_type`:
 
    - `cpu_core_count`, CPU core count for DBaaS nodes.  Default value is 2
    - `database_edition`, The edition of the Oracle database software to be installed.  Default value is ENTERPRISE_EDITION
    - `license_model`, The licensing model for the Oracle database software.  Default value is BRING_YOUR_OWN_LICENSE
-   - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric.  Default value is nil (OCI will assign at random)
+   - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric.  Default value is `dbaas1`.
    - `pdb_name`, The name of the pdb to be provisioned.  Only valid if `db_version` is 12cR1 or higher.  Default value is nil (OCI will create a single pdb with the name `db_name`\_PDB1)
    - `admin_password`, The SYS password of the database to be provisioned.  Password must be 9 to 30 characters and contain at least 2 uppercase, 2 lowercase, 2 special, and 2 numeric characters. The special characters must be `_`, `#`, or `-`.  Default value will be a randomly generated password
-   - `db_version`, The specific version of the Oracle database software to be installed. Values can be at either the major version level (eg. 12.1.0.2) or at a PSU level (eg. 12.1.0.2.191015). If no PSU is provided, the latest available will be installed.
-   - `storage_management`, The storage method for database files. Acceptable values are 'ASM' or 'LVM'.  Default value is 'ASM'
    - `initial_data_storage_size_in_gb`, The desired amount of database storage in GB.  Default value is 256
    - `character_set`, The characterset of the database.  Default value is AL32UTF8
    - `ncharacter_set`, The national characterset of the database.  Default value is AL16UTF16
@@ -239,18 +242,13 @@ Make sure that the transport name is set to `winrm` and that the os\_type in the
 ## DBaaS Support
 The driver has support for provisioning DBaaS. Examples:
 ```yml
+---
   driver:
     name: oci
     instance_type: dbaas
-    hostname_prefix: "<hostname prefix>"
-    compartment_id: "ocid1.compartment.oc1..aaaaaaaa..."
-    availability_domain: UhTe:PHX-AD-1
-    shape: VM.Standard2.8
-    cpu_core_count: 16
-    db_name: <db name>
-    pdb_name: <pdb name>
-    db_version: "12.1.0.2.190416"
-    subnet_id: "ocid1.subnet.oc1.iad.aaaaaaaa..."
+    ...
+    dbaas:
+      db_version: "12.1.0.2.191015"
 ```
 
 Full example (.kitchen.yml):

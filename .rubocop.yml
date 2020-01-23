@@ -2,7 +2,7 @@ Style/MutableConstant:
     Enabled : false
 
 Metrics/LineLength:
-    Max : 125
+    Max : 150
 
 Style/NumericLiterals:
     Enabled : false

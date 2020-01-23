@@ -35,13 +35,13 @@ module Kitchen
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       # required config items
-      required_config :instance_type
       required_config :compartment_id
       required_config :availability_domain
       required_config :shape
       required_config :subnet_id
 
       # common config items
+      default_config :instance_type, 'compute'
       default_config :hostname_prefix, nil
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
       default_config :ssh_keypath, default_keypath
@@ -59,20 +59,6 @@ module Kitchen
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
       default_config :use_instance_principals, false
-
-      # dbaas config items
-      default_config :cpu_core_count, 2
-      default_config :database_edition, OCI::Database::Models::DbSystem::DATABASE_EDITION_ENTERPRISE_EDITION
-      default_config :license_model, OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
-      default_config :db_name, nil
-      default_config :pdb_name, nil
-      default_config :admin_password, nil
-      default_config :db_version, nil
-      default_config :storage_management, 'ASM'
-      default_config :initial_data_storage_size_in_gb, 256
-      default_config :character_set, 'AL32UTF8'
-      default_config :ncharacter_set, 'AL16UTF16'
-      default_config :db_workload, OCI::Database::Models::CreateDatabaseDetails::DB_WORKLOAD_OLTP
 
       def create(state)
         return if state[:server_id]
@@ -247,7 +233,7 @@ module Kitchen
       def random_password
         if instance_type == 'compute'
           special_chars = %w[! " # & ( ) * + , - . /]
-        elsif confit[:instance_type] == 'dbaas'
+        elsif instance_type == 'dbaas'
           special_chars = %w[# _ -]
         end
 
@@ -417,42 +403,54 @@ module Kitchen
       end
 
       def dbaas_launch_details # rubocop:disable Metrics/MethodLength
+        cpu_core_count = config[:dbaas][:cpu_core_count] ||= 2
+        database_edition = config[:dbaas][:database_edition] ||= OCI::Database::Models::DbSystem::DATABASE_EDITION_ENTERPRISE_EDITION
+        initial_data_storage_size_in_gb = config[:dbaas][:initial_data_storage_size_in_gb] ||= 256
+        license_model = config[:dbaas][:license_model] ||= OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
+
         OCI::Database::Models::LaunchDbSystemDetails.new.tap do |l|
           l.availability_domain = config[:availability_domain]
           l.compartment_id = config[:compartment_id]
-          l.cpu_core_count = config[:cpu_core_count]
-          l.database_edition = config[:database_edition]
+          l.cpu_core_count = cpu_core_count
+          l.database_edition = database_edition
           l.db_home = create_db_home_details
           l.display_name = [config[:hostname_prefix], random_string(4), random_number(2)].compact.join('-')
           l.hostname = generate_hostname
           l.shape = config[:shape]
           l.ssh_public_keys = pubkey
           l.cluster_name = [config[:hostname_prefix].split('-')[0], random_string(3), random_number(2)].compact.join('-')
-          l.initial_data_storage_size_in_gb = config[:initial_data_storage_size_in_gb]
+          l.initial_data_storage_size_in_gb = initial_data_storage_size_in_gb
           l.node_count = 1
-          l.license_model = config[:license_model]
+          l.license_model = license_model
           l.subnet_id = config[:subnet_id]
           l.freeform_tags = process_freeform_tags(config[:freeform_tags])
         end
       end
 
       def create_db_home_details
+        raise 'db_version cannot be nil!' if config[:dbaas][:db_version].nil?
+
         OCI::Database::Models::CreateDbHomeDetails.new.tap do |l|
           l.database = create_database_details
-          l.db_version = config[:db_version]
+          l.db_version = config[:dbaas][:db_version]
           l.display_name = ['dbhome', random_number(10)].compact.join('')
         end
       end
 
-      def create_database_details
-        admin_password = config[:admin_password].nil? ? random_password : config[:admin_password]
+      def create_database_details # rubocop:disable Metrics/MethodLength
+        character_set = config[:dbaas][:character_set] ||= 'AL32UTF8'
+        ncharacter_set = config[:dbaas][:ncharacter_set] ||= 'AL16UTF16'
+        db_workload = config[:dbaas][:db_workload] ||= OCI::Database::Models::CreateDatabaseDetails::DB_WORKLOAD_OLTP
+        admin_password = config[:dbaas][:admin_password] ||= random_password
+        db_name = config[:dbaas][:db_name] ||= 'dbaas1'
+
         OCI::Database::Models::CreateDatabaseDetails.new.tap do |l|
           l.admin_password = admin_password
-          l.character_set = config[:character_set]
-          l.db_name = config[:db_name]
-          l.db_workload = config[:db_workload]
-          l.ncharacter_set = config[:ncharacter_set]
-          l.pdb_name = config[:pdb_name]
+          l.character_set = character_set
+          l.db_name = config[:dbaas][:db_name]
+          l.db_workload = db_workload
+          l.ncharacter_set = ncharacter_set
+          l.pdb_name = config[:dbaas][:pdb_name]
           l.db_backup_config = db_backup_config
         end
       end

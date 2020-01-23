@@ -1,7 +1,7 @@
 
-## 2.0.0 DBaaS support
+## 1.10.0 DBaaS support
 - Added support for DBaaS.
-  - instance_type is new required parameter (compute or dbaas)
+  - instance_type is new optional parameter (compute or dbaas)
 
 ## 1.9.0 Use instance principals
 - Added support for `use_instance_principals`
