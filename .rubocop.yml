@@ -1,6 +1,3 @@
-Style/MutableConstant:
-    Enabled : false
-
 Metrics/LineLength:
     Max : 150
 

@@ -17,9 +17,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# rubocop:disable Style/MutableConstant
+
 module Kitchen
   module Driver
     # Version string for Oracle OCI Kitchen driver
     OCI_VERSION = '1.10.0'
   end
 end
+
+# rubocop:enable Style/MutableConstant

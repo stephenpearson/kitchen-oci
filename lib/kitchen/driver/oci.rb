@@ -60,6 +60,9 @@ module Kitchen
       default_config :winrm_password, nil
       default_config :use_instance_principals, false
 
+      # dbaas config items
+      default_config :dbaas, {}
+
       def create(state)
         return if state[:server_id]
 
@@ -117,6 +120,7 @@ module Kitchen
       private
 
       def instance_type
+        raise 'instance_type must be either compute or dbaas!' unless %w[compute dbaas].include?(config[:instance_type].downcase)
         config[:instance_type].downcase
       end
 
@@ -447,7 +451,7 @@ module Kitchen
         OCI::Database::Models::CreateDatabaseDetails.new.tap do |l|
           l.admin_password = admin_password
           l.character_set = character_set
-          l.db_name = config[:dbaas][:db_name]
+          l.db_name = db_name
           l.db_workload = db_workload
           l.ncharacter_set = ncharacter_set
           l.pdb_name = config[:dbaas][:pdb_name]
