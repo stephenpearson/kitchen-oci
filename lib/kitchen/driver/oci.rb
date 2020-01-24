@@ -121,6 +121,7 @@ module Kitchen
 
       def instance_type
         raise 'instance_type must be either compute or dbaas!' unless %w[compute dbaas].include?(config[:instance_type].downcase)
+
         config[:instance_type].downcase
       end
 
