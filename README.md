@@ -95,7 +95,28 @@ The `use_private_ip` influences whether the public or private IP will be used by
 
 If the `subnet_id` refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the `use_private_ip` flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the `use_private_ip` flag can still be used to override whether the private or public IP will be used.
 
+```yml
+---
+  driver:
+    name: oci
+    # These are mandatory
+    compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    availability_domain: "XyAb:US-ASHBURN-AD-1"
+    image_id: "ocid1.image.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    shape: "VM.Standard1.2"
+    subnet_id: "ocid1.subnet.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+    # These are optional
+    use_private_ip: false
+    oci_config_file: "~/.oci/config"
+    oci_profile_name: "DEFAULT"
+    ssh_keypath: "~/.ssh/id_rsa.pub"
+    post_create_script: >-
+```
+
 ### DBaaS Instance Type
+
+The DBaaS instance type configuration should be written in a hash beginning with `dbaas`.
 
 The following configuration item is mandatory for the DBaaS `instance_type`:
 
@@ -118,44 +139,12 @@ Note: At this time, `node_count` is forced to be 1.  RAC provisioning is not sup
 
 ```yml
 ---
-driver:
-  name: oci
-
-provisioner:
-  name: chef_zero
-  always_update_cookbooks: true
-
-verifier:
-  name: inspec
-
-platforms:
-  - name: ubuntu-18.04
-    driver:
-      # These are mandatory
-      compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-      availability_domain: "XyAb:US-ASHBURN-AD-1"
-      image_id: "ocid1.image.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-      shape: "VM.Standard1.2"
-      subnet_id: "ocid1.subnet.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-      # These are optional
-      use_private_ip: false
-      oci_config_file: "~/.oci/config"
-      oci_profile_name: "DEFAULT"
-      ssh_keypath: "~/.ssh/id_rsa.pub"
-      post_create_script: >-
-        touch /tmp/example.txt;
-    transport:
-      username: "ubuntu"
-
-suites:
-  - name: default
-    run_list:
-      - recipe[my_cookbook::default]
-    verifier:
-      inspec_tests:
-        - test/smoke/default
-    attributes:
+  driver:
+    name: oci
+    instance_type: dbaas
+    ...
+    dbaas:
+      db_version: "12.1.0.2.191015"
 ```
 
 ## Instance Principals
@@ -184,15 +173,15 @@ This will allow the OCI lib to retrieve the certificate, key and ca-chain from t
 The driver has support for adding user data that can be executed as scripts by cloud-init.  These can either be specified inline or by referencing a file.  Examples:
 
 ```yml
-      user_data:
-        - type: x-shellscript
-          inline: |
-            #!/bin/bash
-            touch /tmp/foo.txt
-          filename: init.sh
-        - type: x-shellscript
-          path: myscript.sh
-          filename: myscript.sh
+  user_data:
+    - type: x-shellscript
+      inline: |
+        #!/bin/bash
+        touch /tmp/foo.txt
+      filename: init.sh
+    - type: x-shellscript
+      path: myscript.sh
+      filename: myscript.sh
 ```
 
 The `filename` parameter must be specified for each entry, and determines the destination filename for the script.  If the user data is to be read from a file then the `path` parameter should be specified to indicate where the file is to be read from.
@@ -238,18 +227,6 @@ When launching Oracle provided Windows images, it may be helpful to allow kitche
   - The random password will be injected into the WinRM transport.
 
 Make sure that the transport name is set to `winrm` and that the os\_type in the driver is set to `windows`.  See the following example.
-
-## DBaaS Support
-The driver has support for provisioning DBaaS. Examples:
-```yml
----
-  driver:
-    name: oci
-    instance_type: dbaas
-    ...
-    dbaas:
-      db_version: "12.1.0.2.191015"
-```
 
 Full example (.kitchen.yml):
 
