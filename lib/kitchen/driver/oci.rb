@@ -223,7 +223,7 @@ module Kitchen
           [prefix, random_hostname(instance.name)].compact.join('-')
         elsif instance_type == 'dbaas'
           # 30 character limit for hostname in DBaaS
-          if prefix.length > 30
+          if prefix.length >= 30
             [prefix[0, 26], 'db1'].compact.join('-')
           else
             [prefix, random_string(25 - prefix.length), 'db1'].compact.join('-')
@@ -423,7 +423,7 @@ module Kitchen
           l.hostname = generate_hostname
           l.shape = config[:shape]
           l.ssh_public_keys = pubkey
-          l.cluster_name = [config[:hostname_prefix].split('-')[0], random_string(3), random_number(2)].compact.join('-')
+          l.cluster_name = generate_cluster_name
           l.initial_data_storage_size_in_gb = initial_data_storage_size_in_gb
           l.node_count = 1
           l.license_model = license_model
@@ -463,6 +463,16 @@ module Kitchen
       def db_backup_config
         OCI::Database::Models::DbBackupConfig.new.tap do |l|
           l.auto_backup_enabled = false
+        end
+      end
+
+      def generate_cluster_name
+        prefix = config[:hostname_prefix].split('-')[0]
+        # 11 character limit for cluster_name in DBaaS
+        if prefix.length >= 11
+          prefix[0, 11]
+        else
+          [prefix, random_string(10 - prefix.length)].compact.join('-')
         end
       end
 

@@ -1,3 +1,5 @@
+## 1.10.1 Issue 22
+- Added safeguard for cluster_name length restriction in DBaaS.
 
 ## 1.10.0 DBaaS support
 - Added support for DBaaS.
