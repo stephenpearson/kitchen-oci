@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
+# Author:: Stephen Pearson (<stevieweavie@gmail.com>)
 #
 # Copyright (C) 2019, Stephen Pearson
 #
@@ -20,6 +20,6 @@
 module Kitchen
   module Driver
     # Version string for Oracle OCI Kitchen driver
-    OCI_VERSION = '1.10.1'
+    OCI_VERSION = '1.10.2'
   end
 end

@@ -277,7 +277,7 @@ suites:
 
 ## Maintainer
 
-Created and maintained by Stephen Pearson (<stephen.pearson@oracle.com>)
+Created and maintained by Stephen Pearson (<stevieweavie@gmail.com>)
 
 ## License
 
