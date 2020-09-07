@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Author:: Stephen Pearson (<stevieweavie@gmail.com>)
+# Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
 #
 # Copyright (C) 2019, Stephen Pearson
 #
@@ -32,7 +32,7 @@ module Kitchen
   module Driver
     # Oracle OCI driver for Kitchen.
     #
-    # @author Stephen Pearson <stevieweavie@gmail.com>
+    # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       # required config items
       required_config :compartment_id

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Author:: Stephen Pearson (<stevieweavie@gmail.com>)
+# Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
 #
 # Copyright (C) 2019, Stephen Pearson
 #
