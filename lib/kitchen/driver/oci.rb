@@ -379,7 +379,7 @@ module Kitchen
         msg
       end
 
-      def user_data
+      def user_data # rubocop:disable Metrics/MethodLength
         if config[:user_data].is_a? Array
           boundary = "MIMEBOUNDARY_#{random_string(20)}"
           msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
