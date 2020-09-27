@@ -188,6 +188,15 @@ The `filename` parameter must be specified for each entry, and determines the de
 
 The scripts will be encoded into a gzipped, base64 encoded multipart mime message and added as user data when launching the instance.
 
+Alternately, if you simply pass a string to the user_data, it will be base64 encoded and add as user data when launching the instance.
+
+```yml
+  user_data: |
+    login: user1
+    uid: 1000
+    gid: 1000
+```
+
 ## Proxy support
 
 If running Kitchen on a private subnet with no public IPs permitted, it may be necessary to connect to the OCI API via a web proxy.  The proxy URL can either be specified on the command line:

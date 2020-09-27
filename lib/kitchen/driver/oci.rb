@@ -47,7 +47,7 @@ module Kitchen
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
       default_config :proxy_url, nil
-      default_config :user_data, []
+      default_config :user_data, nil
       default_config :freeform_tags, {}
 
       # compute config items
@@ -279,7 +279,7 @@ module Kitchen
         metadata = {}
         metadata.store('ssh_authorized_keys', pubkey)
         data = user_data
-        metadata.store('user_data', data) if config[:user_data].any?
+        metadata.store('user_data', data) if config[:user_data] && !config[:user_data].empty?
         request.metadata = metadata
         request
       end
@@ -379,15 +379,19 @@ module Kitchen
         msg
       end
 
-      def user_data
-        boundary = "MIMEBOUNDARY_#{random_string(20)}"
-        msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
-               'MIME-Version: 1.0', '']
-        msg += mime_parts(boundary)
-        txt = msg.join("\n") + "\n"
-        gzip = Zlib::GzipWriter.new(StringIO.new)
-        gzip << txt
-        Base64.encode64(gzip.close.string).delete("\n")
+      def user_data # rubocop:disable Metrics/MethodLength
+        if config[:user_data].is_a? Array
+          boundary = "MIMEBOUNDARY_#{random_string(20)}"
+          msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
+                 'MIME-Version: 1.0', '']
+          msg += mime_parts(boundary)
+          txt = msg.join("\n") + "\n"
+          gzip = Zlib::GzipWriter.new(StringIO.new)
+          gzip << txt
+          Base64.encode64(gzip.close.string).delete("\n")
+        elsif config[:user_data].is_a? String
+          Base64.encode64(config[:user_data]).delete("\n")
+        end
       end
 
       #################
