@@ -3,8 +3,8 @@ LICENSING INFORMATION
 
 This code has dependencies upon oci-ruby-sdk and Chef Kitchen
 
-oci-ruby-sdk: https://github.com/oracle/oci-ruby-sdk
-chef-dk : https://github.com/chef/chef-dk
+oci-ruby-sdk: https://github.com/oracle/oci-ruby-sdk (Universal Permissive License, or Apache License 2.0)
+chef-dk : https://github.com/chef/chef-dk (Apache License 2.0)
 
 LICENSES
 --------
