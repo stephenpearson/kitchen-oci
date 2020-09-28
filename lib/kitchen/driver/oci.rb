@@ -237,7 +237,7 @@ module Kitchen
 
       def random_password
         if instance_type == 'compute'
-          special_chars = %w[! " # & ( ) * + , - . /]
+          special_chars = %w[! " & ( ) * + , - . /]
         elsif instance_type == 'dbaas'
           special_chars = %w[# _ -]
         end
