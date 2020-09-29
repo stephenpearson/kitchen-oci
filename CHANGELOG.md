@@ -1,4 +1,7 @@
 
+## 1.11.2
+- Set oci version dep back to 2.6.0
+
 ## 1.11.1
 - Removed characters from password string known to break winrm
 
