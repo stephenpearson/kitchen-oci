@@ -1,5 +1,5 @@
 
-## 1.12.0
+## 1.11.1
 - Removed characters from password string known to break winrm
 
 ## 1.11.0
@@ -26,3 +26,7 @@
 - Added cloud-init support.
 - Added support for Windows targets.
   - Can inject powershell script to set a random password and enable WinRM
+
+
+steele.justin@gmail.com
+3s!T8mRb6xbz%y
