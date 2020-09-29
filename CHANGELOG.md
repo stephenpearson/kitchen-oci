@@ -1,3 +1,10 @@
+
+## 1.11.1
+- Removed characters from password string known to break winrm
+
+## 1.11.0
+- Added support for user_data raw string
+
 ## 1.10.1 Issue 22
 - Added safeguard for cluster_name length restriction in DBaaS.
 
@@ -19,3 +26,7 @@
 - Added cloud-init support.
 - Added support for Windows targets.
   - Can inject powershell script to set a random password and enable WinRM
+
+
+steele.justin@gmail.com
+3s!T8mRb6xbz%y
