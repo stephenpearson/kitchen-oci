@@ -29,7 +29,3 @@
 - Added cloud-init support.
 - Added support for Windows targets.
   - Can inject powershell script to set a random password and enable WinRM
-
-
-steele.justin@gmail.com
-3s!T8mRb6xbz%y
