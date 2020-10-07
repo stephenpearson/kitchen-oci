@@ -1,4 +1,7 @@
 
+## 1.11.2
+- Set dependency on oci gem to 2.10.0
+
 ## 1.11.1
 - Removed characters from password string known to break winrm
 
@@ -26,7 +29,3 @@
 - Added cloud-init support.
 - Added support for Windows targets.
   - Can inject powershell script to set a random password and enable WinRM
-
-
-steele.justin@gmail.com
-3s!T8mRb6xbz%y
