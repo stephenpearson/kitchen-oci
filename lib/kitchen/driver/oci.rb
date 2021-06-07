@@ -286,7 +286,7 @@ module Kitchen
         request
       end
 
-      def compute_launch_details
+      def compute_launch_details # rubocop:disable Metrics/MethodLength
         OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
           hostname = generate_hostname
           l.availability_domain = config[:availability_domain]
