@@ -1,4 +1,9 @@
 
+## 1.12.0
+- Added support for Flex and Preemptible instances
+- Set dependency on oci gem to 2.14.0
+- Further reduction of characters known to cause winrm password issues
+
 ## 1.11.2
 - Set dependency on oci gem to 2.10.0
 

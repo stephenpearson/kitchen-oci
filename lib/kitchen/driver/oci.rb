@@ -59,6 +59,8 @@ module Kitchen
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
       default_config :use_instance_principals, false
+      default_config :preemptible_instance, false
+      default_config :shape_config, {}
 
       # dbaas config items
       default_config :dbaas, {}
@@ -237,7 +239,7 @@ module Kitchen
 
       def random_password
         if instance_type == 'compute'
-          special_chars = %w[! " & ( ) * + , - . /]
+          special_chars = %w[@ - ( ) .]
         elsif instance_type == 'dbaas'
           special_chars = %w[# _ -]
         end
@@ -294,6 +296,8 @@ module Kitchen
           l.shape = config[:shape]
           l.create_vnic_details = create_vnic_details(hostname)
           l.freeform_tags = process_freeform_tags(config[:freeform_tags])
+          l.preemptible_instance_config = preemptible_instance_config if config[:preemptible_instance]
+          l.shape_config = shape_config unless config[:shape_config].empty?
         end
       end
 
@@ -301,6 +305,23 @@ module Kitchen
         OCI::Core::Models::InstanceSourceViaImageDetails.new(
           sourceType: 'image',
           imageId: config[:image_id]
+        )
+      end
+
+      def preemptible_instance_config
+        OCI::Core::Models::PreemptibleInstanceConfigDetails.new(
+          preemption_action:
+            OCI::Core::Models::TerminatePreemptionAction.new(
+              type: 'TERMINATE', preserve_boot_volume: true
+            )
+        )
+      end
+
+      def shape_config
+        OCI::Core::Models::LaunchInstanceShapeConfigDetails.new(
+          ocpus: config[:shape_config][:ocpus],
+          memory_in_gbs: config[:shape_config][:memory_in_gbs],
+          baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || 'BASELINE_1_1'
         )
       end
 

@@ -84,6 +84,11 @@ These settings are optional:
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `freeform_tags`, Hash containing tag name(s) and values(s)
    - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
+   - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible, default is `false`.
+   - `shape_config`, Hash of shape config parameters required when using Flex shapes.
+     - `ocpus`, number of CPUs requested
+     - `memory_in_gbs`, the amount of memory requested
+     - `baseline_ocpu_utilization`, the minimum CPU utilization, default `BASELINE_1_1`
 
 Optional settings for WinRM support in Windows:
 
@@ -112,6 +117,11 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     oci_profile_name: "DEFAULT"
     ssh_keypath: "~/.ssh/id_rsa.pub"
     post_create_script: >-
+    preemptible_instance: true
+    shape_config:
+      ocpus: 2
+      memory_in_gbs: 8
+      baseline_ocpu_utilization: BASELINE_1_1
 ```
 
 ### DBaaS Instance Type
