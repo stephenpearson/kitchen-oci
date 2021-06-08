@@ -117,11 +117,6 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     oci_profile_name: "DEFAULT"
     ssh_keypath: "~/.ssh/id_rsa.pub"
     post_create_script: >-
-    preemptible_instance: true
-    shape_config:
-      ocpus: 2
-      memory_in_gbs: 8
-      baseline_ocpu_utilization: BASELINE_1_1
 ```
 
 ### DBaaS Instance Type
@@ -235,6 +230,35 @@ transport:
 ```
 
 See also the section above on Instance Principals if you plan to use a proxy in conjunction with a proxy.  The proxy needs to be avoided when accessing the metadata address.
+
+## Preemptible Instances
+
+This will allow you to create a [preemptible instance](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/preemptible.htm).  Preemptible instances behave the same as regular compute instances, but the capacity is reclaimed when it's needed elsewhere, and the instances are terminated. If your workloads are fault-tolerant and can withstand interruptions, then preemptible instances can reduce your costs.
+
+```yml
+---
+driver:
+  name: oci
+  ...
+  preemptible_instance: true
+  ...
+```
+
+## Flex Shape Instances
+
+This will allow you to launch a flexible shape instance.  A flexible shape lets you customize the number of CPUs and memory available when launching or resizing the VM.  Note that there are smaller number of shapes available and the image ocid must also be compatible.  Please consult [OCI documentation](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible) to ensure the proper combination of shape and image ocid.
+
+```yml
+---
+driver:
+  name: oci
+  ...
+  shape_config:
+    ocpus: 2
+    memory_in_gbs: 8
+    baseline_ocpu_utilization: BASELINE_1_1
+  ...
+```
 
 ## Windows Support
 
