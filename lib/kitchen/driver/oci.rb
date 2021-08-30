@@ -131,12 +131,10 @@ module Kitchen
       # OCI config setup #
       ####################
       def oci_config
-        params = [:load_config]
         opts = {}
         opts[:config_file_location] = config[:oci_config_file] if config[:oci_config_file]
         opts[:profile_name] = config[:oci_profile_name] if config[:oci_profile_name]
-        params << opts
-        OCI::ConfigFileLoader.send(*params)
+        OCI::ConfigFileLoader.load_config(**opts)
       end
 
       def proxy_config

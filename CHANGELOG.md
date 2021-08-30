@@ -1,4 +1,8 @@
 
+## 1.12.1
+- Refactor `oci_config` method to account for `warning: Using the last argument as keyword parameters is deprecated` deprecation warning
+- Set dependency on oci gem to 2.15.0
+
 ## 1.12.0
 - Added support for Flex and Preemptible instances
 - Set dependency on oci gem to 2.14.0
