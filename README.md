@@ -77,6 +77,7 @@ These settings are optional:
    - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
    - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
    - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
+   - `region`, OCI region to use, default is to use region from profile
    - `ssh_keypath`, SSH public key, default is ~/.ssh/id\_rsa.pub
    - `post_create_script`, run a script on compute\_instance after deployment
    - `proxy_url`, Connect via the specified proxy URL
