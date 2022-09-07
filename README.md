@@ -84,6 +84,7 @@ These settings are optional:
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `freeform_tags`, Hash containing tag name(s) and values(s)
    - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
+   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below)
    - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible, default is `false`.
    - `shape_config`, Hash of shape config parameters required when using Flex shapes.
      - `ocpus`, number of CPUs requested
@@ -172,6 +173,21 @@ export no_proxy=169.254.0.0/16
 ```
 
 This will allow the OCI lib to retrieve the certificate, key and ca-chain from the metadata service.
+
+## Token Auth
+
+If you are launching Kitchen from system configured for token authentication (by running `oci session authenticate`), you need to set `use_token_auth: true`. This is in addition to the `oci_config_file` and `oci_profile_name` settings.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      oci_config_file: "~/.oci/config"
+      oci_profile_name: "DEFAULT"
+      use_token_auth: true
+      ...
+```
 
 ## Support for user data scripts and cloud-init
 

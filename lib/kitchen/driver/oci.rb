@@ -25,6 +25,7 @@ require 'base64'
 require 'erb'
 require 'kitchen'
 require 'oci'
+require 'openssl'
 require 'uri'
 require 'zlib'
 
@@ -59,6 +60,7 @@ module Kitchen
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
       default_config :use_instance_principals, false
+      default_config :use_token_auth, false
       default_config :preemptible_instance, false
       default_config :shape_config, {}
 
@@ -131,6 +133,9 @@ module Kitchen
       # OCI config setup #
       ####################
       def oci_config
+        # OCI::Config is missing this
+        OCI::Config.class_eval { attr_accessor :security_token_file } if config[:use_token_auth]
+
         opts = {}
         opts[:config_file_location] = config[:oci_config_file] if config[:oci_config_file]
         opts[:profile_name] = config[:oci_profile_name] if config[:oci_profile_name]
@@ -165,6 +170,13 @@ module Kitchen
         if config[:use_instance_principals]
           sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
           params = { signer: sign }
+        elsif config[:use_token_auth]
+          pkey_content = oci_config.key_content || IO.read(oci_config.key_file).strip
+          pkey = OpenSSL::PKey::RSA.new(pkey_content, oci_config.pass_phrase)
+
+          token = IO.read(oci_config.security_token_file).strip
+          sign = OCI::Auth::Signers::SecurityTokenSigner.new(token, pkey)
+          params = { config: oci_config, signer: sign }
         else
           params = { config: oci_config }
         end
