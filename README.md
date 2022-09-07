@@ -77,6 +77,7 @@ These settings are optional:
    - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
    - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
    - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
+   - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file (see below)
    - `ssh_keypath`, SSH public key, default is ~/.ssh/id\_rsa.pub
    - `post_create_script`, run a script on compute\_instance after deployment
    - `proxy_url`, Connect via the specified proxy URL
@@ -188,6 +189,28 @@ platforms:
       use_token_auth: true
       ...
 ```
+
+## Use without OCI config file
+
+If you want to run without running `oci setup config` (such as on a build server) you can specify configuration settings that would be in the `~/.oci/config` file directly in the `kitchen.yml`
+
+For example, to use the [OCI CLI Environment Variables](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clienvironmentvariables.htm) without a config you could have use kitchen's ERB to read environment variables.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      oci_config:
+        region: <%= ENV['OCI_CLI_REGION'] %>
+        user: <%= ENV['OCI_CLI_USER'] %>
+        fingerprint: <%= ENV['OCI_CLI_FINGERPRINT'] %>
+        authentication_type: <%= ENV['OCI_CLI_AUTH'] %>
+        key_file: <%= ENV['OCI_CLI_KEY_FILE'] %>
+        tenancy: <%= ENV['OCI_CLI_TENANCY'] %>
+      ...
+```
+
 
 ## Support for user data scripts and cloud-init
 
