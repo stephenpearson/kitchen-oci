@@ -54,6 +54,7 @@ module Kitchen
       # compute config items
       default_config :image_id
       default_config :use_private_ip, false
+      default_config :oci_config, {}
       default_config :oci_config_file, nil
       default_config :oci_profile_name, nil
       default_config :setup_winrm, false
@@ -139,7 +140,16 @@ module Kitchen
         opts = {}
         opts[:config_file_location] = config[:oci_config_file] if config[:oci_config_file]
         opts[:profile_name] = config[:oci_profile_name] if config[:oci_profile_name]
-        OCI::ConfigFileLoader.load_config(**opts)
+
+        oci_config = begin
+                       OCI::ConfigFileLoader.load_config(**opts)
+                     rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
+                       OCI::Config.new
+                     end
+
+        config[:oci_config].each do |key, value|
+          oci_config.send("#{key}=", value) unless value.nil? || value.empty?
+        end
       end
 
       def proxy_config
