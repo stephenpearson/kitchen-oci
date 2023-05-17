@@ -52,6 +52,7 @@ module Kitchen
 
       # compute config items
       default_config :image_id
+      default_config :boot_volume_size_in_gbs, nil
       default_config :use_private_ip, false
       default_config :oci_config_file, nil
       default_config :oci_profile_name, nil
@@ -302,7 +303,8 @@ module Kitchen
       def instance_source_details
         OCI::Core::Models::InstanceSourceViaImageDetails.new(
           sourceType: 'image',
-          imageId: config[:image_id]
+          imageId: config[:image_id],
+          bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs],
         )
       end
 
