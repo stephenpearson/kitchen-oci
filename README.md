@@ -74,6 +74,7 @@ The following configuration is mandatory:
 
 These settings are optional:
 
+   - `boot_volume_size_in_gbs`, The size of the boot volume, in GB
    - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
    - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
    - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
