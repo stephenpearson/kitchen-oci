@@ -77,6 +77,7 @@ These settings are optional:
    - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
    - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
    - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
+   - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file (see below)
    - `ssh_keypath`, SSH public key, default is ~/.ssh/id\_rsa.pub
    - `post_create_script`, run a script on compute\_instance after deployment
    - `proxy_url`, Connect via the specified proxy URL
@@ -84,6 +85,7 @@ These settings are optional:
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `freeform_tags`, Hash containing tag name(s) and values(s)
    - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
+   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below)
    - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible, default is `false`.
    - `shape_config`, Hash of shape config parameters required when using Flex shapes.
      - `ocpus`, number of CPUs requested
@@ -172,6 +174,43 @@ export no_proxy=169.254.0.0/16
 ```
 
 This will allow the OCI lib to retrieve the certificate, key and ca-chain from the metadata service.
+
+## Token Auth
+
+If you are launching Kitchen from system configured for token authentication (by running `oci session authenticate`), you need to set `use_token_auth: true`. This is in addition to the `oci_config_file` and `oci_profile_name` settings.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      oci_config_file: "~/.oci/config"
+      oci_profile_name: "DEFAULT"
+      use_token_auth: true
+      ...
+```
+
+## Use without OCI config file
+
+If you want to run without running `oci setup config` (such as on a build server) you can specify configuration settings that would be in the `~/.oci/config` file directly in the `kitchen.yml`
+
+For example, to use the [OCI CLI Environment Variables](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clienvironmentvariables.htm) without a config you could have use kitchen's ERB to read environment variables.
+
+```yml
+platforms:
+  - name: ubuntu-18.04
+    driver:
+      ...
+      oci_config:
+        region: <%= ENV['OCI_CLI_REGION'] %>
+        user: <%= ENV['OCI_CLI_USER'] %>
+        fingerprint: <%= ENV['OCI_CLI_FINGERPRINT'] %>
+        authentication_type: <%= ENV['OCI_CLI_AUTH'] %>
+        key_file: <%= ENV['OCI_CLI_KEY_FILE'] %>
+        tenancy: <%= ENV['OCI_CLI_TENANCY'] %>
+      ...
+```
+
 
 ## Support for user data scripts and cloud-init
 
