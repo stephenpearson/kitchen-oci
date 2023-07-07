@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'oci', '~> 2.15.0'
+  spec.add_dependency 'oci', '~> 2.18.0'
   spec.add_dependency 'test-kitchen'
 
   spec.add_development_dependency 'bundler'
