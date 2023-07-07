@@ -53,7 +53,7 @@ gem install pkg/kitchen-oci-<VERSION>.gem
 
 Adjust below template as required.  The following configuration is mandatory for all instance types:
 
-   - `compartment_id`
+   - `compartment_id` or `compartment_name`
    - `availability_domain`
    - `shape`
    - `subnet_id`
@@ -108,7 +108,7 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
   driver:
     name: oci
     # These are mandatory
-    compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    compartment_name: "dev-00"
     availability_domain: "XyAb:US-ASHBURN-AD-1"
     image_id: "ocid1.image.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     shape: "VM.Standard1.2"
