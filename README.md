@@ -92,6 +92,7 @@ These settings are optional:
      - `ocpus`, number of CPUs requested
      - `memory_in_gbs`, the amount of memory requested
      - `baseline_ocpu_utilization`, the minimum CPU utilization, default `BASELINE_1_1`
+   - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
 
 Optional settings for WinRM support in Windows:
 
@@ -119,6 +120,9 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     oci_config_file: "~/.oci/config"
     oci_profile_name: "DEFAULT"
     ssh_keypath: "~/.ssh/id_rsa.pub"
+    nsg_ids:
+      - ocid1.networksecuritygroup.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - ocid1.networksecuritygroup.oc1.phx.yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
     post_create_script: >-
 ```
 
