@@ -96,6 +96,7 @@ These settings are optional:
     - `name`, the display name of the volume
     - `size_in_gbs`, the size in Gbs for the volume. Can't be lower than 50Gbs (Oracle Limit)
     - `type`, oracle only supports `iscsi` or `paravirtualized` options
+    - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
 
 Optional settings for WinRM support in Windows:
 

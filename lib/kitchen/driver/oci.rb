@@ -493,7 +493,8 @@ module Kitchen
           volume = volume_create(
             config[:availability_domain],
             vol_settings[:name],
-            vol_settings[:size_in_gbs]
+            vol_settings[:size_in_gbs],
+            vol_settings[:vpus_per_gb] || 10
           ).to_hash
           # convert to string otherwise it's a ruby datetime object and won't load
           volume[:attachment_type] = vol_settings[:type]
@@ -503,14 +504,15 @@ module Kitchen
         created_vol
       end
 
-      def volume_create(availability_domain, display_name, size_in_gbs)
+      def volume_create(availability_domain, display_name, size_in_gbs, vpus_per_gb)
         info("Creating volume <#{display_name}>...")
         result = blockstorage_api.create_volume(
           OCI::Core::Models::CreateVolumeDetails.new(
             compartment_id: compartment_id,
             availability_domain: availability_domain,
             display_name: display_name,
-            size_in_gbs: size_in_gbs
+            size_in_gbs: size_in_gbs,
+            vpus_per_gb: vpus_per_gb
           )
         )
         get_volume_response = blockstorage_api.get_volume(result.data.id)
