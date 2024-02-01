@@ -394,10 +394,12 @@ module Kitchen
       end
 
       def create_vnic_details(name)
+        raise 'nsg_ids cannot have more than 5 NSGs.' if config[:nsg_ids].length > 5
         OCI::Core::Models::CreateVnicDetails.new(
           assign_public_ip: public_ip_allowed?,
           display_name: name,
           hostname_label: name,
+          nsg_ids: config[:nsg_ids] || [],
           subnetId: config[:subnet_id]
         )
       end
