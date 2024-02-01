@@ -28,7 +28,6 @@ require 'oci'
 require 'openssl'
 require 'uri'
 require 'zlib'
-require 'json'
 
 module Kitchen
   module Driver
