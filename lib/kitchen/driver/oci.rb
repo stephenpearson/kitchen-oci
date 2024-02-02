@@ -70,6 +70,9 @@ module Kitchen
       # dbaas config items
       default_config :dbaas, {}
 
+      # blockstorage config items
+      default_config :volumes, {}
+
       def create(state)
         return if state[:server_id]
 
@@ -82,6 +85,9 @@ module Kitchen
 
         instance.transport.connection(state).wait_until_ready
 
+        state[:volumes] = process_volumes_list(state)
+        state[:volume_attachments] = process_volume_attachments(state)
+
         return unless config[:post_create_script]
 
         info('Running post create script')
@@ -93,6 +99,18 @@ module Kitchen
         return unless state[:server_id]
 
         instance.transport.connection(state).close
+
+        if state[:volume_attachments]
+          state[:volume_attachments].each do |attachment|
+            volume_detach(attachment)
+          end
+        end
+
+        if state[:volumes]
+          state[:volumes].each do |vol|
+            volume_delete(vol[:id])
+          end
+        end
 
         if instance_type == 'compute'
           comp_api.terminate_instance(state[:server_id])
@@ -229,6 +247,10 @@ module Kitchen
 
       def ident_api
         generic_api(OCI::Identity::IdentityClient)
+      end
+
+      def blockstorage_api
+        generic_api(OCI::Core::BlockstorageClient)
       end
 
       ##################
@@ -372,10 +394,13 @@ module Kitchen
       end
 
       def create_vnic_details(name)
+        nsg_ids = config[:nsg_ids] || []
+        raise 'nsg_ids cannot have more than 5 NSGs.' if nsg_ids.length > 5
         OCI::Core::Models::CreateVnicDetails.new(
           assign_public_ip: public_ip_allowed?,
           display_name: name,
           hostname_label: name,
+          nsg_ids: nsg_ids,
           subnetId: config[:subnet_id]
         )
       end
@@ -459,6 +484,107 @@ module Kitchen
         elsif config[:user_data].is_a? String
           Base64.encode64(config[:user_data]).delete("\n")
         end
+      end
+
+      ########################
+      # BlockStorage methods #
+      ########################
+      def process_volumes_list(state)
+        created_vol = []
+        config[:volumes].each do |vol_settings|
+          # convert to hash because otherwise it's an an OCI API Object and won't load
+          volume_attachment_type = vol_settings[:type].downcase || 'paravirtual'
+          unless %w[iscsi paravirtual].include?(volume_attachment_type)
+            info("invalid volume attachment type: #{volume_attachment_type}")
+            next
+          end
+          volume = volume_create(
+            config[:availability_domain],
+            vol_settings[:name],
+            vol_settings[:size_in_gbs],
+            vol_settings[:vpus_per_gb] || 10
+          ).to_hash
+          # convert to string otherwise it's a ruby datetime object and won't load
+          volume[:attachment_type] = volume_attachment_type
+          created_vol << volume
+        end
+        created_vol
+      end
+
+      def volume_create(availability_domain, display_name, size_in_gbs, vpus_per_gb)
+        info("Creating volume <#{display_name}>...")
+        result = blockstorage_api.create_volume(
+          OCI::Core::Models::CreateVolumeDetails.new(
+            compartment_id: compartment_id,
+            availability_domain: availability_domain,
+            display_name: display_name,
+            size_in_gbs: size_in_gbs,
+            vpus_per_gb: vpus_per_gb
+          )
+        )
+        get_volume_response = blockstorage_api.get_volume(result.data.id)
+                                              .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE)
+        info("Finished creating volume <#{display_name}>.")
+        state_data = {
+          :id => get_volume_response.data.id
+        }
+      end
+
+      def volume_delete(volume_id)
+        info("Deleting volume: <#{volume_id}>...")
+        blockstorage_api.delete_volume(volume_id)
+        blockstorage_api.get_volume(volume_id)
+                        .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
+        info("Deleted volume: <#{volume_id}>")
+      end
+
+      def process_volume_attachments(state)
+        attachments = []
+        state[:volumes].each do |volume|
+          info("Attaching Volume: #{volume[:displayName]} - #{volume[:attachment_type]}")
+          details = volume_create_attachment_details(volume, state[:server_id])
+          attachment = volume_attach(details).to_hash
+          attachments << attachment
+          info("Attached Volume #{volume[:displayName]} - #{volume[:attachment_type]}")
+        end
+        attachments
+      end
+
+      def volume_create_attachment_details(volume, instance_id)
+        if volume[:attachment_type].eql?('iscsi')
+          OCI::Core::Models::AttachIScsiVolumeDetails.new(
+            display_name: 'iSCSIAttachment',
+            volume_id: volume[:id],
+            instance_id: instance_id
+          )
+        elsif volume[:attachment_type].eq?('paravirtual')
+          OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
+            display_name: 'paravirtAttachment',
+            volume_id: volume[:id],
+            instance_id: instance_id
+          )
+        end
+      end
+
+      def volume_attach(volume_attachment_details)
+        result = comp_api.attach_volume(volume_attachment_details)
+        get_volume_attachment_response =
+          comp_api.get_volume_attachment(result.data.id)
+                  .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED)
+        state_data = {
+          :id => get_volume_attachment_response.data.id,
+          :iqn_ipv4 => get_volume_attachment_response.data.ipv4,
+          :iqn => get_volume_attachment_response.data.iqn,
+          :port => get_volume_attachment_response.data.port,
+        }
+      end
+
+      def volume_detach(volume_attachment)
+        info("Detaching volume: #{volume_attachment[:id]}")
+        comp_api.detach_volume(volume_attachment[:id])
+        comp_api.get_volume_attachment(volume_attachment[:id])
+                .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
+        info("Detached volume: #{volume_attachment[:id]}")
       end
 
       #################

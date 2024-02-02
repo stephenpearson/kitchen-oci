@@ -92,6 +92,12 @@ These settings are optional:
      - `ocpus`, number of CPUs requested
      - `memory_in_gbs`, the amount of memory requested
      - `baseline_ocpu_utilization`, the minimum CPU utilization, default `BASELINE_1_1`
+   - `volumes`, an array of hashes with configuration options of each volume
+     - `name`, the display name of the volume
+     - `size_in_gbs`, the size in Gbs for the volume. Can't be lower than 50Gbs (Oracle Limit)
+     - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
+     - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
+   - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
 
 Optional settings for WinRM support in Windows:
 
@@ -119,6 +125,9 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     oci_config_file: "~/.oci/config"
     oci_profile_name: "DEFAULT"
     ssh_keypath: "~/.ssh/id_rsa.pub"
+    nsg_ids:
+      - ocid1.networksecuritygroup.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - ocid1.networksecuritygroup.oc1.phx.yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
     post_create_script: >-
 ```
 

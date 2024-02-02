@@ -1,3 +1,11 @@
+# kitchen-oci CHANGELOG
+
+# 1.13.0
+- feat: add Network Security Group support
+- feat: add support for attaching multiple volumes
+
+## 1.12.3
+- feat: add support for specifying compartment by name
 
 ## 1.12.1
 - Refactor `oci_config` method to account for `warning: Using the last argument as keyword parameters is deprecated` deprecation warning
