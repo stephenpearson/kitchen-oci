@@ -493,6 +493,11 @@ module Kitchen
         created_vol = []
         config[:volumes].each do |vol_settings|
           # convert to hash because otherwise it's an an OCI API Object and won't load
+          volume_attachment_type = vol_settings[:type].downcase || 'paravirtual'
+          unless %w[iscsi paravirtual].include?(volume_attachment_type)
+            info("invalid volume attachment type: #{volume_attachment_type}")
+            next
+          end
           volume = volume_create(
             config[:availability_domain],
             vol_settings[:name],
@@ -500,8 +505,7 @@ module Kitchen
             vol_settings[:vpus_per_gb] || 10
           ).to_hash
           # convert to string otherwise it's a ruby datetime object and won't load
-          volume[:attachment_type] = vol_settings[:type] || 'paravirtual'
-          volume[:timeCreated] = volume[:timeCreated].to_s
+          volume[:attachment_type] = volume_attachment_type
           created_vol << volume
         end
         created_vol
@@ -521,7 +525,9 @@ module Kitchen
         get_volume_response = blockstorage_api.get_volume(result.data.id)
                                               .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE)
         info("Finished creating volume <#{display_name}>.")
-        get_volume_response.data
+        state_data = {
+          :id => get_volume_response.data.id
+        }
       end
 
       def volume_delete(volume_id)
@@ -538,7 +544,6 @@ module Kitchen
           info("Attaching Volume: #{volume[:displayName]} - #{volume[:attachment_type]}")
           details = volume_create_attachment_details(volume, state[:server_id])
           attachment = volume_attach(details).to_hash
-          attachment[:timeCreated] = attachment[:timeCreated].to_s
           attachments << attachment
           info("Attached Volume #{volume[:displayName]} - #{volume[:attachment_type]}")
         end
@@ -552,7 +557,7 @@ module Kitchen
             volume_id: volume[:id],
             instance_id: instance_id
           )
-        else
+        elsif volume[:attachment_type].eq?('paravirtual')
           OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
             display_name: 'paravirtAttachment',
             volume_id: volume[:id],
@@ -566,7 +571,12 @@ module Kitchen
         get_volume_attachment_response =
           comp_api.get_volume_attachment(result.data.id)
                   .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED)
-        get_volume_attachment_response.data
+        state_data = {
+          :id => get_volume_attachment_response.data.id,
+          :iqn_ipv4 => get_volume_attachment_response.data.ipv4,
+          :iqn => get_volume_attachment_response.data.iqn,
+          :port => get_volume_attachment_response.data.port,
+        }
       end
 
       def volume_detach(volume_attachment)
