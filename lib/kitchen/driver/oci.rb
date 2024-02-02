@@ -500,7 +500,7 @@ module Kitchen
             vol_settings[:vpus_per_gb] || 10
           ).to_hash
           # convert to string otherwise it's a ruby datetime object and won't load
-          volume[:attachment_type] = vol_settings[:type]
+          volume[:attachment_type] = vol_settings[:type] || 'paravirtual'
           volume[:timeCreated] = volume[:timeCreated].to_s
           created_vol << volume
         end

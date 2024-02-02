@@ -95,7 +95,7 @@ These settings are optional:
    - `volumes`, an array of hashes with configuration options of each volume
      - `name`, the display name of the volume
      - `size_in_gbs`, the size in Gbs for the volume. Can't be lower than 50Gbs (Oracle Limit)
-     - `type`, oracle only supports `iscsi` or `paravirtualized` options
+     - `type`, oracle only supports `iscsi` or `paravirtualized` options (default: `paravirtualized`)
      - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
 
