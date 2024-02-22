@@ -51,6 +51,7 @@ module Kitchen
       default_config :proxy_url, nil
       default_config :user_data, nil
       default_config :freeform_tags, {}
+      default_config :defined_tags, {}
 
       # compute config items
       default_config :image_id
@@ -363,6 +364,7 @@ module Kitchen
           l.shape = config[:shape]
           l.create_vnic_details = create_vnic_details(hostname)
           l.freeform_tags = process_freeform_tags(config[:freeform_tags])
+          l.defined_tags = config[:defined_tags]
           l.preemptible_instance_config = preemptible_instance_config if config[:preemptible_instance]
           l.shape_config = shape_config unless config[:shape_config].empty?
         end
@@ -626,6 +628,7 @@ module Kitchen
           l.license_model = license_model
           l.subnet_id = config[:subnet_id]
           l.freeform_tags = process_freeform_tags(config[:freeform_tags])
+          l.defined_tags = config[:defined_tags]
         end
       end
 
