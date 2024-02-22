@@ -29,10 +29,9 @@ Gem::Specification.new do |spec|
   spec.license       = 'Apache-2.0'
 
   # rubocop:disable SpecialGlobalVars
-  spec.files         = `git ls-files`.split($/)
+  spec.files         = `git ls-files`.split($/).grep(/LICENSE|^lib|^tpl/)
   # rubocop:enable SpecialGlobalVars
   spec.executables   = []
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
   spec.add_dependency 'oci', '~> 2.18.0'

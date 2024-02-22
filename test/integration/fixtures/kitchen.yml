@@ -1,0 +1,61 @@
+---
+provisioner:
+  name: chef_zero
+  product_name: chef
+  install_strategy: once
+  always_update_cookbooks: true
+
+driver:
+  name: oci
+  freeform_tags:
+    project: kitchen-oci
+  compartment_id: <%= ENV['COMPARTMENT_ID'] %>
+  availability_domain: <%= ENV['AVAILABILITY_DOMAIN'] %>
+  subnet_id: <%= ENV['SUBNET_ID'] %>
+
+platforms:
+  - name: linux
+    driver:
+      shape: <%= ENV['FLEX_SHAPE'] %>
+      shape_config:
+        ocpus: 2
+        memory_in_gbs: 16
+      image_id: <%= ENV['LIN_IMAGE_ID'] %>
+    provisioner:
+      root_path: /home/opc/kitchen
+    transport:
+      ssh_key: ~/.ssh/id_rsa
+      username: opc
+
+  - name: windows
+    driver:
+      shape: <%= ENV['FLEX_SHAPE'] %>
+      shape_config:
+        ocpus: 2
+        memory_in_gbs: 16
+      setup_winrm: true
+      image_id: <%= ENV['WIN_IMAGE_ID'] %>
+    provisioner:
+      root_path: c:\Users\opc\kitchen
+    transport:
+      name: winrm
+      elevated: true
+
+  - name: dbaas
+    driver:
+      instance_type: dbaas
+      shape: <%= ENV['STANDARD_SHAPE'] %>
+      dbaas:
+        cpu_core_count: 16
+        db_name: dbaas1
+        pdb_name: test001
+        db_version: "19.0.0.0"
+    provisioner:
+      root_path: /home/opc/kitchen
+    transport:
+      ssh_key: ~/.ssh/id_rsa
+      username: opc
+
+suites:
+  - name: default
+    run_list:

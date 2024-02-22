@@ -30,8 +30,8 @@ rake build
 ## Installing the gem
 
 You must install the gem into whatever Ruby is used to run kitchen.  On a
-workstation this will likely be the ChefDK environment.  To switch to
-ChefDK if you haven't already:
+workstation this will likely be the Chef Workstation environment.  To switch to
+Chef Workstation if you haven't already:
 
 ```bash
 eval "$(chef shell-init bash)"
@@ -49,7 +49,28 @@ To install a gem you built yourself:
 gem install pkg/kitchen-oci-<VERSION>.gem
 ```
 
-## Example .kitchen.yml
+## Testing
+
+Ensure you have Chef Workstation installed and initialized.  From the root of this project, execute `bundle install`.
+Set the following environment variables in your shell:
+
+```bash
+COMPARTMENT_ID
+AVAILABILITY_DOMAIN
+SUBNET_ID
+STANDARD_SHAPE
+FLEX_SHAPE
+LIN_IMAGE_ID
+WIN_IMAGE_ID
+```
+
+These environment variables should align with your tenancy and the region in which you intend to test.
+
+There is a kitchen.yml file in the `test/integration/fixtures` directory in this project that can be used to test the gem. From this
+directory, execute `bundle exec kitchen list` to see a list of instances.  All normal kitchen commands work within the `bundle exec`
+context from here.
+
+## Example kitchen.yml
 
 Adjust below template as required.  The following configuration is mandatory for all instance types:
 
