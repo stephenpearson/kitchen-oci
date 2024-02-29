@@ -67,6 +67,7 @@ module Kitchen
       default_config :use_token_auth, false
       default_config :preemptible_instance, false
       default_config :shape_config, {}
+      default_config :custom_metadata, {}
 
       # dbaas config items
       default_config :dbaas, {}
@@ -347,6 +348,10 @@ module Kitchen
         inject_powershell(state) if config[:setup_winrm] == true
 
         metadata = {}
+        md = config[:custom_metadata]
+        md.each do |key, value|
+          metadata.store(key, value)
+        end
         metadata.store('ssh_authorized_keys', pubkey)
         data = user_data
         metadata.store('user_data', data) if config[:user_data] && !config[:user_data].empty?

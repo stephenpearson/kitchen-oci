@@ -119,6 +119,7 @@ These settings are optional:
      - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
      - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
+   - `custom_metadata`, Add metadata to the compute instance request
 
 Optional settings for WinRM support in Windows:
 
@@ -149,6 +150,9 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     nsg_ids:
       - ocid1.networksecuritygroup.oc1.phx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       - ocid1.networksecuritygroup.oc1.phx.yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+    custom_metadata:
+      key1: value1
+      key2: value2
     post_create_script: >-
 ```
 
