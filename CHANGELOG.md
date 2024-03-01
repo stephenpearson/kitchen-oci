@@ -1,8 +1,9 @@
 # kitchen-oci CHANGELOG
+# 1.15.0
+- feat: add optional parameter `custom_metadata`
 
 # 1.14.0
 - feat: add optional parameter `defined_tags`
-- 
 
 # 1.13.0
 - feat: add Network Security Group support
