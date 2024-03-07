@@ -1,4 +1,8 @@
 # kitchen-oci CHANGELOG
+
+# 1.15.1
+- fix: bug fixes for volume attachments
+
 # 1.15.0
 - feat: add optional parameter `custom_metadata`
 

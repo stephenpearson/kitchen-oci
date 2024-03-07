@@ -500,7 +500,7 @@ module Kitchen
         created_vol = []
         config[:volumes].each do |vol_settings|
           # convert to hash because otherwise it's an an OCI API Object and won't load
-          volume_attachment_type = vol_settings[:type].downcase || 'paravirtual'
+          volume_attachment_type = vol_settings[:type] ? vol_settings[:type].downcase : 'paravirtual'
           unless %w[iscsi paravirtual].include?(volume_attachment_type)
             info("invalid volume attachment type: #{volume_attachment_type}")
             next
@@ -519,7 +519,7 @@ module Kitchen
       end
 
       def volume_create(availability_domain, display_name, size_in_gbs, vpus_per_gb)
-        info("Creating volume <#{display_name}>...")
+        info("Creating <#{display_name}>...")
         result = blockstorage_api.create_volume(
           OCI::Core::Models::CreateVolumeDetails.new(
             compartment_id: compartment_id,
@@ -531,28 +531,29 @@ module Kitchen
         )
         get_volume_response = blockstorage_api.get_volume(result.data.id)
                                               .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE)
-        info("Finished creating volume <#{display_name}>.")
-        state_data = {
-          :id => get_volume_response.data.id
+        info("Finished creating <#{display_name}>.")
+        {
+          id: get_volume_response.data.id,
+          display_name: get_volume_response.data.display_name
         }
       end
 
       def volume_delete(volume_id)
-        info("Deleting volume: <#{volume_id}>...")
+        info("Deleting <#{volume_id}>...")
         blockstorage_api.delete_volume(volume_id)
         blockstorage_api.get_volume(volume_id)
                         .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
-        info("Deleted volume: <#{volume_id}>")
+        info("Finished deleting <#{volume_id}>.")
       end
 
       def process_volume_attachments(state)
         attachments = []
         state[:volumes].each do |volume|
-          info("Attaching Volume: #{volume[:displayName]} - #{volume[:attachment_type]}")
+          info("Attaching <#{volume[:display_name]}>...")
           details = volume_create_attachment_details(volume, state[:server_id])
           attachment = volume_attach(details).to_hash
           attachments << attachment
-          info("Attached Volume #{volume[:displayName]} - #{volume[:attachment_type]}")
+          info("Finished attaching <#{volume[:display_name]}>.")
         end
         attachments
       end
@@ -564,7 +565,7 @@ module Kitchen
             volume_id: volume[:id],
             instance_id: instance_id
           )
-        elsif volume[:attachment_type].eq?('paravirtual')
+        elsif volume[:attachment_type].eql?('paravirtual')
           OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
             display_name: 'paravirtAttachment',
             volume_id: volume[:id],
@@ -579,19 +580,22 @@ module Kitchen
           comp_api.get_volume_attachment(result.data.id)
                   .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED)
         state_data = {
-          :id => get_volume_attachment_response.data.id,
-          :iqn_ipv4 => get_volume_attachment_response.data.ipv4,
-          :iqn => get_volume_attachment_response.data.iqn,
-          :port => get_volume_attachment_response.data.port,
+          id: get_volume_attachment_response.data.id
         }
+        if get_volume_attachment_response.data.attachment_type == 'iscsi'
+          state_data.store(:iqn_ipv4, get_volume_attachment_response.data.ipv4)
+          state_data.store(:iqn, get_volume_attachment_response.data.iqn)
+          state_data.store(:port, get_volume_attachment_response.data.port)
+        end
+        state_data
       end
 
       def volume_detach(volume_attachment)
-        info("Detaching volume: #{volume_attachment[:id]}")
+        info("Detaching <#{volume_attachment[:id]}>...")
         comp_api.detach_volume(volume_attachment[:id])
         comp_api.get_volume_attachment(volume_attachment[:id])
                 .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
-        info("Detached volume: #{volume_attachment[:id]}")
+        info("Finished detaching <#{volume_attachment[:id]}>.")
       end
 
       #################
