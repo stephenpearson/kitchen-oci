@@ -292,7 +292,7 @@ RSpec.shared_context 'compute', :compute do
         assign_public_ip: false,
         display_name: hostname,
         hostname_label: hostname,
-        nsg_ids: driver_config[:nsg_ids] || [],
+        nsg_ids: driver_config[:nsg_ids],
         subnet_id: subnet_ocid
       )
       l.freeform_tags = { kitchen: true }

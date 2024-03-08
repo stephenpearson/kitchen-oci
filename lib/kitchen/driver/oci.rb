@@ -68,6 +68,7 @@ module Kitchen
       default_config :preemptible_instance, false
       default_config :shape_config, {}
       default_config :custom_metadata, {}
+      default_config :nsg_ids, []
 
       # dbaas config items
       default_config :dbaas, {}
@@ -401,13 +402,13 @@ module Kitchen
       end
 
       def create_vnic_details(name)
-        nsg_ids = config[:nsg_ids] || []
-        raise 'nsg_ids cannot have more than 5 NSGs.' if nsg_ids.length > 5
+        raise 'nsg_ids cannot have more than 5 NSGs.' if config[:nsg_ids].length > 5
+
         OCI::Core::Models::CreateVnicDetails.new(
           assign_public_ip: public_ip_allowed?,
           display_name: name,
           hostname_label: name,
-          nsg_ids: nsg_ids,
+          nsg_ids: config[:nsg_ids],
           subnetId: config[:subnet_id]
         )
       end
