@@ -109,7 +109,7 @@ describe Kitchen::Driver::Oci do
             expect(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_resp)
             expect(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_resp)
             expect(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_resp)
-            expect(compute_client).to receive(:get_volume_attachment).with(attachment_ocid).and_return(iscsi_attachment_resp)
+            expect(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_resp)
             expect(iscsi_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
                                                                          Lifecycle.volume('available')).and_return(iscsi_blockstorage_resp)
             expect(iscsi_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
@@ -121,7 +121,7 @@ describe Kitchen::Driver::Oci do
                 server_id: instance_ocid,
                 volume_attachments: [
                   {
-                    id: attachment_ocid,
+                    id: iscsi_attachment_ocid,
                     iqn: iqn,
                     iqn_ipv4: ipv4,
                     port: port
@@ -160,7 +160,7 @@ describe Kitchen::Driver::Oci do
             expect(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_resp)
             expect(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_resp)
             expect(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_resp)
-            expect(compute_client).to receive(:get_volume_attachment).with(attachment_ocid).and_return(pv_attachment_resp)
+            expect(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_resp)
             expect(pv_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
                                                                       Lifecycle.volume('available')).and_return(pv_blockstorage_resp)
             expect(pv_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
@@ -172,7 +172,7 @@ describe Kitchen::Driver::Oci do
                 server_id: instance_ocid,
                 volume_attachments: [
                   {
-                    id: attachment_ocid
+                    id: pv_attachment_ocid
                   }
                 ],
                 volumes: [
@@ -245,13 +245,13 @@ describe Kitchen::Driver::Oci do
             ],
             volume_attachments: [
               {
-                id: attachment_ocid
+                id: pv_attachment_ocid
               }
             ]
           }
         end
         it 'destroys a compute instance with volumes attached' do
-          expect(compute_client).to receive(:detach_volume).with(attachment_ocid)
+          expect(compute_client).to receive(:detach_volume).with(pv_attachment_ocid)
           expect(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid)
           driver.destroy(state)
         end

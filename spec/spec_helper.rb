@@ -158,7 +158,6 @@ end
 
 RSpec.shared_context 'blockstorage', :blockstorage do
   let(:blockstorage_client) { instance_double(OCI::Core::BlockstorageClient) }
-  let(:attachment_ocid) { 'ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
 
   before do
     allow(OCI::Core::BlockstorageClient).to receive(:new).with(config: oci_config).and_return(blockstorage_client)
@@ -174,6 +173,7 @@ end
 RSpec.shared_context 'iscsi', :iscsi do
   let(:iscsi_volume_ocid) { 'ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:iscsi_display_name) { 'vol1' }
+  let(:iscsi_attachment_ocid) { 'ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:ipv4) { '1.1.2.2' }
   let(:iqn) { 'iqn.2099-13.com.fake' }
   let(:port) { '3260' }
@@ -199,7 +199,7 @@ RSpec.shared_context 'iscsi', :iscsi do
     )
   end
   let(:iscsi_attachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: attachment_ocid,
+    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
                                                                              instance_id: instance_ocid,
                                                                              volume_id: iscsi_volume_ocid,
                                                                              display_name: 'iSCSIAttachment',
@@ -209,7 +209,7 @@ RSpec.shared_context 'iscsi', :iscsi do
                                                                              port: port))
   end
   let(:iscsi_detachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: attachment_ocid,
+    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
                                                                              lifecycle_state: Lifecycle.volume_attachment('detached')))
   end
 
@@ -226,6 +226,7 @@ end
 
 RSpec.shared_context 'paravirtual', :paravirtual do
   let(:pv_volume_ocid) { 'ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890' }
+  let(:pv_attachment_ocid) { 'ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890' }
   let(:pv_display_name) { 'vol2' }
   let(:pv_volume_details) do
     OCI::Core::Models::CreateVolumeDetails.new(
@@ -249,14 +250,14 @@ RSpec.shared_context 'paravirtual', :paravirtual do
     )
   end
   let(:pv_attachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: attachment_ocid,
+    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
                                                                                        instance_id: instance_ocid,
                                                                                        volume_id: pv_volume_ocid,
                                                                                        display_name: 'paravirtAttachment',
                                                                                        lifecycle_state: Lifecycle.volume_attachment('attached')))
   end
   let(:pv_detachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: attachment_ocid,
+    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
                                                                                        lifecycle_state: Lifecycle.volume_attachment('detached')))
   end
 
@@ -315,9 +316,10 @@ RSpec.shared_context 'compute', :compute do
     allow(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid).and_return(vnic_attachments)
     allow(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_resp)
     allow(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_resp)
-    allow(compute_client).to receive(:get_volume_attachment).with(attachment_ocid).and_return(iscsi_attachment_resp)
-    allow(compute_client).to receive(:get_volume_attachment).with(attachment_ocid).and_return(pv_attachment_resp)
-    allow(compute_client).to receive(:detach_volume).with(attachment_ocid).and_return(nil_resp)
+    allow(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_resp)
+    allow(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_resp)
+    allow(compute_client).to receive(:detach_volume).with(iscsi_attachment_ocid).and_return(nil_resp)
+    allow(compute_client).to receive(:detach_volume).with(pv_attachment_ocid).and_return(nil_resp)
     allow(compute_client).to receive(:terminate_instance).with(instance_ocid).and_return(nil_resp)
   end
 end
