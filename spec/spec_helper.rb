@@ -278,6 +278,11 @@ RSpec.shared_context 'compute', :compute do
     OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
                                                                 lifecycle_state: Lifecycle.compute))
   end
+  let(:instance_metadata) {
+    {
+      'ssh_authorized_keys' => ssh_pub_key
+    }
+  }
   let(:launch_instance_request) do
     OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
       l.availability_domain = availability_domain
@@ -298,9 +303,7 @@ RSpec.shared_context 'compute', :compute do
       )
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
-      l.metadata = {
-        'ssh_authorized_keys' => ssh_pub_key
-      }
+      l.metadata = instance_metadata
     end
   end
 
