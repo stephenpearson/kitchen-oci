@@ -38,6 +38,7 @@ module Kitchen
       require_relative 'oci_version'
       require_relative 'mixins/oci_config'
       require_relative 'mixins/api'
+      require_relative 'mixins/support'
 
       plugin_version Kitchen::Driver::OCI_VERSION
 
@@ -105,6 +106,7 @@ module Kitchen
 
       include Kitchen::Driver::Mixins::OciConfig
       include Kitchen::Driver::Mixins::Api
+      include Kitchen::Driver::Mixins::Support
 
       def create(state)
         return if state[:server_id]
@@ -156,22 +158,12 @@ module Kitchen
         state.delete(:hostname)
       end
 
-      def process_freeform_tags(freeform_tags)
-        prov = instance.provisioner.instance_variable_get(:@config)
-        tags = %w[run_list policyfile]
-        tags.each do |tag|
-          freeform_tags[tag] = prov[tag.to_sym].join(',') unless prov[tag.to_sym].nil? || prov[tag.to_sym].empty?
-        end
-        freeform_tags[:kitchen] = true
-        freeform_tags
-      end
-
       def process_windows_options(state)
         state[:username] = config[:winrm_user] if config[:setup_winrm]
         if config[:setup_winrm] == true &&
            config[:password].nil? &&
            state[:password].nil?
-          state[:password] = config[:winrm_password] || random_password
+          state[:password] = config[:winrm_password] || random_password(%w[@ - ( ) .])
         end
         state
       end
@@ -231,27 +223,6 @@ module Kitchen
 
       def random_hostname(prefix)
         "#{prefix}-#{random_string(6)}"
-      end
-
-      def random_password
-        if instance_type == 'compute'
-          special_chars = %w[@ - ( ) .]
-        elsif instance_type == 'dbaas'
-          special_chars = %w[# _ -]
-        end
-
-        (Array.new(5) { special_chars.sample } +
-         Array.new(5) { ('a'..'z').to_a.sample } +
-         Array.new(5) { ('A'..'Z').to_a.sample } +
-         Array.new(5) { ('0'..'9').to_a.sample }).shuffle.join
-      end
-
-      def random_string(length)
-        Array.new(length) { ('a'..'z').to_a.sample }.join
-      end
-
-      def random_number(length)
-        Array.new(length) { ('0'..'9').to_a.sample }.join
       end
 
       ###################
@@ -379,45 +350,6 @@ module Kitchen
           inline: data,
           filename: 'setup_winrm.ps1'
         }
-      end
-
-      def read_part(part)
-        if part[:path]
-          content = File.read part[:path]
-        elsif part[:inline]
-          content = part[:inline]
-        else
-          raise 'Invalid user data'
-        end
-        content.split("\n")
-      end
-
-      def mime_parts(boundary)
-        msg = []
-        config[:user_data].each do |m|
-          msg << "--#{boundary}"
-          msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
-          msg << 'Content-Transfer-Encoding: 7bit'
-          msg << "Content-Type: text/#{m[:type]}" << 'Mime-Version: 1.0' << ''
-          msg << read_part(m) << ''
-        end
-        msg << "--#{boundary}--"
-        msg
-      end
-
-      def user_data # rubocop:disable Metrics/MethodLength
-        if config[:user_data].is_a? Array
-          boundary = "MIMEBOUNDARY_#{random_string(20)}"
-          msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
-                 'MIME-Version: 1.0', '']
-          msg += mime_parts(boundary)
-          txt = msg.join("\n") + "\n"
-          gzip = Zlib::GzipWriter.new(StringIO.new)
-          gzip << txt
-          Base64.encode64(gzip.close.string).delete("\n")
-        elsif config[:user_data].is_a? String
-          Base64.encode64(config[:user_data]).delete("\n")
-        end
       end
 
       ########################
@@ -582,7 +514,7 @@ module Kitchen
         character_set = config[:dbaas][:character_set] ||= 'AL32UTF8'
         ncharacter_set = config[:dbaas][:ncharacter_set] ||= 'AL16UTF16'
         db_workload = config[:dbaas][:db_workload] ||= OCI::Database::Models::CreateDatabaseDetails::DB_WORKLOAD_OLTP
-        admin_password = config[:dbaas][:admin_password] ||= random_password
+        admin_password = config[:dbaas][:admin_password] ||= random_password(%w[# _ -])
         db_name = config[:dbaas][:db_name] ||= 'dbaas1'
 
         OCI::Database::Models::CreateDatabaseDetails.new.tap do |l|
