@@ -110,9 +110,22 @@ RSpec.shared_context 'common', :common do
   let(:image_ocid) { 'ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:ssh_pub_key) { 'ssh-rsa AAABBBCCCabcdefg1234' }
   let(:hostname) { 'kitchen-foo-abc123' }
+  let(:hostname_prefix) { 'kitchen-foo' }
+  # kitchen.yml driver config section
+  let(:base_driver_config) do
+    {
+      hostname_prefix: hostname_prefix,
+      compartment_id: compartment_ocid,
+      availability_domain: availability_domain,
+      subnet_id: subnet_ocid,
+      shape: shape,
+      image_id: image_ocid
+    }
+  end
 
   before do
     allow(File).to receive(:readlines).with(anything).and_return([ssh_pub_key])
+    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:user_data).and_return('FaKeUsErDaTa')
     allow_any_instance_of(Kitchen::Driver::Oci).to receive(:generate_hostname).and_return(hostname)
   end
 end
@@ -272,17 +285,18 @@ RSpec.shared_context 'paravirtual', :paravirtual do
 end
 
 RSpec.shared_context 'compute', :compute do
+  let(:driver_config) { base_driver_config }
   let(:instance_ocid) { 'ocid1.instance.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:compute_client) { instance_double(OCI::Core::ComputeClient) }
   let(:compute_resp) do
     OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
                                                                 lifecycle_state: Lifecycle.compute))
   end
-  let(:instance_metadata) {
+  let(:instance_metadata) do
     {
       'ssh_authorized_keys' => ssh_pub_key
     }
-  }
+  end
   let(:launch_instance_request) do
     OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
       l.availability_domain = availability_domain
@@ -330,24 +344,19 @@ end
 RSpec.shared_context 'dbaas', :dbaas do
   # kitchen.yml driver config section
   let(:driver_config) do
-    {
-      instance_type: 'dbaas',
-      hostname_prefix: 'dbaas',
-      compartment_id: compartment_ocid,
-      availability_domain: availability_domain,
-      subnet_id: subnet_ocid,
-      shape: shape,
-      custom_metadata: {
-        hostclass: 'foo'
-      },
-      dbaas: {
-        cpu_core_count: 16,
-        db_name: 'dbaas1',
-        pdb_name: 'foo001',
-        db_version: '19.0.0.0'
+    base_driver_config.merge!(
+      {
+        instance_type: 'dbaas',
+        dbaas: {
+          cpu_core_count: 16,
+          db_name: 'dbaas1',
+          pdb_name: 'foo001',
+          db_version: '19.0.0.0'
+        }
       }
-    }
+    )
   end
+  let(:hostname) { 'kitchen-foo-a1b' }
   let(:db_system_ocid) { 'ocid1.dbsystem.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:db_node_ocid) { 'ocid1.dbnode.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345' }
   let(:dbaas_client) { instance_double(OCI::Database::DatabaseClient) }
@@ -378,11 +387,11 @@ RSpec.shared_context 'dbaas', :dbaas do
         db_version: driver_config[:dbaas][:db_version],
         display_name: 'dbhome1029384576'
       )
-      l.display_name = 'dbaas-abcd-12'
+      l.display_name = 'kitchen-foo-a1b2-12'
       l.hostname = hostname
       l.shape = shape
       l.ssh_public_keys = [ssh_pub_key]
-      l.cluster_name = 'dbaas-abc12'
+      l.cluster_name = 'kitchen-a1b'
       l.initial_data_storage_size_in_gb = 256
       l.node_count = 1
       l.license_model = OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
@@ -396,7 +405,8 @@ RSpec.shared_context 'dbaas', :dbaas do
     allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_number).with(10).and_return('1029384576')
     allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_number).with(2).and_return('12')
     allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(5).and_return('abc12')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(4).and_return('abcd')
+    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(4).and_return('a1b2')
+    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(3).and_return('a1b')
 
     allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
     allow(dbaas_client).to receive(:launch_db_system).with(anything).and_return(dbaas_resp)

@@ -28,18 +28,9 @@ describe Kitchen::Driver::Oci do
     context 'compute' do
       include_context 'compute'
       let(:state) { {} }
+      let(:driver_config) { base_driver_config }
 
-      context 'standard compute' do
-        let(:driver_config) do
-          {
-            compartment_id: compartment_ocid,
-            availability_domain: availability_domain,
-            subnet_id: subnet_ocid,
-            shape: shape,
-            image_id: image_ocid
-          }
-        end
-
+      context 'standard compute (Linux)' do
         it 'creates a compute instance with no volumes' do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           expect(compute_client).to receive(:get_instance).with(instance_ocid)
@@ -57,19 +48,56 @@ describe Kitchen::Driver::Oci do
         end
       end
 
-      context 'standard compute with nsg' do
+      context 'standard compute (Windows) with custom metadata' do
+        # kitchen.yml driver config section
         let(:driver_config) do
+          base_driver_config.merge!({
+                                      setup_winrm: true,
+                                      winrm_password: 'f4k3p@55w0rd',
+                                      custom_metadata: {
+                                        'hostclass' => 'foo'
+                                      }
+                                    })
+        end
+        let(:instance_metadata) do
           {
-            compartment_id: compartment_ocid,
-            availability_domain: availability_domain,
-            subnet_id: subnet_ocid,
-            shape: shape,
-            image_id: image_ocid,
-            nsg_ids: [
-              'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345',
-              'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890'
-            ]
+            'ssh_authorized_keys' => ssh_pub_key,
+            'user_data' => 'FaKeUsErDaTa',
+            'hostclass' => 'foo'
           }
+        end
+        let(:winrm_password) { 'f4k3p@55w0rd' }
+        let(:winrm_user) { 'opc' }
+
+        it 'creates a windows compute instance with no volumes' do
+          expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
+          expect(compute_client).to receive(:get_instance).with(instance_ocid)
+          expect(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid)
+          expect(transport).to receive_message_chain('connection.wait_until_ready')
+          driver.create(state)
+          expect(state).to match(
+            {
+              hostname: private_ip,
+              server_id: instance_ocid,
+              password: winrm_password,
+              username: winrm_user,
+              volume_attachments: [],
+              volumes: []
+            }
+          )
+        end
+      end
+
+      context 'standard compute with nsg' do
+        # kitchen.yml driver config section
+        let(:driver_config) do
+          base_driver_config.merge!({
+
+                                      nsg_ids: [
+                                        'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345',
+                                        'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890'
+                                      ]
+                                    })
         end
 
         it 'creates a compute instance with nsg_ids specified' do
@@ -88,21 +116,17 @@ describe Kitchen::Driver::Oci do
 
       context 'compute with volumes' do
         context 'iscsi volume' do
+          # kitchen.yml driver config section
           let(:driver_config) do
-            {
-              compartment_id: compartment_ocid,
-              availability_domain: availability_domain,
-              subnet_id: subnet_ocid,
-              shape: shape,
-              image_id: image_ocid,
-              volumes: [
-                {
-                  name: iscsi_display_name,
-                  size_in_gbs: 10,
-                  type: 'iscsi'
-                }
-              ]
-            }
+            base_driver_config.merge!({
+                                        volumes: [
+                                          {
+                                            name: iscsi_display_name,
+                                            size_in_gbs: 10,
+                                            type: 'iscsi'
+                                          }
+                                        ]
+                                      })
           end
 
           it 'creates a compute instance with iscsi attached volume' do
@@ -140,20 +164,16 @@ describe Kitchen::Driver::Oci do
         end
 
         context 'paravirtual volume' do
+          # kitchen.yml driver config section
           let(:driver_config) do
-            {
-              compartment_id: compartment_ocid,
-              availability_domain: availability_domain,
-              subnet_id: subnet_ocid,
-              shape: shape,
-              image_id: image_ocid,
-              volumes: [
-                {
-                  name: pv_display_name,
-                  size_in_gbs: 10
-                }
-              ]
-            }
+            base_driver_config.merge!({
+                                        volumes: [
+                                          {
+                                            name: pv_display_name,
+                                            size_in_gbs: 10
+                                          }
+                                        ]
+                                      })
           end
 
           it 'creates a compute instance with paravirtual attached volume by default' do
@@ -214,14 +234,6 @@ describe Kitchen::Driver::Oci do
   describe '#destroy' do
     context 'compute' do
       include_context 'compute'
-      let(:driver_config) do
-        {
-          compartment_id: compartment_ocid,
-          availability_domain: availability_domain,
-          subnet_id: subnet_ocid,
-          shape: shape
-        }
-      end
 
       context 'standard compute' do
         let(:state) { { server_id: instance_ocid } }
