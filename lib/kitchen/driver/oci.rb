@@ -35,16 +35,26 @@ module Kitchen
     #
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
+      require_relative 'oci_version'
+
+      plugin_version Kitchen::Driver::OCI_VERSION
+
       # required config items
       required_config :availability_domain
       required_config :shape
       required_config :subnet_id
 
       # common config items
+      default_config :oci_config, {}
+      default_config :oci_config_file, nil
+      default_config :oci_profile_name, nil
       default_config :compartment_id, nil
       default_config :compartment_name, nil
       default_config :instance_type, 'compute'
-      default_config :hostname_prefix, nil
+      default_config :image_id
+      default_config :hostname_prefix do |hnp|
+        hnp.instance.name
+      end
       default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
@@ -52,33 +62,45 @@ module Kitchen
       default_config :user_data, nil
       default_config :freeform_tags, {}
       default_config :defined_tags, {}
+      default_config :custom_metadata, {}
+      default_config :use_instance_principals, false
+      default_config :use_token_auth, false
+      default_config :shape_config, {}
+      default_config :nsg_ids, []
 
-      # compute config items
-      default_config :image_id
-      default_config :boot_volume_size_in_gbs, nil
-      default_config :use_private_ip, false
-      default_config :oci_config, {}
-      default_config :oci_config_file, nil
-      default_config :oci_profile_name, nil
+      # compute only configs
       default_config :setup_winrm, false
       default_config :winrm_user, 'opc'
       default_config :winrm_password, nil
-      default_config :use_instance_principals, false
-      default_config :use_token_auth, false
       default_config :preemptible_instance, false
-      default_config :shape_config, {}
-      default_config :custom_metadata, {}
-      default_config :nsg_ids, []
+      default_config :boot_volume_size_in_gbs, nil
+      default_config :use_private_ip, false
+      default_config :volumes, {}
 
-      # dbaas config items
+      # dbaas configs
       default_config :dbaas, {}
 
-      # blockstorage config items
-      default_config :volumes, {}
+      validations[:nsg_ids] = lambda do |_attr, val, _driver|
+        validation_error('config value for `nsg_ids` cannot be longer than 5 items') if val.length > 5
+      end
+
+      validations[:volumes] = lambda do |_attr, val, _driver|
+        val.each do |vol_attr, _vol_value|
+          unless ['iscsi', 'paravirtual', nil].include?(vol_attr[:type])
+            validation_error("#{vol_attr[:type]} is not a valid volume type for #{vol_attr[:name]}")
+          end
+        end
+      end
+
+      def self.validation_error(message)
+        warn message
+        exit!
+      end
 
       def create(state)
         return if state[:server_id]
 
+        validate_config!
         state = process_windows_options(state)
 
         instance_id = launch_instance(state)
