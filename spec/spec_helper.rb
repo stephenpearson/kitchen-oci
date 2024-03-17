@@ -125,8 +125,8 @@ RSpec.shared_context 'common', :common do
 
   before do
     allow(File).to receive(:readlines).with(anything).and_return([ssh_pub_key])
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:user_data).and_return('FaKeUsErDaTa')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:generate_hostname).and_return(hostname)
+    # stubbed for now. the encoding is making spec difficult right now.  plan to add specific units for the user data methods.
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:user_data).and_return('FaKeUsErDaTa')
   end
 end
 
@@ -326,6 +326,9 @@ RSpec.shared_context 'compute', :compute do
   include_context 'paravirtual'
 
   before do
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(6).and_return('abc123')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(4).and_return('a1b2')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(20).and_return('a1b2c3d4e5f6g7h8i9j0')
     allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci_config).and_return(compute_client)
     allow(compute_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute)
     allow(compute_client).to receive(:launch_instance).with(anything).and_return(compute_resp)
@@ -396,17 +399,18 @@ RSpec.shared_context 'dbaas', :dbaas do
       l.node_count = 1
       l.license_model = OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
       l.subnet_id = subnet_ocid
+      l.nsg_ids = driver_config[:nsg_ids]
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
     end
   end
   before do
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_password).and_return('5up3r53cur3!')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_number).with(10).and_return('1029384576')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_number).with(2).and_return('12')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(5).and_return('abc12')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(4).and_return('a1b2')
-    allow_any_instance_of(Kitchen::Driver::Oci).to receive(:random_string).with(3).and_return('a1b')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_password).and_return('5up3r53cur3!')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_number).with(2).and_return(12)
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_number).with(10).and_return(1029384576)
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(4).and_return('a1b2')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(3).and_return('a1b')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(14).and_return('a1b2c3d4e5f6g7')
 
     allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
     allow(dbaas_client).to receive(:launch_db_system).with(anything).and_return(dbaas_resp)

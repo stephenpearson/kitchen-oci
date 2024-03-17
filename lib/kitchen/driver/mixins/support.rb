@@ -37,6 +37,12 @@ module Kitchen
           Array.new(length) { ('0'..'9').to_a.sample }.join
         end
 
+        def final_state(state, instance_id)
+          state.store(:server_id, instance_id)
+          state.store(:hostname, instance_ip(instance_id))
+          state
+        end
+
         def process_freeform_tags(freeform_tags)
           prov = instance.provisioner.instance_variable_get(:@config)
           tags = %w[run_list policyfile]
