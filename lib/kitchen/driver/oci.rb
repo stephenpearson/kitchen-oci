@@ -36,6 +36,7 @@ module Kitchen
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       require_relative 'oci_version'
+      require_relative 'mixins/oci_config'
 
       plugin_version Kitchen::Driver::OCI_VERSION
 
@@ -100,6 +101,8 @@ module Kitchen
         warn message
         exit!
       end
+
+      include Kitchen::Driver::Mixins::OciConfig
 
       def create(state)
         return if state[:server_id]
@@ -173,49 +176,8 @@ module Kitchen
 
       private
 
-      def compartment_id
-        return config[:compartment_id] if config[:compartment_id]
-        raise 'must specify either compartment_id or compartment_name' unless config[:compartment_name]
-        ident_api.list_compartments(tenancy).data.find do |item|
-          return item.id if item.name == config[:compartment_name]
-        end
-        raise 'compartment not found'
-      end
-
-      def tenancy
-        if config[:use_instance_principals]
-          sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
-          sign.instance_variable_get '@tenancy_id'
-        else
-          oci_config.tenancy
-        end
-      end
-
       def instance_type
         config[:instance_type].downcase
-      end
-
-      ####################
-      # OCI config setup #
-      ####################
-      def oci_config
-        # OCI::Config is missing this
-        OCI::Config.class_eval { attr_accessor :security_token_file } if config[:use_token_auth]
-
-        opts = {}
-        opts[:config_file_location] = config[:oci_config_file] if config[:oci_config_file]
-        opts[:profile_name] = config[:oci_profile_name] if config[:oci_profile_name]
-
-        oci_config = begin
-                       OCI::ConfigFileLoader.load_config(**opts)
-                     rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
-                       OCI::Config.new
-                     end
-
-        config[:oci_config].each do |key, value|
-          oci_config.send("#{key}=", value) unless value.nil? || value.empty?
-        end
-        oci_config
       end
 
       def proxy_config
