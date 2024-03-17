@@ -37,6 +37,7 @@ module Kitchen
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       require_relative 'oci_version'
       require_relative 'mixins/oci_config'
+      require_relative 'mixins/api'
 
       plugin_version Kitchen::Driver::OCI_VERSION
 
@@ -103,6 +104,7 @@ module Kitchen
       end
 
       include Kitchen::Driver::Mixins::OciConfig
+      include Kitchen::Driver::Mixins::Api
 
       def create(state)
         return if state[:server_id]
@@ -178,68 +180,6 @@ module Kitchen
 
       def instance_type
         config[:instance_type].downcase
-      end
-
-      def proxy_config
-        if config[:proxy_url]
-          URI.parse(config[:proxy_url])
-        else
-          URI.parse('http://').find_proxy
-        end
-      end
-
-      def api_proxy
-        prx = proxy_config
-        return nil unless prx
-
-        if prx.user
-          OCI::ApiClientProxySettings.new(prx.host, prx.port, prx.user,
-                                          prx.password)
-        else
-          OCI::ApiClientProxySettings.new(prx.host, prx.port)
-        end
-      end
-
-      #############
-      # API setup #
-      #############
-      def generic_api(klass)
-        api_prx = api_proxy
-        if config[:use_instance_principals]
-          sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
-          params = { signer: sign }
-        elsif config[:use_token_auth]
-          pkey_content = oci_config.key_content || IO.read(oci_config.key_file).strip
-          pkey = OpenSSL::PKey::RSA.new(pkey_content, oci_config.pass_phrase)
-
-          token = IO.read(oci_config.security_token_file).strip
-          sign = OCI::Auth::Signers::SecurityTokenSigner.new(token, pkey)
-          params = { config: oci_config, signer: sign }
-        else
-          params = { config: oci_config }
-        end
-        params[:proxy_settings] = api_prx if api_prx
-        klass.new(**params)
-      end
-
-      def comp_api
-        generic_api(OCI::Core::ComputeClient)
-      end
-
-      def net_api
-        generic_api(OCI::Core::VirtualNetworkClient)
-      end
-
-      def dbaas_api
-        generic_api(OCI::Database::DatabaseClient)
-      end
-
-      def ident_api
-        generic_api(OCI::Identity::IdentityClient)
-      end
-
-      def blockstorage_api
-        generic_api(OCI::Core::BlockstorageClient)
       end
 
       ##################
