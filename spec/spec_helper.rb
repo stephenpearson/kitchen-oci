@@ -126,7 +126,7 @@ RSpec.shared_context 'common', :common do
   before do
     allow(File).to receive(:readlines).with(anything).and_return([ssh_pub_key])
     # stubbed for now. the encoding is making spec difficult right now.  plan to add specific units for the user data methods.
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:user_data).and_return('FaKeUsErDaTa')
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:user_data).and_return('FaKeUsErDaTa')
   end
 end
 

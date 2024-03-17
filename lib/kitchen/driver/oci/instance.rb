@@ -1,19 +1,32 @@
 # frozen_string_literal: true
 
+#
+# Author:: Justin Steele (<justin.steele@oracle.com>)
+#
+# Copyright (C) 2024, Stephen Pearson
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 module Kitchen
   module Driver
     class Oci
       # generic class for instance models
       class Instance < Oci
-        require_relative '../../driver/mixins/oci_config'
-        require_relative '../../driver/mixins/api'
-        require_relative '../../driver/mixins/support'
+        require_relative '../../driver/mixins/instance'
         require_relative 'models/compute'
         require_relative 'models/dbaas'
 
-        include Kitchen::Driver::Mixins::OciConfig
-        include Kitchen::Driver::Mixins::Api
-        include Kitchen::Driver::Mixins::Support
+        include Kitchen::Driver::Mixins::Instance
 
         attr_accessor :config, :state
 
@@ -44,24 +57,6 @@ module Kitchen
             l.defined_tags = config[:defined_tags]
             l.shape = config[:shape]
           end
-        end
-
-        def freeform_tags
-          tags = %w[run_list policyfile]
-          fft = config[:freeform_tags]
-          tags.each do |tag|
-            unless fft[tag.to_sym].nil? || fft[tag.to_sym].empty?
-              fft[tag] =
-                prov[tag.to_sym].join(',')
-            end
-          end
-          fft[:kitchen] = true
-          fft
-        end
-
-        def public_ip_allowed?
-          subnet = net_api.get_subnet(config[:subnet_id]).data
-          !subnet.prohibit_public_ip_on_vnic
         end
       end
     end
