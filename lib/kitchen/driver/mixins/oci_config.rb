@@ -22,25 +22,10 @@ module Kitchen
     module Mixins
       # OciConfig mixin that defines the oci config that will be used for the API calls
       module OciConfig
-        # BaseConfig dynamically defines either a new instance of OCI::Config or loads the config from the user's local config file
-        class BaseConfig
-          attr_reader :opts
-
-          def initialize(opts = {})
-            @opts = opts.compact
-          end
-
-          def api_config
-            OCI::ConfigFileLoader.load_config(**opts)
-          rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
-            OCI::Config.new
-          end
-        end
-
         def oci_config
           # OCI::Config is missing this
           OCI::Config.class_eval { attr_accessor :security_token_file } if config[:use_token_auth]
-          conf = BaseConfig.new(config_file_location: config[:oci_config_file], profile_name: config[:oci_profile_name]).api_config
+          conf = config_loader(config_file_location: config[:oci_config_file], profile_name: config[:oci_profile_name])
           config[:oci_config].each do |key, value|
             conf.send("#{key}=", value) unless value.nil? || value.empty?
           end
@@ -68,6 +53,12 @@ module Kitchen
         end
 
         private
+
+        def config_loader(opts = {})
+          OCI::ConfigFileLoader.load_config(**opts.compact)
+        rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
+          OCI::Config.new
+        end
 
         def compartment_id_by_name(name)
           all_compartments(oci_config.tenancy).select { |c| c.name == name }[0]&.id
