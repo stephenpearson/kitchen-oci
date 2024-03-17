@@ -80,6 +80,10 @@ module Kitchen
       # dbaas configs
       default_config :dbaas, {}
 
+      validations[:instance_type] = lambda do |_attr, val, _driver|
+        validation_error('instance_type must be either compute or dbaas') unless ['compute', 'dbaas'].include?(val.downcase)
+      end
+
       validations[:nsg_ids] = lambda do |_attr, val, _driver|
         validation_error('config value for `nsg_ids` cannot be longer than 5 items') if val.length > 5
       end
@@ -188,8 +192,6 @@ module Kitchen
       end
 
       def instance_type
-        raise 'instance_type must be either compute or dbaas!' unless %w[compute dbaas].include?(config[:instance_type].downcase)
-
         config[:instance_type].downcase
       end
 
