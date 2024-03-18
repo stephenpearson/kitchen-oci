@@ -20,6 +20,7 @@ module Kitchen
   module Driver
     class Oci
       class Models
+        # Compute instance model
         class Compute < Instance
           attr_accessor :launch_details
 
