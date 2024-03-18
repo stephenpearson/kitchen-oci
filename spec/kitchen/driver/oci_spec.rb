@@ -38,11 +38,11 @@ describe Kitchen::Driver::Oci do
           expect(transport).to receive_message_chain('connection.wait_until_ready')
           driver.create(state)
           expect(state).to match(
-                             {
-                               hostname: private_ip,
-                               server_id: instance_ocid
-                             }
-                           )
+            {
+              hostname: private_ip,
+              server_id: instance_ocid
+            }
+          )
         end
       end
 
@@ -73,12 +73,12 @@ describe Kitchen::Driver::Oci do
           expect(transport).to receive_message_chain('connection.wait_until_ready')
           driver.create(state)
           expect(state).to match(
-                             {
-                               hostname: private_ip,
-                               server_id: instance_ocid,
-                               password: winrm_password
-                             }
-                           )
+            {
+              hostname: private_ip,
+              server_id: instance_ocid,
+              password: winrm_password
+            }
+          )
         end
       end
 
@@ -98,11 +98,11 @@ describe Kitchen::Driver::Oci do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           driver.create(state)
           expect(state).to match(
-                             {
-                               hostname: private_ip,
-                               server_id: instance_ocid
-                             }
-                           )
+            {
+              hostname: private_ip,
+              server_id: instance_ocid
+            }
+          )
         end
       end
 
@@ -132,26 +132,26 @@ describe Kitchen::Driver::Oci do
                                                                        Lifecycle.volume_attachment('attached')).and_return(iscsi_attachment_resp)
             driver.create(state)
             expect(state).to match(
-                               {
-                                 hostname: private_ip,
-                                 server_id: instance_ocid,
-                                 volume_attachments: [
-                                   {
-                                     id: iscsi_attachment_ocid,
-                                     iqn: iqn,
-                                     iqn_ipv4: ipv4,
-                                     port: port
-                                   }
-                                 ],
-                                 volumes: [
-                                   {
-                                     attachment_type: driver_config[:volumes][0][:type],
-                                     display_name: driver_config[:volumes][0][:name],
-                                     id: iscsi_volume_ocid
-                                   }
-                                 ]
-                               }
-                             )
+              {
+                hostname: private_ip,
+                server_id: instance_ocid,
+                volume_attachments: [
+                  {
+                    id: iscsi_attachment_ocid,
+                    iqn: iqn,
+                    iqn_ipv4: ipv4,
+                    port: port
+                  }
+                ],
+                volumes: [
+                  {
+                    attachment_type: driver_config[:volumes][0][:type],
+                    display_name: driver_config[:volumes][0][:name],
+                    id: iscsi_volume_ocid
+                  }
+                ]
+              }
+            )
           end
         end
 
@@ -179,23 +179,23 @@ describe Kitchen::Driver::Oci do
                                                                     Lifecycle.volume_attachment('attached')).and_return(pv_attachment_resp)
             driver.create(state)
             expect(state).to match(
-                               {
-                                 hostname: private_ip,
-                                 server_id: instance_ocid,
-                                 volume_attachments: [
-                                   {
-                                     id: pv_attachment_ocid
-                                   }
-                                 ],
-                                 volumes: [
-                                   {
-                                     attachment_type: 'paravirtual',
-                                     display_name: pv_display_name,
-                                     id: pv_volume_ocid
-                                   }
-                                 ]
-                               }
-                             )
+              {
+                hostname: private_ip,
+                server_id: instance_ocid,
+                volume_attachments: [
+                  {
+                    id: pv_attachment_ocid
+                  }
+                ],
+                volumes: [
+                  {
+                    attachment_type: 'paravirtual',
+                    display_name: pv_display_name,
+                    id: pv_volume_ocid
+                  }
+                ]
+              }
+            )
           end
         end
       end
@@ -212,11 +212,11 @@ describe Kitchen::Driver::Oci do
         expect(transport).to receive_message_chain('connection.wait_until_ready')
         driver.create(state)
         expect(state).to match(
-                           {
-                             hostname: private_ip,
-                             server_id: db_system_ocid
-                           }
-                         )
+          {
+            hostname: private_ip,
+            server_id: db_system_ocid
+          }
+        )
       end
     end
   end
