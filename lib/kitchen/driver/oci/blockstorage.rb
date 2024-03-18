@@ -27,14 +27,12 @@ module Kitchen
 
         include Kitchen::Driver::Mixins::Blockstorage
 
-        attr_accessor :config, :state, :volumes, :volume_attachments, :volume_state, :volume_attachment_state
+        attr_accessor :config, :state, :volume_state, :volume_attachment_state
 
         def initialize(config, state)
           super()
           @config = config
           @state = state
-          @volumes = config[:volumes]
-          @volume_attachments = config[:volume_attachments]
           @volume_state = {}
           @volume_attachment_state = {}
         end
