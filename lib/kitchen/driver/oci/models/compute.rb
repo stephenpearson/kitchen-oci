@@ -29,9 +29,9 @@ module Kitchen
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
           end
 
-          def launch(lid)
+          def launch
             process_windows_options
-            response = comp_api.launch_instance(lid)
+            response = comp_api.launch_instance(launch_instance_details)
             instance_id = response.data.id
             comp_api.get_instance(instance_id).wait_until(
               :lifecycle_state,
@@ -40,30 +40,55 @@ module Kitchen
             final_state(state, instance_id)
           end
 
-          def terminate(server_id)
-            comp_api.terminate_instance(server_id)
-          end
-
-          def add_specific_props
-            display_name = hostname
-            launch_details.tap do |l|
-              l.display_name = display_name
-              l.source_details = instance_source_details
-              l.create_vnic_details = create_vnic_details(display_name)
-              l.metadata = metadata
-              l.preemptible_instance_config = preemptible_instance_config if preemptible?
-              l.shape_config = shape_config unless shape_config?
-            end
+          def terminate
+            comp_api.terminate_instance(state[:server_id])
           end
 
           private
 
-          def preemptible?
-            config[:preemptible_instance]
+          def launch_instance_details # rubocop:disable Metrics/MethodLength
+            availability_domain
+            compartment
+            freeform_tags
+            defined_tags
+            shape
+            hostname_display_name
+            instance_source_details
+            instance_metadata
+            preemptible_instance_config
+            shape_config
+            launch_details
           end
 
-          def shape_config?
-            config[:shape_config].empty?
+          def hostname_display_name
+            display_name = hostname
+            launch_details.display_name = display_name
+            launch_details.create_vnic_details = create_vnic_details(display_name)
+          end
+
+          def hostname
+            [config[:hostname_prefix], random_string(6)].compact.join('-')
+          end
+
+          def preemptible_instance_config
+            return unless config[:preemptible_instance]
+
+            launch_details.preemptible_instance_config = OCI::Core::Models::PreemptibleInstanceConfigDetails.new(
+              preemption_action:
+                OCI::Core::Models::TerminatePreemptionAction.new(
+                  type: 'TERMINATE', preserve_boot_volume: true
+                )
+            )
+          end
+
+          def shape_config
+            return if config[:shape_config].empty?
+
+            launch_details.shape_config = OCI::Core::Models::LaunchInstanceShapeConfigDetails.new(
+              ocpus: config[:shape_config][:ocpus],
+              memory_in_gbs: config[:shape_config][:memory_in_gbs],
+              baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || 'BASELINE_1_1'
+            )
           end
 
           def process_windows_options
@@ -73,27 +98,10 @@ module Kitchen
           end
 
           def instance_source_details
-            OCI::Core::Models::InstanceSourceViaImageDetails.new(
+            launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
               sourceType: 'image',
               imageId: config[:image_id],
               bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
-            )
-          end
-
-          def preemptible_instance_config
-            OCI::Core::Models::PreemptibleInstanceConfigDetails.new(
-              preemption_action:
-                OCI::Core::Models::TerminatePreemptionAction.new(
-                  type: 'TERMINATE', preserve_boot_volume: true
-                )
-            )
-          end
-
-          def shape_config
-            OCI::Core::Models::LaunchInstanceShapeConfigDetails.new(
-              ocpus: config[:shape_config][:ocpus],
-              memory_in_gbs: config[:shape_config][:memory_in_gbs],
-              baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || 'BASELINE_1_1'
             )
           end
 
@@ -107,12 +115,12 @@ module Kitchen
             )
           end
 
-          def hostname
-            [config[:hostname_prefix], random_string(6)].compact.join('-')
-          end
-
           def pubkey
             File.readlines(config[:ssh_keypath]).first.chomp
+          end
+
+          def instance_metadata
+            launch_details.metadata = metadata
           end
 
           def metadata

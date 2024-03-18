@@ -107,7 +107,7 @@ module Kitchen
 
         validate_config!
         inst = instance_class(instance_type).new(config, state)
-        state_details = inst.launch_instance
+        state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
 
@@ -126,7 +126,7 @@ module Kitchen
         end
 
         inst = instance_class(instance_type).new(config, state)
-        inst.terminate_instance
+        inst.terminate
       end
 
       private

@@ -36,27 +36,24 @@ module Kitchen
           @state = state
         end
 
-        def launch_instance
-          add_common_props
-          add_specific_props
-          launch(launch_details)
+        def compartment
+          launch_details.compartment_id = compartment_id
         end
 
-        def terminate_instance
-          terminate(state[:server_id])
+        def availability_domain
+          launch_details.availability_domain = config[:availability_domain]
         end
 
-        private
+        def defined_tags
+          launch_details.defined_tags = config[:defined_tags]
+        end
 
-        # stuff all instances get
-        def add_common_props
-          launch_details.tap do |l|
-            l.availability_domain = config[:availability_domain]
-            l.compartment_id = compartment_id
-            l.freeform_tags = freeform_tags
-            l.defined_tags = config[:defined_tags]
-            l.shape = config[:shape]
-          end
+        def shape
+          launch_details.shape = config[:shape]
+        end
+
+        def freeform_tags
+          launch_details.freeform_tags = process_freeform_tags
         end
       end
     end

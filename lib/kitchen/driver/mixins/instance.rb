@@ -30,7 +30,7 @@ module Kitchen
         include Kitchen::Driver::Mixins::Api
         include Kitchen::Driver::Mixins::Support
 
-        def freeform_tags
+        def process_freeform_tags
           tags = %w[run_list policyfile]
           fft = config[:freeform_tags]
           tags.each do |tag|
@@ -41,16 +41,6 @@ module Kitchen
           end
           fft[:kitchen] = true
           fft
-        end
-
-        def process_freeform_tags(freeform_tags)
-          prov = instance.provisioner.instance_variable_get(:@config)
-          tags = %w[run_list policyfile]
-          tags.each do |tag|
-            freeform_tags[tag] = prov[tag.to_sym].join(',') unless prov[tag.to_sym].nil? || prov[tag.to_sym].empty?
-          end
-          freeform_tags[:kitchen] = true
-          freeform_tags
         end
 
         def user_data
