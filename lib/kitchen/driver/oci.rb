@@ -34,8 +34,7 @@ module Kitchen
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base
       require_relative 'oci_version'
-      require_relative 'oci/instance'
-      require_relative 'oci/blockstorage'
+      require_relative 'oci/models'
 
       plugin_version Kitchen::Driver::OCI_VERSION
 
@@ -101,6 +100,8 @@ module Kitchen
         exit!
       end
 
+      include Kitchen::Driver::Oci::Models
+
       def create(state)
         return if state[:server_id]
 
@@ -146,36 +147,6 @@ module Kitchen
         info('Running post create script')
         script = config[:post_create_script]
         instance.transport.connection(state).execute(script)
-      end
-
-      INSTANCE_MODELS = {
-        compute: 'Compute',
-        dbaas: 'Dbaas'
-      }.freeze
-
-      ATTACHMENT_TYPES = {
-        iscsi: 'Iscsi',
-        paravirtual: 'Paravirtual'
-      }.freeze
-
-      def instance_class(type)
-        Oci::Models.const_get(INSTANCE_MODELS[type])
-      end
-
-      def volume_class(type, config, state)
-        Oci::Models.const_get(ATTACHMENT_TYPES[volume_attachment_type(type)]).new(config, state)
-      end
-
-      def instance_type
-        config[:instance_type].downcase.to_sym
-      end
-
-      def volume_attachment_type(type)
-        if type.nil?
-          :paravirtual
-        else
-          type.downcase.to_sym
-        end
       end
     end
   end

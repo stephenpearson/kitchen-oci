@@ -19,7 +19,7 @@
 module Kitchen
   module Driver
     class Oci
-      class Models
+      module Models
         # dbaas model
         class Dbaas < Instance
           attr_accessor :launch_details

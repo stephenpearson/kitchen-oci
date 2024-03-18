@@ -20,7 +20,7 @@
 module Kitchen
   module Driver
     class Oci
-      class Models
+      module Models
         # iscsi volume attachment model
         class Iscsi < Blockstorage
           attr_reader :attachment_type

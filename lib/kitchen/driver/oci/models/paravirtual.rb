@@ -20,7 +20,7 @@
 module Kitchen
   module Driver
     class Oci
-      class Models
+      module Models
         # paravirtual attachment model
         class Paravirtual < Blockstorage
           attr_reader :attachment_type
