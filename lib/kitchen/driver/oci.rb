@@ -17,8 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# rubocop:disable Metrics/AbcSize
-
 # This require fixes bug in ChefDK 4.0.60-1 on Linux.
 require 'forwardable'
 require 'base64'
@@ -83,7 +81,7 @@ module Kitchen
       default_config :dbaas, {}
 
       validations[:instance_type] = lambda do |_attr, val, _driver|
-        validation_error('instance_type must be either compute or dbaas') unless ['compute', 'dbaas'].include?(val.downcase)
+        validation_error('instance_type must be either compute or dbaas') unless %w[compute dbaas].include?(val.downcase)
       end
 
       validations[:nsg_ids] = lambda do |_attr, val, _driver|
