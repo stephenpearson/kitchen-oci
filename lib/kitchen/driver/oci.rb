@@ -108,23 +108,12 @@ module Kitchen
 
         validate_config!
         inst = instance_class(instance_type).new(config, state)
-
         state_details = inst.launch_instance
         state.merge!(state_details)
-
         instance.transport.connection(state).wait_until_ready
 
-        unless config[:volumes].empty?
-          bls = Blockstorage.new(config, state)
-          state_details = bls.create_and_attach
-          state.merge!(state_details)
-        end
-
-        return unless config[:post_create_script]
-
-        info('Running post create script')
-        script = config[:post_create_script]
-        instance.transport.connection(state).execute(script)
+        create_and_attach_volumes(config, state) unless config[:volumes].empty?
+        process_post_script unless config[:post_create_script].nil?
       end
 
       def destroy(state)
@@ -143,18 +132,52 @@ module Kitchen
 
       private
 
+      def create_and_attach_volumes(config, state)
+        volume_state = { volumes: [], volume_attachments: [] }
+        config[:volumes].each do |volume|
+          vol = volume_class(volume[:type], config, state)
+          volume_details, vol_state = vol.create_volume(volume)
+          attach_state = vol.attach_volume(volume_details, state[:server_id])
+          volume_state[:volumes] << vol_state
+          volume_state[:volume_attachments] << attach_state
+        end
+        state.merge!(volume_state)
+      end
+
+      def process_post_script
+        info('Running post create script')
+        script = config[:post_create_script]
+        instance.transport.connection(state).execute(script)
+      end
+
       INSTANCE_MODELS = {
         compute: 'Compute',
         dbaas: 'Dbaas'
       }.freeze
 
+      ATTACHMENT_TYPES = {
+        iscsi: 'Iscsi',
+        paravirtual: 'Paravirtual'
+      }.freeze
+
       def instance_class(type)
-        require_relative "oci/models/#{type}"
         Oci::Models.const_get(INSTANCE_MODELS[type])
+      end
+
+      def volume_class(type, config, state)
+        Oci::Models.const_get(ATTACHMENT_TYPES[volume_attachment_type(type)]).new(config, state)
       end
 
       def instance_type
         config[:instance_type].downcase.to_sym
+      end
+
+      def volume_attachment_type(type)
+        if type.nil?
+          :paravirtual
+        else
+          type.downcase.to_sym
+        end
       end
     end
   end
