@@ -17,16 +17,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'kitchen/driver/oci'
-require 'kitchen/provisioner/dummy'
-require 'kitchen/transport/dummy'
-require 'kitchen/verifier/dummy'
 require 'spec_helper'
 
 describe Kitchen::Driver::Oci do
+  include_context 'compute'
   describe '#create' do
     context 'compute' do
-      include_context 'compute'
       let(:state) { {} }
       let(:driver_config) { base_driver_config }
 
@@ -200,31 +196,10 @@ describe Kitchen::Driver::Oci do
         end
       end
     end
-
-    context 'dbaas' do
-      include_context 'dbaas'
-      let(:state) { {} }
-      it 'creates a dbaas instance' do
-        expect(dbaas_client).to receive(:launch_db_system).with(db_system_launch_details)
-        expect(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_resp)
-        expect(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_resp)
-        expect(dbaas_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas, max_interval_seconds: 900, max_wait_seconds: 21600)
-        expect(transport).to receive_message_chain('connection.wait_until_ready')
-        driver.create(state)
-        expect(state).to match(
-          {
-            hostname: private_ip,
-            server_id: db_system_ocid
-          }
-        )
-      end
-    end
   end
 
   describe '#destroy' do
     context 'compute' do
-      include_context 'compute'
-
       context 'standard compute' do
         let(:state) { { server_id: instance_ocid } }
 
@@ -257,17 +232,6 @@ describe Kitchen::Driver::Oci do
           expect(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid)
           driver.destroy(state)
         end
-      end
-    end
-
-    context 'dbaas' do
-      include_context 'dbaas'
-      let(:state) { { server_id: db_system_ocid } }
-
-      it 'destroys a dbaas instance' do
-        expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
-        expect(transport).to receive_message_chain('connection.close')
-        driver.destroy(state)
       end
     end
   end
