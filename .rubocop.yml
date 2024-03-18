@@ -1,6 +1,9 @@
 AllCops:
     NewCops: enable
 
+Gemspec/RequireMFA:
+    Enabled: false
+
 Layout/LineLength:
     Max : 150
 
