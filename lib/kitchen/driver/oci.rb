@@ -106,7 +106,7 @@ module Kitchen
         return if state[:server_id]
 
         validate_config!
-        inst = instance_class(instance_type).new(config, state)
+        inst = instance_class.new(config, state)
         state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
@@ -125,7 +125,7 @@ module Kitchen
           bls.detatch_and_delete
         end
 
-        inst = instance_class(instance_type).new(config, state)
+        inst = instance_class.new(config, state)
         inst.terminate
       end
 

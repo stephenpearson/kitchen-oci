@@ -25,33 +25,25 @@ module Kitchen
         require_relative 'instance'
         require_relative 'blockstorage'
 
-        INSTANCE_MODELS = {
-          compute: 'Compute',
-          dbaas: 'Dbaas'
-        }.freeze
-
-        ATTACHMENT_TYPES = {
-          iscsi: 'Iscsi',
-          paravirtual: 'Paravirtual'
-        }.freeze
-
-        def instance_class(type)
-          Oci::Models.const_get(INSTANCE_MODELS[type])
+        def instance_class
+          Oci::Models.const_get(instance_type)
         end
 
         def volume_class(type, config, state)
-          Oci::Models.const_get(ATTACHMENT_TYPES[volume_attachment_type(type)]).new(config, state)
+          Oci::Models.const_get(volume_attachment_type(type)).new(config, state)
         end
 
+        private
+
         def instance_type
-          config[:instance_type].downcase.to_sym
+          config[:instance_type].capitalize
         end
 
         def volume_attachment_type(type)
           if type.nil?
-            :paravirtual
+            'Paravirtual'
           else
-            type.downcase.to_sym
+            type.capitalize
           end
         end
       end
