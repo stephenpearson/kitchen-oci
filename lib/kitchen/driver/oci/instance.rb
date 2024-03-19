@@ -36,6 +36,14 @@ module Kitchen
           @state = state
         end
 
+        def common_props
+          compartment
+          availability_domain
+          defined_tags
+          shape
+          freeform_tags
+        end
+
         def compartment
           launch_details.compartment_id = compartment_id
         end

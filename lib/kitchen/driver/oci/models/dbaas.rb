@@ -39,12 +39,8 @@ module Kitchen
             response = dbaas_api.launch_db_system(launch_instance_details)
             instance_id = response.data.id
 
-            dbaas_api.get_db_system(instance_id).wait_until(
-              :lifecycle_state,
-              OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE,
-              max_interval_seconds: 900,
-              max_wait_seconds: 21_600
-            )
+            dbaas_api.get_db_system(instance_id).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE,
+                                                            max_interval_seconds: 900, max_wait_seconds: 21_600)
             final_state(state, instance_id)
           end
 
@@ -56,11 +52,7 @@ module Kitchen
 
           def launch_instance_details # rubocop:disable Metrics/MethodLength
             # TODO: add support for the #domain property
-            availability_domain
-            compartment
-            freeform_tags
-            defined_tags
-            shape
+            common_props
             names
             cpu_core_count
             create_db_home_details

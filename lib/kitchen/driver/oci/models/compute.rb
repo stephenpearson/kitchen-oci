@@ -22,6 +22,10 @@ module Kitchen
       module Models
         # Compute instance model
         class Compute < Instance
+          require_relative "compute/windows"
+
+          include Compute::Windows
+
           attr_accessor :launch_details
 
           def initialize(config, state)
@@ -33,10 +37,7 @@ module Kitchen
             process_windows_options
             response = comp_api.launch_instance(launch_instance_details)
             instance_id = response.data.id
-            comp_api.get_instance(instance_id).wait_until(
-              :lifecycle_state,
-              OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING
-            )
+            comp_api.get_instance(instance_id).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING )
             final_state(state, instance_id)
           end
 
@@ -47,11 +48,7 @@ module Kitchen
           private
 
           def launch_instance_details # rubocop:disable Metrics/MethodLength
-            availability_domain
-            compartment
-            freeform_tags
-            defined_tags
-            shape
+            common_props
             hostname_display_name
             instance_source_details
             instance_metadata
@@ -89,12 +86,6 @@ module Kitchen
               memory_in_gbs: config[:shape_config][:memory_in_gbs],
               baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || "BASELINE_1_1"
             )
-          end
-
-          def process_windows_options
-            return unless config[:setup_winrm] && config[:password].nil? && state[:password].nil?
-
-            state.store(:password, config[:winrm_password] || random_password(%w{@ - ( ) .}))
           end
 
           def instance_source_details
@@ -139,10 +130,7 @@ module Kitchen
           end
 
           def vnic_attachments(instance_id)
-            att = comp_api.list_vnic_attachments(
-              compartment_id,
-              instance_id: instance_id
-            ).data
+            att = comp_api.list_vnic_attachments(compartment_id, instance_id: instance_id).data
 
             raise "Could not find any VNIC attachments" unless att.any?
 
@@ -156,24 +144,6 @@ module Kitchen
             else
               vnic.private_ip
             end
-          end
-
-          def winrm_ps1
-            filename = File.join(__dir__, %w{.. .. .. .. .. tpl setup_winrm.ps1.erb})
-            tpl = ERB.new(File.read(filename))
-            tpl.result(binding)
-          end
-
-          def inject_powershell
-            return unless config[:setup_winrm]
-
-            data = winrm_ps1
-            config[:user_data] ||= []
-            config[:user_data] << {
-              type: "x-shellscript",
-              inline: data,
-              filename: "setup_winrm.ps1",
-            }
           end
         end
       end
