@@ -46,8 +46,7 @@ module Kitchen
         def user_data
           case config[:user_data]
           when Array
-            multi_part_user_data
-            Base64.encode64(gzip.close.string).delete("\n")
+            Base64.encode64(multi_part_user_data.close.string).delete("\n")
           when String
             Base64.encode64(config[:user_data]).delete("\n")
           end
