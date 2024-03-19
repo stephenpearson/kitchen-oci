@@ -111,8 +111,8 @@ module Kitchen
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
 
-        create_and_attach_volumes(config, state) unless config[:volumes].empty?
-        process_post_script unless config[:post_create_script].nil?
+        create_and_attach_volumes(config, state)
+        process_post_script
       end
 
       def destroy(state)
@@ -132,6 +132,8 @@ module Kitchen
       private
 
       def create_and_attach_volumes(config, state)
+        return if config[:volumes].empty?
+
         volume_state = { volumes: [], volume_attachments: [] }
         config[:volumes].each do |volume|
           vol = volume_class(volume[:type], config, state)
@@ -144,6 +146,8 @@ module Kitchen
       end
 
       def process_post_script
+        return if config[:post_create_script].nil?
+
         info("Running post create script")
         script = config[:post_create_script]
         instance.transport.connection(state).execute(script)
