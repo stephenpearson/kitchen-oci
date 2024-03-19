@@ -3,7 +3,7 @@
 #
 # Author:: Justin Steele (<justin.steele@oracle.com>)
 #
-# Copyright (C) 2024, Stephen Pearson
+# Copyright:: (C) 2024, Stephen Pearson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,13 +66,13 @@ module Kitchen
           if config[:proxy_url]
             URI.parse(config[:proxy_url])
           else
-            URI.parse('http://').find_proxy
+            URI.parse('http://example.com').find_proxy
           end
         end
 
         def api_proxy
           prx = proxy_config
-          return nil unless prx
+          return unless prx
 
           if prx.user
             OCI::ApiClientProxySettings.new(prx.host, prx.port, prx.user,
