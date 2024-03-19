@@ -1,15 +1,33 @@
 AllCops:
     NewCops: enable
 
-Gemspec/RequireMFA:
-    Enabled: false
-
+Layout/MultilineMethodCallIndentation:
+    EnforcedStyle: aligned
 Layout/LineLength:
     Max : 150
 
-Style/NumericLiterals:
-    Enabled : false
-
+Metrics/ClassLength:
+    Enabled : true
+Metrics/AbcSize:
+    Enabled : true
 Metrics/BlockLength:
     Exclude:
         - 'spec/**/*'
+
+Style/PercentLiteralDelimiters:
+    PreferredDelimiters:
+        "%i": "[]"
+        "%I": "[]"
+        "%r": "{}"
+        "%w": "[]"
+        "%W": "[]"
+Style/StringLiterals:
+    EnforcedStyle: double_quotes
+Style/TrailingCommaInArguments:
+    EnforcedStyleForMultiline: no_comma
+Style/TrailingCommaInArrayLiteral:
+    EnforcedStyleForMultiline: no_comma
+Style/TrailingCommaInHashLiteral:
+    EnforcedStyleForMultiline: no_comma
+
+
