@@ -60,6 +60,7 @@ describe Kitchen::Driver::Oci do
             "hostclass" => "foo",
           }
         end
+        let(:winrm_user) { "opc" }
         let(:winrm_password) { "f4k3p@55w0rd" }
 
         it "creates a windows compute instance with no volumes" do
@@ -73,6 +74,7 @@ describe Kitchen::Driver::Oci do
               hostname: private_ip,
               server_id: instance_ocid,
               password: winrm_password,
+              username: winrm_user,
             }
           )
         end
