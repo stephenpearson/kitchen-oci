@@ -47,7 +47,7 @@ module Kitchen
 
           private
 
-          def launch_instance_details # rubocop:disable Metrics/MethodLength
+          def launch_instance_details
             common_props
             hostname_display_name
             instance_source_details
