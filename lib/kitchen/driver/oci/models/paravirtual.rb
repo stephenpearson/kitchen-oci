@@ -27,12 +27,12 @@ module Kitchen
 
           def initialize(config, state)
             super
-            @attachment_type = 'paravirtual'
+            @attachment_type = "paravirtual"
           end
 
           def attachment_details(vol_id, server_id)
             OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
-              display_name: 'paravirtAttachment',
+              display_name: "paravirtAttachment",
               volume_id: vol_id,
               instance_id: server_id
             )

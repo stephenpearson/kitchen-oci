@@ -17,21 +17,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'spec_helper'
+require "spec_helper"
 
 describe Kitchen::Driver::Oci do
-  include_context 'compute'
-  describe '#create' do
-    context 'compute' do
+  include_context "compute"
+  describe "#create" do
+    context "compute" do
       let(:state) { {} }
       let(:driver_config) { base_driver_config }
 
-      context 'standard compute (Linux)' do
-        it 'creates a compute instance with no volumes' do
+      context "standard compute (Linux)" do
+        it "creates a compute instance with no volumes" do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           expect(compute_client).to receive(:get_instance).with(instance_ocid)
           expect(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid)
-          expect(transport).to receive_message_chain('connection.wait_until_ready')
+          expect(transport).to receive_message_chain("connection.wait_until_ready")
           driver.create(state)
           expect(state).to match(
             {
@@ -42,31 +42,31 @@ describe Kitchen::Driver::Oci do
         end
       end
 
-      context 'standard compute (Windows) with custom metadata' do
+      context "standard compute (Windows) with custom metadata" do
         # kitchen.yml driver config section
         let(:driver_config) do
           base_driver_config.merge!({
                                       setup_winrm: true,
-                                      winrm_password: 'f4k3p@55w0rd',
+                                      winrm_password: "f4k3p@55w0rd",
                                       custom_metadata: {
-                                        'hostclass' => 'foo'
+                                        "hostclass" => "foo"
                                       }
                                     })
         end
         let(:instance_metadata) do
           {
-            'ssh_authorized_keys' => ssh_pub_key,
-            'user_data' => 'FaKeUsErDaTa',
-            'hostclass' => 'foo'
+            "ssh_authorized_keys" => ssh_pub_key,
+            "user_data" => "FaKeUsErDaTa",
+            "hostclass" => "foo"
           }
         end
-        let(:winrm_password) { 'f4k3p@55w0rd' }
+        let(:winrm_password) { "f4k3p@55w0rd" }
 
-        it 'creates a windows compute instance with no volumes' do
+        it "creates a windows compute instance with no volumes" do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           expect(compute_client).to receive(:get_instance).with(instance_ocid)
           expect(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid)
-          expect(transport).to receive_message_chain('connection.wait_until_ready')
+          expect(transport).to receive_message_chain("connection.wait_until_ready")
           driver.create(state)
           expect(state).to match(
             {
@@ -78,19 +78,19 @@ describe Kitchen::Driver::Oci do
         end
       end
 
-      context 'standard compute with nsg' do
+      context "standard compute with nsg" do
         # kitchen.yml driver config section
         let(:driver_config) do
           base_driver_config.merge!({
 
                                       nsg_ids: [
-                                        'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345',
-                                        'ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890'
+                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345",
+                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890"
                                       ]
                                     })
         end
 
-        it 'creates a compute instance with nsg_ids specified' do
+        it "creates a compute instance with nsg_ids specified" do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           driver.create(state)
           expect(state).to match(
@@ -102,8 +102,8 @@ describe Kitchen::Driver::Oci do
         end
       end
 
-      context 'compute with volumes' do
-        context 'iscsi volume' do
+      context "compute with volumes" do
+        context "iscsi volume" do
           # kitchen.yml driver config section
           let(:driver_config) do
             base_driver_config.merge!({
@@ -111,21 +111,21 @@ describe Kitchen::Driver::Oci do
                                           {
                                             name: iscsi_display_name,
                                             size_in_gbs: 10,
-                                            type: 'iscsi'
+                                            type: "iscsi"
                                           }
                                         ]
                                       })
           end
 
-          it 'creates a compute instance with iscsi attached volume' do
+          it "creates a compute instance with iscsi attached volume" do
             expect(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_resp)
             expect(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_resp)
             expect(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_resp)
             expect(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_resp)
             expect(iscsi_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                         Lifecycle.volume('available')).and_return(iscsi_blockstorage_resp)
+                                                                         Lifecycle.volume("available")).and_return(iscsi_blockstorage_resp)
             expect(iscsi_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                       Lifecycle.volume_attachment('attached')).and_return(iscsi_attachment_resp)
+                                                                       Lifecycle.volume_attachment("attached")).and_return(iscsi_attachment_resp)
             driver.create(state)
             expect(state).to match(
               {
@@ -151,7 +151,7 @@ describe Kitchen::Driver::Oci do
           end
         end
 
-        context 'paravirtual volume' do
+        context "paravirtual volume" do
           # kitchen.yml driver config section
           let(:driver_config) do
             base_driver_config.merge!({
@@ -164,15 +164,15 @@ describe Kitchen::Driver::Oci do
                                       })
           end
 
-          it 'creates a compute instance with paravirtual attached volume by default' do
+          it "creates a compute instance with paravirtual attached volume by default" do
             expect(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_resp)
             expect(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_resp)
             expect(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_resp)
             expect(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_resp)
             expect(pv_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                      Lifecycle.volume('available')).and_return(pv_blockstorage_resp)
+                                                                      Lifecycle.volume("available")).and_return(pv_blockstorage_resp)
             expect(pv_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                    Lifecycle.volume_attachment('attached')).and_return(pv_attachment_resp)
+                                                                    Lifecycle.volume_attachment("attached")).and_return(pv_attachment_resp)
             driver.create(state)
             expect(state).to match(
               {
@@ -185,7 +185,7 @@ describe Kitchen::Driver::Oci do
                 ],
                 volumes: [
                   {
-                    attachment_type: 'paravirtual',
+                    attachment_type: "paravirtual",
                     display_name: pv_display_name,
                     id: pv_volume_ocid
                   }
@@ -198,19 +198,19 @@ describe Kitchen::Driver::Oci do
     end
   end
 
-  describe '#destroy' do
-    context 'compute' do
-      context 'standard compute' do
+  describe "#destroy" do
+    context "compute" do
+      context "standard compute" do
         let(:state) { { server_id: instance_ocid } }
 
-        it 'destroys a compute instance with no volumes' do
+        it "destroys a compute instance with no volumes" do
           expect(compute_client).to receive(:terminate_instance).with(instance_ocid)
-          expect(transport).to receive_message_chain('connection.close')
+          expect(transport).to receive_message_chain("connection.close")
           driver.destroy(state)
         end
       end
 
-      context 'compute with volumes' do
+      context "compute with volumes" do
         let(:state) do
           {
             server_id: instance_ocid,
@@ -227,7 +227,7 @@ describe Kitchen::Driver::Oci do
             ]
           }
         end
-        it 'destroys a compute instance with volumes attached' do
+        it "destroys a compute instance with volumes attached" do
           expect(compute_client).to receive(:detach_volume).with(pv_attachment_ocid)
           expect(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid)
           driver.destroy(state)

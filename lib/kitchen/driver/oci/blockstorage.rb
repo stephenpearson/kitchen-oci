@@ -21,9 +21,9 @@ module Kitchen
     class Oci
       # generic class for blockstorage
       class Blockstorage < Oci
-        require_relative '../../driver/mixins/blockstorage'
-        require_relative 'models/iscsi'
-        require_relative 'models/paravirtual'
+        require_relative "../../driver/mixins/blockstorage"
+        require_relative "models/iscsi"
+        require_relative "models/paravirtual"
 
         include Kitchen::Driver::Mixins::Blockstorage
 
@@ -59,8 +59,8 @@ module Kitchen
         end
 
         def attachment_response(attachment_id)
-          comp_api.get_volume_attachment(attachment_id).wait_until(:lifecycle_state,
-                                                                   OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
+          comp_api.get_volume_attachment(attachment_id)
+                  .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
         end
 
         def volume_details(volume)

@@ -14,33 +14,34 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-lib = File.expand_path('lib', __dir__)
+lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'kitchen/driver/oci_version'
+require "kitchen/driver/oci_version"
 
 Gem::Specification.new do |spec|
-  spec.name          = 'kitchen-oci'
+  spec.name          = "kitchen-oci"
   spec.version       = Kitchen::Driver::OCI_VERSION
-  spec.authors       = ['Stephen Pearson']
-  spec.email         = ['stephen.pearson@oracle.com']
-  spec.description   = 'A Test Kitchen Driver for Oracle OCI'
+  spec.authors       = ["Stephen Pearson"]
+  spec.email         = ["stephen.pearson@oracle.com"]
+  spec.description   = "A Test Kitchen Driver for Oracle OCI"
   spec.summary       = spec.description
-  spec.homepage      = ''
-  spec.license       = 'Apache-2.0'
+  spec.homepage      = ""
+  spec.license       = "Apache-2.0"
 
   # rubocop:disable Style/SpecialGlobalVars
   spec.files         = `git ls-files`.split($/).grep(/LICENSE|^lib|^tpl/)
   # rubocop:enable Style/SpecialGlobalVars
   spec.executables   = []
-  spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 2.7'
-  spec.add_dependency 'oci', '~> 2.18.0'
-  spec.add_dependency 'test-kitchen'
+  spec.require_paths = ["lib"]
+  spec.required_ruby_version = ">= 2.7"
+  spec.add_dependency "oci", "~> 2.18.0"
+  spec.add_dependency "test-kitchen"
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'cane'
-  spec.add_development_dependency 'countloc'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'tailor'
+  spec.add_development_dependency "bundler"
+  spec.add_development_dependency "cane"
+  spec.add_development_dependency "countloc"
+  spec.add_development_dependency "pry"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "tailor"
+  spec.metadata["rubygems_mfa_required"] = "true"
 end

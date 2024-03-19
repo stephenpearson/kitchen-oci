@@ -22,8 +22,8 @@ module Kitchen
     class Oci
       # models definitions
       module Models
-        require_relative 'instance'
-        require_relative 'blockstorage'
+        require_relative "instance"
+        require_relative "blockstorage"
 
         def instance_class
           Oci::Models.const_get(instance_type)
@@ -41,7 +41,7 @@ module Kitchen
 
         def volume_attachment_type(type)
           if type.nil?
-            'Paravirtual'
+            "Paravirtual"
           else
             type.capitalize
           end

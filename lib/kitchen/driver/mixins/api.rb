@@ -66,7 +66,7 @@ module Kitchen
           if config[:proxy_url]
             URI.parse(config[:proxy_url])
           else
-            URI.parse('http://example.com').find_proxy
+            URI.parse("http://example.com").find_proxy
           end
         end
 

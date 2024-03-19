@@ -39,7 +39,7 @@ module Kitchen
               :lifecycle_state,
               OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE,
               max_interval_seconds: 900,
-              max_wait_seconds: 21600
+              max_wait_seconds: 21_600
             )
             final_state(state, instance_id)
           end
@@ -98,23 +98,23 @@ module Kitchen
           def hostname
             # The hostname must begin with an alphabetic character, and can contain alphanumeric characters and hyphens (-).
             # The maximum length of the hostname is 16 characters
-            long_name = [hostname_prefix, long_hostname_suffix].compact.join('-')
-            trimmed_name = [hostname_prefix[0, 12], random_string(3)].compact.join('-')
+            long_name = [hostname_prefix, long_hostname_suffix].compact.join("-")
+            trimmed_name = [hostname_prefix[0, 12], random_string(3)].compact.join("-")
             launch_details.hostname = [long_name, trimmed_name].min { |l, t| l.size <=> t.size }
           end
 
           def display_name
             # The user-friendly name for the DB system. The name does not have to be unique.
-            launch_details.display_name = [config[:hostname_prefix], random_string(4), random_number(2)].compact.join('-')
+            launch_details.display_name = [config[:hostname_prefix], random_string(4), random_number(2)].compact.join("-")
           end
 
           def cluster_name
-            prefix = config[:hostname_prefix].split('-')[0]
+            prefix = config[:hostname_prefix].split("-")[0]
             # 11 character limit for cluster_name in DBaaS
             cn = if prefix.length >= 11
                    prefix[0, 11]
                  else
-                   [prefix, random_string(10 - prefix.length)].compact.join('-')
+                   [prefix, random_string(10 - prefix.length)].compact.join("-")
                  end
             launch_details.cluster_name = cn
           end
@@ -128,7 +128,7 @@ module Kitchen
           end
 
           def long_hostname_suffix
-            [random_string(25 - hostname_prefix.length), random_string(3)].compact.join('-')
+            [random_string(25 - hostname_prefix.length), random_string(3)].compact.join("-")
           end
 
           def pubkey
@@ -163,7 +163,7 @@ module Kitchen
           end
 
           def db_version
-            raise 'db_version cannot be nil!' if config[:dbaas][:db_version].nil?
+            raise "db_version cannot be nil!" if config[:dbaas][:db_version].nil?
 
             db_home_details.db_version = config[:dbaas][:db_version]
           end
@@ -173,15 +173,15 @@ module Kitchen
           end
 
           def db_home_display_name
-            db_home_details.display_name = ['dbhome', random_number(10)].compact.join
+            db_home_details.display_name = ["dbhome", random_number(10)].compact.join
           end
 
           def character_set
-            database_details.character_set = config[:dbaas][:character_set] ||= 'AL32UTF8'
+            database_details.character_set = config[:dbaas][:character_set] ||= "AL32UTF8"
           end
 
           def ncharacter_set
-            database_details.ncharacter_set = config[:dbaas][:ncharacter_set] ||= 'AL16UTF16'
+            database_details.ncharacter_set = config[:dbaas][:ncharacter_set] ||= "AL16UTF16"
           end
 
           def db_workload
@@ -194,11 +194,11 @@ module Kitchen
           end
 
           def db_name
-            database_details.db_name = config[:dbaas][:db_name] ||= 'dbaas1'
+            database_details.db_name = config[:dbaas][:db_name] ||= "dbaas1"
           end
 
           def pdb_name
-            database_details.pdb_name = config[:dbaas][:pdb_name] ||= 'pdb001'
+            database_details.pdb_name = config[:dbaas][:pdb_name] ||= "pdb001"
           end
 
           def db_backup_config

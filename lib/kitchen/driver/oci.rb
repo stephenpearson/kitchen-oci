@@ -18,14 +18,14 @@
 # limitations under the License.
 
 # This require fixes bug in ChefDK 4.0.60-1 on Linux.
-require 'forwardable'
-require 'base64'
-require 'erb'
-require 'kitchen'
-require 'oci'
-require 'openssl'
-require 'uri'
-require 'zlib'
+require "forwardable" unless defined?(Forwardable)
+require "base64" unless defined?(Base64)
+require "erb" unless defined?(Erb)
+require "kitchen"
+require "oci"
+require "openssl" unless defined?(OpenSSL)
+require "uri" unless defined?(URI)
+require "zlib" unless defined?(Zlib)
 
 module Kitchen
   module Driver
@@ -33,8 +33,8 @@ module Kitchen
     #
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base
-      require_relative 'oci_version'
-      require_relative 'oci/models'
+      require_relative "oci_version"
+      require_relative "oci/models"
 
       plugin_version Kitchen::Driver::OCI_VERSION
 
@@ -49,7 +49,7 @@ module Kitchen
       default_config :oci_profile_name, nil
       default_config :compartment_id, nil
       default_config :compartment_name, nil
-      default_config :instance_type, 'compute'
+      default_config :instance_type, "compute"
       default_config :image_id
       default_config :hostname_prefix do |hnp|
         hnp.instance.name
@@ -69,7 +69,7 @@ module Kitchen
 
       # compute only configs
       default_config :setup_winrm, false
-      default_config :winrm_user, 'opc'
+      default_config :winrm_user, "opc"
       default_config :winrm_password, nil
       default_config :preemptible_instance, false
       default_config :boot_volume_size_in_gbs, nil
@@ -80,16 +80,16 @@ module Kitchen
       default_config :dbaas, {}
 
       validations[:instance_type] = lambda do |_attr, val, _driver|
-        validation_error('instance_type must be either compute or dbaas') unless %w[compute dbaas].include?(val.downcase)
+        validation_error("instance_type must be either compute or dbaas") unless %w[compute dbaas].include?(val.downcase)
       end
 
       validations[:nsg_ids] = lambda do |_attr, val, _driver|
-        validation_error('config value for `nsg_ids` cannot be longer than 5 items') if val.length > 5
+        validation_error("config value for `nsg_ids` cannot be longer than 5 items") if val.length > 5
       end
 
       validations[:volumes] = lambda do |_attr, val, _driver|
         val.each do |vol_attr, _vol_value|
-          unless ['iscsi', 'paravirtual', nil].include?(vol_attr[:type])
+          unless ["iscsi", "paravirtual", nil].include?(vol_attr[:type])
             validation_error("#{vol_attr[:type]} is not a valid volume type for #{vol_attr[:name]}")
           end
         end
@@ -144,7 +144,7 @@ module Kitchen
       end
 
       def process_post_script
-        info('Running post create script')
+        info("Running post create script")
         script = config[:post_create_script]
         instance.transport.connection(state).execute(script)
       end

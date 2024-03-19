@@ -17,21 +17,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'spec_helper'
+require "spec_helper"
 
 describe Kitchen::Driver::Oci do
-  include_context 'dbaas'
+  include_context "dbaas"
 
-  describe '#create' do
-    context 'dbaas' do
-      include_context 'dbaas'
+  describe "#create" do
+    context "dbaas" do
+      include_context "dbaas"
       let(:state) { {} }
-      it 'creates a dbaas instance' do
+      it "creates a dbaas instance" do
         expect(dbaas_client).to receive(:launch_db_system).with(db_system_launch_details)
         expect(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_resp)
         expect(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_resp)
-        expect(dbaas_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas, max_interval_seconds: 900, max_wait_seconds: 21600)
-        expect(transport).to receive_message_chain('connection.wait_until_ready')
+        expect(dbaas_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas, max_interval_seconds: 900, max_wait_seconds: 21_600)
+        expect(transport).to receive_message_chain("connection.wait_until_ready")
         driver.create(state)
         expect(state).to match(
           {
@@ -43,13 +43,13 @@ describe Kitchen::Driver::Oci do
     end
   end
 
-  describe '#destroy' do
-    context 'dbaas' do
+  describe "#destroy" do
+    context "dbaas" do
       let(:state) { { server_id: db_system_ocid } }
 
-      it 'destroys a dbaas instance' do
+      it "destroys a dbaas instance" do
         expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
-        expect(transport).to receive_message_chain('connection.close')
+        expect(transport).to receive_message_chain("connection.close")
         driver.destroy(state)
       end
     end

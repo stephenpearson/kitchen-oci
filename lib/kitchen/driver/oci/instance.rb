@@ -22,9 +22,9 @@ module Kitchen
     class Oci
       # generic class for instance models
       class Instance < Oci
-        require_relative '../../driver/mixins/instance'
-        require_relative 'models/compute'
-        require_relative 'models/dbaas'
+        require_relative "../../driver/mixins/instance"
+        require_relative "models/compute"
+        require_relative "models/dbaas"
 
         include Kitchen::Driver::Mixins::Instance
 

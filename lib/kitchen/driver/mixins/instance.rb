@@ -22,9 +22,9 @@ module Kitchen
     module Mixins
       # mixins common for instance classes
       module Instance
-        require_relative 'oci_config'
-        require_relative 'api'
-        require_relative 'support'
+        require_relative "oci_config"
+        require_relative "api"
+        require_relative "support"
 
         include Kitchen::Driver::Mixins::OciConfig
         include Kitchen::Driver::Mixins::Api
@@ -36,7 +36,7 @@ module Kitchen
           tags.each do |tag|
             unless fft[tag.to_sym].nil? || fft[tag.to_sym].empty?
               fft[tag] =
-                prov[tag.to_sym].join(',')
+                prov[tag.to_sym].join(",")
             end
           end
           fft[:kitchen] = true
@@ -56,7 +56,7 @@ module Kitchen
         def multi_part_user_data
           boundary = "MIMEBOUNDARY_#{random_string(20)}"
           msg = ["Content-Type: multipart/mixed; boundary=\"#{boundary}\"",
-                 'MIME-Version: 1.0', '']
+                 "MIME-Version: 1.0", ""]
           msg += mime_parts(boundary)
           txt = "#{msg.join("\n")}\n"
           gzip = Zlib::GzipWriter.new(StringIO.new)
@@ -68,9 +68,9 @@ module Kitchen
           config[:user_data].each do |m|
             msg << "--#{boundary}"
             msg << "Content-Disposition: attachment; filename=\"#{m[:filename]}\""
-            msg << 'Content-Transfer-Encoding: 7bit'
-            msg << "Content-Type: text/#{m[:type]}" << 'Mime-Version: 1.0' << ''
-            msg << read_part(m) << ''
+            msg << "Content-Transfer-Encoding: 7bit"
+            msg << "Content-Type: text/#{m[:type]}" << "Mime-Version: 1.0" << ""
+            msg << read_part(m) << ""
           end
           msg << "--#{boundary}--"
           msg
@@ -82,7 +82,7 @@ module Kitchen
           elsif part[:inline]
             content = part[:inline]
           else
-            raise 'Invalid user data'
+            raise "Invalid user data"
           end
           content.split("\n")
         end

@@ -24,17 +24,17 @@ module Kitchen
       module Support
         def random_password(special_chars)
           (Array.new(5) { special_chars.sample } +
-            Array.new(5) { ('a'..'z').to_a.sample } +
-            Array.new(5) { ('A'..'Z').to_a.sample } +
-            Array.new(5) { ('0'..'9').to_a.sample }).shuffle.join
+            Array.new(5) { ("a".."z").to_a.sample } +
+            Array.new(5) { ("A".."Z").to_a.sample } +
+            Array.new(5) { ("0".."9").to_a.sample }).shuffle.join
         end
 
         def random_string(length)
-          Array.new(length) { ('a'..'z').to_a.sample }.join
+          Array.new(length) { ("a".."z").to_a.sample }.join
         end
 
         def random_number(length)
-          Array.new(length) { ('0'..'9').to_a.sample }.join
+          Array.new(length) { ("0".."9").to_a.sample }.join
         end
       end
     end

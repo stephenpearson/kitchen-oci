@@ -35,7 +35,7 @@ module Kitchen
         def tenancy
           if config[:use_instance_principals]
             sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
-            sign.instance_variable_get '@tenancy_id'
+            sign.instance_variable_get "@tenancy_id"
           else
             oci_config.tenancy
           end
@@ -44,12 +44,12 @@ module Kitchen
         def compartment_id
           return config[:compartment_id] if config[:compartment_id]
 
-          raise 'must specify either compartment_id or compartment_name' unless config[:compartment_name]
+          raise "must specify either compartment_id or compartment_name" unless config[:compartment_name]
 
           compartment_ocid = compartment_id_by_name(config[:compartment_name])
           return compartment_ocid unless compartment_ocid.nil?
 
-          raise 'compartment not found'
+          raise "compartment not found"
         end
 
         private

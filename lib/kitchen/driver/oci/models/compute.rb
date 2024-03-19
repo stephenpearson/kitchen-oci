@@ -67,7 +67,7 @@ module Kitchen
           end
 
           def hostname
-            [config[:hostname_prefix], random_string(6)].compact.join('-')
+            [config[:hostname_prefix], random_string(6)].compact.join("-")
           end
 
           def preemptible_instance_config
@@ -76,7 +76,7 @@ module Kitchen
             launch_details.preemptible_instance_config = OCI::Core::Models::PreemptibleInstanceConfigDetails.new(
               preemption_action:
                 OCI::Core::Models::TerminatePreemptionAction.new(
-                  type: 'TERMINATE', preserve_boot_volume: true
+                  type: "TERMINATE", preserve_boot_volume: true
                 )
             )
           end
@@ -87,7 +87,7 @@ module Kitchen
             launch_details.shape_config = OCI::Core::Models::LaunchInstanceShapeConfigDetails.new(
               ocpus: config[:shape_config][:ocpus],
               memory_in_gbs: config[:shape_config][:memory_in_gbs],
-              baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || 'BASELINE_1_1'
+              baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || "BASELINE_1_1"
             )
           end
 
@@ -99,7 +99,7 @@ module Kitchen
 
           def instance_source_details
             launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
-              sourceType: 'image',
+              sourceType: "image",
               imageId: config[:image_id],
               bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
             )
@@ -127,8 +127,8 @@ module Kitchen
             md = {}
             inject_powershell
             config[:custom_metadata]&.each { |k, v| md.store(k, v) }
-            md.store('ssh_authorized_keys', pubkey)
-            md.store('user_data', user_data) if config[:user_data] && !config[:user_data].empty?
+            md.store("ssh_authorized_keys", pubkey)
+            md.store("user_data", user_data) if config[:user_data] && !config[:user_data].empty?
             md
           end
 
@@ -144,7 +144,7 @@ module Kitchen
               instance_id: instance_id
             ).data
 
-            raise 'Could not find any VNIC attachments' unless att.any?
+            raise "Could not find any VNIC attachments" unless att.any?
 
             att
           end
@@ -170,9 +170,9 @@ module Kitchen
             data = winrm_ps1
             config[:user_data] ||= []
             config[:user_data] << {
-              type: 'x-shellscript',
+              type: "x-shellscript",
               inline: data,
-              filename: 'setup_winrm.ps1'
+              filename: "setup_winrm.ps1"
             }
           end
         end

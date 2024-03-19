@@ -27,12 +27,12 @@ module Kitchen
 
           def initialize(config, state)
             super
-            @attachment_type = 'iscsi'
+            @attachment_type = "iscsi"
           end
 
           def attachment_details(vol_id, server_id)
             OCI::Core::Models::AttachIScsiVolumeDetails.new(
-              display_name: 'iSCSIAttachment',
+              display_name: "iSCSIAttachment",
               volume_id: vol_id,
               instance_id: server_id
             )

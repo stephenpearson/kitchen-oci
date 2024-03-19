@@ -22,9 +22,9 @@ module Kitchen
     module Mixins
       # mixins common for blockstorage classes
       module Blockstorage
-        require_relative 'oci_config'
-        require_relative 'api'
-        require_relative 'support'
+        require_relative "oci_config"
+        require_relative "api"
+        require_relative "support"
 
         include Kitchen::Driver::Mixins::OciConfig
         include Kitchen::Driver::Mixins::Api
