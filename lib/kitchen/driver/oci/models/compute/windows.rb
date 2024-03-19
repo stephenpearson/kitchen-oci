@@ -26,6 +26,7 @@ module Kitchen
             def process_windows_options
               return unless config[:setup_winrm] && config[:password].nil? && state[:password].nil?
 
+              state.store(:username, config[:winrm_user])
               state.store(:password, config[:winrm_password] || random_password(%w{@ - ( ) .}))
             end
 
