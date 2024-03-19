@@ -127,10 +127,6 @@ module Kitchen
             dbaas_api.list_db_nodes(compartment_id, db_system_id: instance_id).data
           end
 
-          def dbaas_vnic(node_ocid)
-            dbaas_api.get_db_node(node_ocid).data
-          end
-
           def instance_ip(instance_id)
             vnic = dbaas_node(instance_id).select(&:vnic_id).first.vnic_id
             if public_ip_allowed?
