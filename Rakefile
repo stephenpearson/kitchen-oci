@@ -30,7 +30,7 @@ begin
   require "chefstyle"
   require "rubocop/rake_task"
   RuboCop::RakeTask.new(:style) do |task|
-    task.options += ["--display-cop-names", "-D"]
+    task.options += ["--display-cop-names"]
   end
 rescue LoadError
   puts "chefstyle is not available. (sudo) gem install chefstyle to do style checking."
@@ -40,4 +40,4 @@ task build: :default do
   Gem::Package.build(spec, nil, nil, gemfile)
 end
 
-task default: %i[test style]
+task default: %i{test style}

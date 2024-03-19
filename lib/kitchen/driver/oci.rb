@@ -54,7 +54,7 @@ module Kitchen
       default_config :hostname_prefix do |hnp|
         hnp.instance.name
       end
-      default_keypath = File.expand_path(File.join(%w[~ .ssh id_rsa.pub]))
+      default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
       default_config :proxy_url, nil
@@ -80,7 +80,7 @@ module Kitchen
       default_config :dbaas, {}
 
       validations[:instance_type] = lambda do |_attr, val, _driver|
-        validation_error("instance_type must be either compute or dbaas") unless %w[compute dbaas].include?(val.downcase)
+        validation_error("instance_type must be either compute or dbaas") unless %w{compute dbaas}.include?(val.downcase)
       end
 
       validations[:nsg_ids] = lambda do |_attr, val, _driver|

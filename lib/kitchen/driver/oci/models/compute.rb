@@ -94,7 +94,7 @@ module Kitchen
           def process_windows_options
             return unless config[:setup_winrm] && config[:password].nil? && state[:password].nil?
 
-            state.store(:password, config[:winrm_password] || random_password(%w[@ - ( ) .]))
+            state.store(:password, config[:winrm_password] || random_password(%w{@ - ( ) .}))
           end
 
           def instance_source_details
@@ -159,7 +159,7 @@ module Kitchen
           end
 
           def winrm_ps1
-            filename = File.join(__dir__, %w[.. .. .. .. .. tpl setup_winrm.ps1.erb])
+            filename = File.join(__dir__, %w{.. .. .. .. .. tpl setup_winrm.ps1.erb})
             tpl = ERB.new(File.read(filename))
             tpl.result(binding)
           end
@@ -172,7 +172,7 @@ module Kitchen
             config[:user_data] << {
               type: "x-shellscript",
               inline: data,
-              filename: "setup_winrm.ps1"
+              filename: "setup_winrm.ps1",
             }
           end
         end

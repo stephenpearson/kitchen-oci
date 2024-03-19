@@ -55,12 +55,12 @@ module Kitchen
 
         def volume_response(volume_id)
           blockstorage_api.get_volume(volume_id)
-                          .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE).data
+            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE).data
         end
 
         def attachment_response(attachment_id)
           comp_api.get_volume_attachment(attachment_id)
-                  .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
+            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
         end
 
         def volume_details(volume)
@@ -89,7 +89,7 @@ module Kitchen
           info("Deleting <#{volume_id}>...")
           blockstorage_api.delete_volume(volume_id)
           blockstorage_api.get_volume(volume_id)
-                          .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
+            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
           info("Finished deleting <#{volume_id}>.")
         end
 
@@ -97,7 +97,7 @@ module Kitchen
           info("Detaching <#{volume_attachment[:id]}>...")
           comp_api.detach_volume(volume_attachment[:id])
           comp_api.get_volume_attachment(volume_attachment[:id])
-                  .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
+            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
           info("Finished detaching <#{volume_attachment[:id]}>.")
         end
       end

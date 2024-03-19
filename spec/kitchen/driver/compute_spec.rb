@@ -36,7 +36,7 @@ describe Kitchen::Driver::Oci do
           expect(state).to match(
             {
               hostname: private_ip,
-              server_id: instance_ocid
+              server_id: instance_ocid,
             }
           )
         end
@@ -49,15 +49,15 @@ describe Kitchen::Driver::Oci do
                                       setup_winrm: true,
                                       winrm_password: "f4k3p@55w0rd",
                                       custom_metadata: {
-                                        "hostclass" => "foo"
-                                      }
+                                        "hostclass" => "foo",
+                                      },
                                     })
         end
         let(:instance_metadata) do
           {
             "ssh_authorized_keys" => ssh_pub_key,
             "user_data" => "FaKeUsErDaTa",
-            "hostclass" => "foo"
+            "hostclass" => "foo",
           }
         end
         let(:winrm_password) { "f4k3p@55w0rd" }
@@ -72,7 +72,7 @@ describe Kitchen::Driver::Oci do
             {
               hostname: private_ip,
               server_id: instance_ocid,
-              password: winrm_password
+              password: winrm_password,
             }
           )
         end
@@ -85,8 +85,8 @@ describe Kitchen::Driver::Oci do
 
                                       nsg_ids: [
                                         "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345",
-                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890"
-                                      ]
+                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890",
+                                      ],
                                     })
         end
 
@@ -96,7 +96,7 @@ describe Kitchen::Driver::Oci do
           expect(state).to match(
             {
               hostname: private_ip,
-              server_id: instance_ocid
+              server_id: instance_ocid,
             }
           )
         end
@@ -111,9 +111,9 @@ describe Kitchen::Driver::Oci do
                                           {
                                             name: iscsi_display_name,
                                             size_in_gbs: 10,
-                                            type: "iscsi"
-                                          }
-                                        ]
+                                            type: "iscsi",
+                                          },
+                                        ],
                                       })
           end
 
@@ -136,16 +136,16 @@ describe Kitchen::Driver::Oci do
                     id: iscsi_attachment_ocid,
                     iqn: iqn,
                     iqn_ipv4: ipv4,
-                    port: port
-                  }
+                    port: port,
+                  },
                 ],
                 volumes: [
                   {
                     attachment_type: driver_config[:volumes][0][:type],
                     display_name: driver_config[:volumes][0][:name],
-                    id: iscsi_volume_ocid
-                  }
-                ]
+                    id: iscsi_volume_ocid,
+                  },
+                ],
               }
             )
           end
@@ -158,9 +158,9 @@ describe Kitchen::Driver::Oci do
                                         volumes: [
                                           {
                                             name: pv_display_name,
-                                            size_in_gbs: 10
-                                          }
-                                        ]
+                                            size_in_gbs: 10,
+                                          },
+                                        ],
                                       })
           end
 
@@ -180,16 +180,16 @@ describe Kitchen::Driver::Oci do
                 server_id: instance_ocid,
                 volume_attachments: [
                   {
-                    id: pv_attachment_ocid
-                  }
+                    id: pv_attachment_ocid,
+                  },
                 ],
                 volumes: [
                   {
                     attachment_type: "paravirtual",
                     display_name: pv_display_name,
-                    id: pv_volume_ocid
-                  }
-                ]
+                    id: pv_volume_ocid,
+                  },
+                ],
               }
             )
           end
@@ -217,14 +217,14 @@ describe Kitchen::Driver::Oci do
             volumes: [
               {
                 id: pv_volume_ocid,
-                display_name: pv_display_name
-              }
+                display_name: pv_display_name,
+              },
             ],
             volume_attachments: [
               {
-                id: pv_attachment_ocid
-              }
-            ]
+                id: pv_attachment_ocid,
+              },
+            ],
           }
         end
         it "destroys a compute instance with volumes attached" do

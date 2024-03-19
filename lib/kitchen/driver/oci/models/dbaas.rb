@@ -190,7 +190,7 @@ module Kitchen
           end
 
           def admin_password
-            database_details.admin_password = config[:dbaas][:admin_password] ||= random_password(%w[# _ -])
+            database_details.admin_password = config[:dbaas][:admin_password] ||= random_password(%w{# _ -})
           end
 
           def db_name

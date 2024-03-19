@@ -31,7 +31,7 @@ module Kitchen
         include Kitchen::Driver::Mixins::Support
 
         def process_freeform_tags
-          tags = %w[run_list policyfile]
+          tags = %w{run_list policyfile}
           fft = config[:freeform_tags]
           tags.each do |tag|
             unless fft[tag.to_sym].nil? || fft[tag.to_sym].empty?

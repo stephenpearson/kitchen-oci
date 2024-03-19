@@ -36,7 +36,7 @@ describe Kitchen::Driver::Oci do
         expect(state).to match(
           {
             hostname: private_ip,
-            server_id: db_system_ocid
+            server_id: db_system_ocid,
           }
         )
       end

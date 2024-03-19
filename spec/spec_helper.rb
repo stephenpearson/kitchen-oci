@@ -118,7 +118,7 @@ RSpec.shared_context "common", :common do
       availability_domain: availability_domain,
       subnet_id: subnet_ocid,
       shape: shape,
-      image_id: image_ocid
+      image_id: image_ocid,
     }
   end
 
@@ -293,7 +293,7 @@ RSpec.shared_context "compute", :compute do
   end
   let(:instance_metadata) do
     {
-      "ssh_authorized_keys" => ssh_pub_key
+      "ssh_authorized_keys" => ssh_pub_key,
     }
   end
   let(:launch_instance_request) do
@@ -353,8 +353,8 @@ RSpec.shared_context "dbaas", :dbaas do
           cpu_core_count: 16,
           db_name: "dbaas1",
           pdb_name: "foo001",
-          db_version: "19.0.0.0"
-        }
+          db_version: "19.0.0.0",
+        },
       }
     )
   end
