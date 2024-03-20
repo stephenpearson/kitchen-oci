@@ -51,7 +51,6 @@ module Kitchen
                 filename: "setup_winrm.ps1",
               }
             end
-
           end
         end
       end
