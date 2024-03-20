@@ -325,9 +325,9 @@ RSpec.shared_context "compute", :compute do
   include_context "paravirtual"
 
   before do
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(6).and_return("abc123")
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(4).and_return("a1b2")
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(20).and_return("a1b2c3d4e5f6g7h8i9j0")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(6).and_return("abc123")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(4).and_return("a1b2")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(20).and_return("a1b2c3d4e5f6g7h8i9j0")
     allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci_config).and_return(compute_client)
     allow(compute_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute)
     allow(compute_client).to receive(:launch_instance).with(anything).and_return(compute_resp)
@@ -404,12 +404,12 @@ RSpec.shared_context "dbaas", :dbaas do
     end
   end
   before do
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_password).and_return("5up3r53cur3!")
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_number).with(2).and_return(12)
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_number).with(10).and_return(1_029_384_576)
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(4).and_return("a1b2")
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(3).and_return("a1b")
-    allow_any_instance_of(Kitchen::Driver::Mixins::Support).to receive(:random_string).with(14).and_return("a1b2c3d4e5f6g7")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_password).and_return("5up3r53cur3!")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_number).with(2).and_return(12)
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_number).with(10).and_return(1_029_384_576)
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(4).and_return("a1b2")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(3).and_return("a1b")
+    allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(14).and_return("a1b2c3d4e5f6g7")
 
     allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
     allow(dbaas_client).to receive(:launch_db_system).with(anything).and_return(dbaas_resp)
