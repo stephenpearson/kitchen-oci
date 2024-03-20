@@ -79,25 +79,24 @@ module Kitchen
       # dbaas configs
       default_config :dbaas, {}
 
-      validations[:instance_type] = lambda do |_attr, val, _driver|
-        validation_error("instance_type must be either compute or dbaas") unless %w{compute dbaas}.include?(val.downcase)
+      validations[:instance_type] = lambda do |attr, val, driver|
+        validation_error("[:#{attr}] #{val} is not a valid instance_type. must be either compute or dbaas.", driver) unless %w{compute dbaas}.include?(val.downcase)
       end
 
-      validations[:nsg_ids] = lambda do |_attr, val, _driver|
-        validation_error("config value for `nsg_ids` cannot be longer than 5 items") if val.length > 5
+      validations[:nsg_ids] = lambda do |attr, val, driver|
+        validation_error("[:#{attr}] list cannot be longer than 5 items", driver) if val.length > 5
       end
 
-      validations[:volumes] = lambda do |_attr, val, _driver|
-        val.each do |vol_attr, _vol_value|
+      validations[:volumes] = lambda do |attr, val, driver|
+        val.each do |vol_attr|
           unless ["iscsi", "paravirtual", nil].include?(vol_attr[:type])
-            validation_error("#{vol_attr[:type]} is not a valid volume type for #{vol_attr[:name]}")
+            validation_error("[:#{attr}][:type] #{vol_attr[:type]} is not a valid volume type for #{vol_attr[:name]}", driver)
           end
         end
       end
 
-      def self.validation_error(message)
-        warn message
-        exit!
+      def self.validation_error(message, driver)
+        raise UserError, "#{driver.class}<#{driver.instance.name}>#config#{message}"
       end
 
       include Kitchen::Driver::Oci::Models
