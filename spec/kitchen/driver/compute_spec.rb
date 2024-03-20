@@ -136,6 +136,7 @@ describe Kitchen::Driver::Oci do
                 volume_attachments: [
                   {
                     id: iscsi_attachment_ocid,
+                    display_name: iscsi_attachment_display_name,
                     iqn: iqn,
                     iqn_ipv4: ipv4,
                     port: port,
@@ -143,7 +144,6 @@ describe Kitchen::Driver::Oci do
                 ],
                 volumes: [
                   {
-                    attachment_type: driver_config[:volumes][0][:type],
                     display_name: driver_config[:volumes][0][:name],
                     id: iscsi_volume_ocid,
                   },
@@ -183,11 +183,11 @@ describe Kitchen::Driver::Oci do
                 volume_attachments: [
                   {
                     id: pv_attachment_ocid,
+                    display_name: pv_attachment_display_name,
                   },
                 ],
                 volumes: [
                   {
-                    attachment_type: "paravirtual",
                     display_name: pv_display_name,
                     id: pv_volume_ocid,
                   },
@@ -225,6 +225,7 @@ describe Kitchen::Driver::Oci do
             volume_attachments: [
               {
                 id: pv_attachment_ocid,
+                display_name: pv_attachment_display_name,
               },
             ],
           }

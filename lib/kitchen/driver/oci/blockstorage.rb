@@ -47,7 +47,7 @@ module Kitchen
 
         def attach_volume(volume_details, server_id)
           info("Attaching <#{volume_details.display_name}>...")
-          attach_volume = comp_api.attach_volume(attachment_details(volume_details.id, server_id))
+          attach_volume = comp_api.attach_volume(attachment_details(volume_details, server_id))
           response = attachment_response(attach_volume.data.id)
           info("Finished attaching <#{volume_details.display_name}>.")
           final_state(response)
@@ -79,26 +79,30 @@ module Kitchen
           end
 
           state[:volumes].each do |vol|
-            delete_volume(vol[:id])
+            delete_volume(vol)
           end
         end
 
         private
 
-        def delete_volume(volume_id)
-          info("Deleting <#{volume_id}>...")
-          blockstorage_api.delete_volume(volume_id)
-          blockstorage_api.get_volume(volume_id)
+        def delete_volume(volume)
+          info("Deleting <#{volume[:display_name]}>...")
+          blockstorage_api.delete_volume(volume[:id])
+          blockstorage_api.get_volume(volume[:id])
             .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
-          info("Finished deleting <#{volume_id}>.")
+          info("Finished deleting <#{volume[:display_name]}>.")
         end
 
         def detatch_volume(volume_attachment)
-          info("Detaching <#{volume_attachment[:id]}>...")
+          info("Detaching <#{attachment_name(volume_attachment)}>...")
           comp_api.detach_volume(volume_attachment[:id])
           comp_api.get_volume_attachment(volume_attachment[:id])
             .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
-          info("Finished detaching <#{volume_attachment[:id]}>.")
+          info("Finished detaching <#{attachment_name(volume_attachment)}>.")
+        end
+
+        def attachment_name(attachment)
+          attachment[:display_name].gsub(/(?:paravirtual|iscsi)-/, '')
         end
       end
     end

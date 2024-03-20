@@ -45,7 +45,6 @@ module Kitchen
         def final_volume_state
           volume_state.store(:id, response.id)
           volume_state.store(:display_name, response.display_name)
-          volume_state.store(:attachment_type, attachment_type)
           volume_state
         end
       end

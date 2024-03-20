@@ -186,6 +186,7 @@ RSpec.shared_context "iscsi", :iscsi do
   let(:iscsi_volume_ocid) { "ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
   let(:iscsi_display_name) { "vol1" }
   let(:iscsi_attachment_ocid) { "ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
+  let(:iscsi_attachment_display_name) { "iscsi-#{iscsi_display_name}" }
   let(:ipv4) { "1.1.2.2" }
   let(:iqn) { "iqn.2099-13.com.fake" }
   let(:port) { "3260" }
@@ -205,7 +206,7 @@ RSpec.shared_context "iscsi", :iscsi do
   end
   let(:iscsi_attachment) do
     OCI::Core::Models::AttachIScsiVolumeDetails.new(
-      display_name: "iSCSIAttachment",
+      display_name: iscsi_attachment_display_name,
       volume_id: iscsi_volume_ocid,
       instance_id: instance_ocid
     )
@@ -214,7 +215,7 @@ RSpec.shared_context "iscsi", :iscsi do
     OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
                                                                              instance_id: instance_ocid,
                                                                              volume_id: iscsi_volume_ocid,
-                                                                             display_name: "iSCSIAttachment",
+                                                                             display_name: iscsi_attachment_display_name,
                                                                              lifecycle_state: Lifecycle.volume_attachment("attached"),
                                                                              ipv4: ipv4,
                                                                              iqn: iqn,
@@ -240,6 +241,7 @@ RSpec.shared_context "paravirtual", :paravirtual do
   let(:pv_volume_ocid) { "ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890" }
   let(:pv_attachment_ocid) { "ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890" }
   let(:pv_display_name) { "vol2" }
+  let(:pv_attachment_display_name) { "paravirtual-#{pv_display_name}" }
   let(:pv_volume_details) do
     OCI::Core::Models::CreateVolumeDetails.new(
       compartment_id: compartment_ocid,
@@ -256,7 +258,7 @@ RSpec.shared_context "paravirtual", :paravirtual do
   end
   let(:pv_attachment) do
     OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
-      display_name: "paravirtAttachment",
+      display_name: pv_attachment_display_name,
       volume_id: pv_volume_ocid,
       instance_id: instance_ocid
     )
@@ -265,7 +267,7 @@ RSpec.shared_context "paravirtual", :paravirtual do
     OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
                                                                                        instance_id: instance_ocid,
                                                                                        volume_id: pv_volume_ocid,
-                                                                                       display_name: "paravirtAttachment",
+                                                                                       display_name: pv_attachment_display_name,
                                                                                        lifecycle_state: Lifecycle.volume_attachment("attached")))
   end
   let(:pv_detachment_resp) do
