@@ -22,8 +22,8 @@ require "spec_helper"
 describe Kitchen::Driver::Oci do
   include_context "dbaas"
 
-  describe "#create" do
-    context "dbaas" do
+  context "dbaas" do
+    describe "#create" do
       include_context "dbaas"
       let(:state) { {} }
       it "creates a dbaas instance" do
@@ -41,12 +41,9 @@ describe Kitchen::Driver::Oci do
         )
       end
     end
-  end
 
-  describe "#destroy" do
-    context "dbaas" do
+    describe "#destroy" do
       let(:state) { { server_id: db_system_ocid } }
-
       it "destroys a dbaas instance" do
         expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
         expect(transport).to receive_message_chain("connection.close")

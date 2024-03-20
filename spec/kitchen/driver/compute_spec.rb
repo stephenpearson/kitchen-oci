@@ -21,8 +21,8 @@ require "spec_helper"
 
 describe Kitchen::Driver::Oci do
   include_context "compute"
-  describe "#create" do
-    context "compute" do
+  context "compute" do
+    describe "#create" do
       let(:state) { {} }
       let(:driver_config) { base_driver_config }
 
@@ -198,10 +198,8 @@ describe Kitchen::Driver::Oci do
         end
       end
     end
-  end
 
-  describe "#destroy" do
-    context "compute" do
+    describe "#destroy" do
       context "standard compute" do
         let(:state) { { server_id: instance_ocid } }
 
