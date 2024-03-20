@@ -102,7 +102,7 @@ module Kitchen
         end
 
         def attachment_name(attachment)
-          attachment[:display_name].gsub(/(?:paravirtual|iscsi)-/, '')
+          attachment[:display_name].gsub(/(?:paravirtual|iscsi)-/, "")
         end
       end
     end
