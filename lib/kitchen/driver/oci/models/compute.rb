@@ -21,11 +21,7 @@ module Kitchen
     class Oci
       module Models
         # Compute instance model
-        class Compute < Instance
-          require_relative "compute/windows"
-
-          include Compute::Windows
-
+        class Compute < Instance # rubocop:disable Metrics/ClassLength
           attr_accessor :launch_details
 
           def initialize(config, state, oci, api, action = :create)
@@ -48,8 +44,12 @@ module Kitchen
 
           private
 
-          def launch_instance_details
-            common_props
+          def launch_instance_details # rubocop:disable Metrics/MethodLength
+            compartment_id
+            availability_domain
+            defined_tags
+            shape
+            freeform_tags
             hostname_display_name
             instance_source_details
             instance_metadata
@@ -142,6 +142,35 @@ module Kitchen
             else
               vnic.private_ip
             end
+          end
+
+          def process_windows_options
+            return unless windows_state?
+
+            state.store(:username, config[:winrm_user])
+            state.store(:password, config[:winrm_password] || random_password(%w{@ - ( ) .}))
+          end
+
+          def windows_state?
+            config[:setup_winrm] && config[:password].nil? && state[:password].nil?
+          end
+
+          def winrm_ps1
+            filename = File.join(__dir__, %w{.. .. .. .. .. tpl setup_winrm.ps1.erb})
+            tpl = ERB.new(File.read(filename))
+            tpl.result(binding)
+          end
+
+          def inject_powershell
+            return unless config[:setup_winrm]
+
+            data = winrm_ps1
+            config[:user_data] ||= []
+            config[:user_data] << {
+              type: "x-shellscript",
+              inline: data,
+              filename: "setup_winrm.ps1",
+            }
           end
         end
       end

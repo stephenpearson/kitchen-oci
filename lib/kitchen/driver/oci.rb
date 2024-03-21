@@ -32,7 +32,7 @@ module Kitchen
     # Oracle OCI driver for Kitchen.
     #
     # @author Stephen Pearson <stephen.pearson@oracle.com>
-    class Oci < Kitchen::Driver::Base
+    class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       require_relative "oci_version"
       require_relative "oci/models"
 
@@ -110,7 +110,6 @@ module Kitchen
         state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
-
         create_and_attach_volumes(config, state, oci, api)
         process_post_script
       end
@@ -120,12 +119,7 @@ module Kitchen
 
         oci, api = auth(:destroy)
         instance.transport.connection(state).close
-
-        if state[:volumes]
-          bls = Blockstorage.new(config, state, oci, api, :destroy)
-          bls.detatch_and_delete
-        end
-
+        detatch_and_delete_volumes(state, oci, api) if state[:volumes]
         inst = instance_class.new(config, state, oci, api, :destroy)
         inst.terminate
       end
@@ -151,6 +145,12 @@ module Kitchen
           volume_state[:volume_attachments] << attach_state
         end
         state.merge!(volume_state)
+      end
+
+      def detatch_and_delete_volumes(state, oci, api)
+        bls = Blockstorage.new(config, state, oci, api, :destroy)
+        state[:volume_attachments].each { |att| bls.detatch_volume(att) }
+        state[:volumes].each { |vol| bls.delete_volume(vol) }
       end
 
       def process_post_script

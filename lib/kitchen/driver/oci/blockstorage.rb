@@ -55,24 +55,20 @@ module Kitchen
           final_state(response)
         end
 
-        def volume_response(volume_id)
-          api.blockstorage.get_volume(volume_id)
-            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE).data
+        def delete_volume(volume)
+          info("Deleting <#{volume[:display_name]}>...")
+          api.blockstorage.delete_volume(volume[:id])
+          api.blockstorage.get_volume(volume[:id])
+            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
+          info("Finished deleting <#{volume[:display_name]}>.")
         end
 
-        def attachment_response(attachment_id)
-          api.compute.get_volume_attachment(attachment_id)
-            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
-        end
-
-        def volume_details(volume)
-          OCI::Core::Models::CreateVolumeDetails.new(
-            compartment_id: oci.compartment,
-            availability_domain: config[:availability_domain],
-            display_name: volume[:name],
-            size_in_gbs: volume[:size_in_gbs],
-            vpus_per_gb: volume[:vpus_per_gb] || 10
-          )
+        def detatch_volume(volume_attachment)
+          info("Detaching <#{attachment_name(volume_attachment)}>...")
+          api.compute.detach_volume(volume_attachment[:id])
+          api.compute.get_volume_attachment(volume_attachment[:id])
+            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
+          info("Finished detaching <#{attachment_name(volume_attachment)}>.")
         end
 
         def detatch_and_delete
@@ -96,20 +92,24 @@ module Kitchen
 
         private
 
-        def delete_volume(volume)
-          info("Deleting <#{volume[:display_name]}>...")
-          api.blockstorage.delete_volume(volume[:id])
-          api.blockstorage.get_volume(volume[:id])
-            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
-          info("Finished deleting <#{volume[:display_name]}>.")
+        def volume_response(volume_id)
+          api.blockstorage.get_volume(volume_id)
+            .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_AVAILABLE).data
         end
 
-        def detatch_volume(volume_attachment)
-          info("Detaching <#{attachment_name(volume_attachment)}>...")
-          api.compute.detach_volume(volume_attachment[:id])
-          api.compute.get_volume_attachment(volume_attachment[:id])
-            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
-          info("Finished detaching <#{attachment_name(volume_attachment)}>.")
+        def attachment_response(attachment_id)
+          api.compute.get_volume_attachment(attachment_id)
+            .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_ATTACHED).data
+        end
+
+        def volume_details(volume)
+          OCI::Core::Models::CreateVolumeDetails.new(
+            compartment_id: oci.compartment,
+            availability_domain: config[:availability_domain],
+            display_name: volume[:name],
+            size_in_gbs: volume[:size_in_gbs],
+            vpus_per_gb: volume[:vpus_per_gb] || 10
+          )
         end
 
         def attachment_name(attachment)
