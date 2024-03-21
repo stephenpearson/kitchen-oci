@@ -25,7 +25,7 @@ module Kitchen
         class Iscsi < Blockstorage
           attr_reader :attachment_type
 
-          def initialize(config, state)
+          def initialize(config, state, oci, api)
             super
             @attachment_type = "iscsi"
           end

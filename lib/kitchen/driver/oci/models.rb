@@ -26,18 +26,14 @@ module Kitchen
         require_relative "blockstorage"
 
         def instance_class
-          Oci::Models.const_get(instance_type)
+          Oci::Models.const_get(config[:instance_type].capitalize)
         end
 
-        def volume_class(type, config, state)
-          Oci::Models.const_get(volume_attachment_type(type)).new(config, state)
+        def volume_class(type, config, state, oci, api)
+          Oci::Models.const_get(volume_attachment_type(type)).new(config, state, oci, api)
         end
 
         private
-
-        def instance_type
-          config[:instance_type].capitalize
-        end
 
         def volume_attachment_type(type)
           if type.nil?

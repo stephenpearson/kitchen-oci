@@ -22,12 +22,6 @@ module Kitchen
     module Mixins
       # mixins common for instance classes
       module Instance
-        require_relative "oci_config"
-        require_relative "api"
-
-        include Kitchen::Driver::Mixins::OciConfig
-        include Kitchen::Driver::Mixins::Api
-
         def random_password(special_chars)
           (Array.new(5) { special_chars.sample } +
             Array.new(5) { ("a".."z").to_a.sample } +
@@ -97,17 +91,6 @@ module Kitchen
             raise "Invalid user data"
           end
           content.split("\n")
-        end
-
-        def public_ip_allowed?
-          subnet = net_api.get_subnet(config[:subnet_id]).data
-          !subnet.prohibit_public_ip_on_vnic
-        end
-
-        def final_state(state, instance_id)
-          state.store(:server_id, instance_id)
-          state.store(:hostname, instance_ip(instance_id))
-          state
         end
       end
     end

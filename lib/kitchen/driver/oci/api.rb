@@ -19,39 +19,47 @@
 
 module Kitchen
   module Driver
-    module Mixins
-      # Api mixin that defines the various API classes used to interact with OCI
-      module Api
+    class Oci
+      # Api class that defines the various API classes used to interact with OCI
+      class Api
+        attr_reader :oci_config, :config
+        def initialize(oci_config, config)
+          @oci_config = oci_config
+          @config = config
+        end
+
+        def compute
+          generic_api(OCI::Core::ComputeClient)
+        end
+
+        def network
+          generic_api(OCI::Core::VirtualNetworkClient)
+        end
+
+        def dbaas
+          generic_api(OCI::Database::DatabaseClient)
+        end
+
+        def identity
+          generic_api(OCI::Identity::IdentityClient)
+        end
+
+        def blockstorage
+          generic_api(OCI::Core::BlockstorageClient)
+        end
+
+        private
+
         def generic_api(klass)
           params = {}
           params[:proxy_settings] = api_proxy if api_proxy
-          params[:signer] = if config[:user_instance_principals]
+          params[:signer] = if config[:use_instance_principals]
                               OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
                             elsif config[:use_token_auth]
                               token_signer
                             end
           params[:config] = oci_config unless config[:use_instance_principals]
           klass.new(**params.compact)
-        end
-
-        def comp_api
-          generic_api(OCI::Core::ComputeClient)
-        end
-
-        def net_api
-          generic_api(OCI::Core::VirtualNetworkClient)
-        end
-
-        def dbaas_api
-          generic_api(OCI::Database::DatabaseClient)
-        end
-
-        def ident_api
-          generic_api(OCI::Identity::IdentityClient)
-        end
-
-        def blockstorage_api
-          generic_api(OCI::Core::BlockstorageClient)
         end
 
         def token_signer

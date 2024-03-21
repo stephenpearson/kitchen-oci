@@ -28,21 +28,22 @@ module Kitchen
 
           attr_accessor :launch_details
 
-          def initialize(config, state)
+          def initialize(config, state, oci, api, action = :create)
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
           end
 
           def launch
             process_windows_options
-            response = comp_api.launch_instance(launch_instance_details)
+            response = api.compute.launch_instance(launch_instance_details)
             instance_id = response.data.id
-            comp_api.get_instance(instance_id).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING )
+            api.compute.get_instance(instance_id).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING )
             final_state(state, instance_id)
           end
 
           def terminate
-            comp_api.terminate_instance(state[:server_id])
+            api.compute.terminate_instance(state[:server_id])
+            api.compute.get_instance(state[:server_id]).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATED )
           end
 
           private
@@ -124,14 +125,11 @@ module Kitchen
           end
 
           def vnics(instance_id)
-            vnic_attachments(instance_id).map do |att|
-              net_api.get_vnic(att.vnic_id).data
-            end
+            vnic_attachments(instance_id).map { |att| api.network.get_vnic(att.vnic_id).data }
           end
 
           def vnic_attachments(instance_id)
-            att = comp_api.list_vnic_attachments(compartment_id, instance_id: instance_id).data
-
+            att = api.compute.list_vnic_attachments(oci.compartment, instance_id: instance_id).data
             raise "Could not find any VNIC attachments" unless att.any?
 
             att

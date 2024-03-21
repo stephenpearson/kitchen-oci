@@ -23,29 +23,33 @@ module Kitchen
       # generic class for instance models
       class Instance < Oci
         require_relative "../../driver/mixins/instance"
+        require_relative "api"
+        require_relative "config"
         require_relative "models/compute"
         require_relative "models/dbaas"
 
         include Kitchen::Driver::Mixins::Instance
 
-        attr_accessor :config, :state
+        attr_accessor :config, :state, :oci, :api
 
-        def initialize(config, state)
+        def initialize(config, state, oci, api, action)
           super()
           @config = config
           @state = state
+          @oci = oci
+          @api = api
         end
 
         def common_props
-          compartment
+          compartment_id
           availability_domain
           defined_tags
           shape
           freeform_tags
         end
 
-        def compartment
-          launch_details.compartment_id = compartment_id
+        def compartment_id
+          launch_details.compartment_id = oci.compartment
         end
 
         def availability_domain
@@ -62,6 +66,17 @@ module Kitchen
 
         def freeform_tags
           launch_details.freeform_tags = process_freeform_tags
+        end
+
+        def public_ip_allowed?
+          subnet = api.network.get_subnet(config[:subnet_id]).data
+          !subnet.prohibit_public_ip_on_vnic
+        end
+
+        def final_state(state, instance_id)
+          state.store(:server_id, instance_id)
+          state.store(:hostname, instance_ip(instance_id))
+          state
         end
       end
     end

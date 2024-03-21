@@ -28,7 +28,7 @@ module Kitchen
 
           attr_accessor :launch_details, :database_details, :db_home_details
 
-          def initialize(config, state)
+          def initialize(config, state, oci, api, action = :create)
             super
             @launch_details = OCI::Database::Models::LaunchDbSystemDetails.new
             @database_details = OCI::Database::Models::CreateDatabaseDetails.new
@@ -36,16 +36,18 @@ module Kitchen
           end
 
           def launch
-            response = dbaas_api.launch_db_system(launch_instance_details)
+            response = api.dbaas.launch_db_system(launch_instance_details)
             instance_id = response.data.id
 
-            dbaas_api.get_db_system(instance_id).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE,
+            api.dbaas.get_db_system(instance_id).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE,
                                                             max_interval_seconds: 900, max_wait_seconds: 21_600)
             final_state(state, instance_id)
           end
 
           def terminate
-            dbaas_api.terminate_db_system(state[:server_id])
+            api.dbaas.terminate_db_system(state[:server_id])
+            api.dbaas.get_db_system(state[:server_id]).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATED,
+                                                                  max_interval_seconds: 900, max_wait_seconds: 21_600)
           end
 
           private
@@ -124,15 +126,15 @@ module Kitchen
           end
 
           def dbaas_node(instance_id)
-            dbaas_api.list_db_nodes(compartment_id, db_system_id: instance_id).data
+            api.dbaas.list_db_nodes(oci.compartment, db_system_id: instance_id).data
           end
 
           def instance_ip(instance_id)
             vnic = dbaas_node(instance_id).select(&:vnic_id).first.vnic_id
             if public_ip_allowed?
-              net_api.get_vnic(vnic).data.public_ip
+              api.network.get_vnic(vnic).data.public_ip
             else
-              net_api.get_vnic(vnic).data.private_ip
+              api.network.get_vnic(vnic).data.private_ip
             end
           end
         end

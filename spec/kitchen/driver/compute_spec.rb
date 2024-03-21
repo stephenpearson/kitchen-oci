@@ -20,9 +20,12 @@
 require "spec_helper"
 
 describe Kitchen::Driver::Oci do
-  include_context "compute"
   context "compute" do
+    include_context "compute"
+
     describe "#create" do
+      include_context "create"
+
       let(:state) { {} }
       let(:driver_config) { base_driver_config }
 
@@ -31,6 +34,8 @@ describe Kitchen::Driver::Oci do
           expect(compute_client).to receive(:launch_instance).with(launch_instance_request)
           expect(compute_client).to receive(:get_instance).with(instance_ocid)
           expect(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid)
+          expect(compute_response).to receive(:wait_until).with(:lifecycle_state,
+                                                               Lifecycle.compute("running")).and_return(compute_response)
           expect(transport).to receive_message_chain("connection.wait_until_ready")
           driver.create(state)
           expect(state).to match(
@@ -120,14 +125,14 @@ describe Kitchen::Driver::Oci do
           end
 
           it "creates a compute instance with iscsi attached volume" do
-            expect(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_resp)
-            expect(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_resp)
-            expect(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_resp)
-            expect(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_resp)
-            expect(iscsi_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                         Lifecycle.volume("available")).and_return(iscsi_blockstorage_resp)
-            expect(iscsi_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                       Lifecycle.volume_attachment("attached")).and_return(iscsi_attachment_resp)
+            expect(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_response)
+            expect(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_response)
+            expect(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_response)
+            expect(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_response)
+            expect(iscsi_blockstorage_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                             Lifecycle.volume("available")).and_return(iscsi_blockstorage_response)
+            expect(iscsi_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                           Lifecycle.volume_attachment("attached")).and_return(iscsi_attachment_response)
             driver.create(state)
             expect(state).to match(
               {
@@ -167,14 +172,14 @@ describe Kitchen::Driver::Oci do
           end
 
           it "creates a compute instance with paravirtual attached volume by default" do
-            expect(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_resp)
-            expect(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_resp)
-            expect(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_resp)
-            expect(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_resp)
-            expect(pv_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                      Lifecycle.volume("available")).and_return(pv_blockstorage_resp)
-            expect(pv_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                    Lifecycle.volume_attachment("attached")).and_return(pv_attachment_resp)
+            expect(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_response)
+            expect(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_response)
+            expect(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_response)
+            expect(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_response)
+            expect(pv_blockstorage_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                      Lifecycle.volume("available")).and_return(pv_blockstorage_response)
+            expect(pv_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                    Lifecycle.volume_attachment("attached")).and_return(pv_attachment_response)
             driver.create(state)
             expect(state).to match(
               {
@@ -200,6 +205,8 @@ describe Kitchen::Driver::Oci do
     end
 
     describe "#destroy" do
+      include_context "destroy"
+
       context "standard compute" do
         let(:state) { { server_id: instance_ocid } }
 

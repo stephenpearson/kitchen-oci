@@ -25,7 +25,7 @@ module Kitchen
         class Paravirtual < Blockstorage
           attr_reader :attachment_type
 
-          def initialize(config, state)
+          def initialize(config, state, oci, api)
             super
             @attachment_type = "paravirtual"
           end

@@ -125,6 +125,7 @@ RSpec.shared_context "common", :common do
   before do
     allow(File).to receive(:readlines).with(anything).and_return([ssh_pub_key])
     allow_any_instance_of(Kitchen::Driver::Oci::Blockstorage).to receive(:info)
+    allow_any_instance_of(Kitchen::Driver::Oci::Config).to receive(:compartment).and_return(compartment_ocid)
     # stubbed for now. the encoding is making spec difficult right now.  plan to add specific units for the user data methods.
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:user_data).and_return("FaKeUsErDaTa")
   end
@@ -132,7 +133,11 @@ end
 
 RSpec.shared_context "oci", :oci do
   let(:oci_config) { class_double(OCI::Config) }
-  let(:nil_resp) { OCI::Response.new(200, nil, nil) }
+  let(:nil_response) { OCI::Response.new(200, nil, nil) }
+  let(:compute_client) { instance_double(OCI::Core::ComputeClient) }
+  let(:dbaas_client) { instance_double(OCI::Database::DatabaseClient) }
+  let(:net_client) { instance_double(OCI::Core::VirtualNetworkClient) }
+  let(:blockstorage_client) { instance_double(OCI::Core::BlockstorageClient) }
 
   before do
     allow(driver).to receive(:instance).and_return(instance)
@@ -142,7 +147,6 @@ end
 
 RSpec.shared_context "net", :net do
   let(:vnic_ocid) { "ocid1.vnic.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
-  let(:net_client) { instance_double(OCI::Core::VirtualNetworkClient) }
   let(:private_ip) { "192.168.1.2" }
   let(:public_ip) { "123.456.654.321" }
   let(:cidr_block) { "192.168.1.0/24" }
@@ -170,16 +174,28 @@ RSpec.shared_context "net", :net do
 end
 
 RSpec.shared_context "blockstorage", :blockstorage do
-  let(:blockstorage_client) { instance_double(OCI::Core::BlockstorageClient) }
-
   before do
     allow(OCI::Core::BlockstorageClient).to receive(:new).with(config: oci_config).and_return(blockstorage_client)
-    allow(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_resp)
-    allow(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_resp)
-    allow(blockstorage_client).to receive(:delete_volume).with(iscsi_volume_ocid).and_return(nil_resp)
-    allow(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_resp)
-    allow(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid).and_return(nil_resp)
-    allow(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_resp)
+    allow(pv_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                               Lifecycle.volume_attachment("detached")).and_return(pv_attachment_response)
+    allow(pv_blockstorage_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("terminated")).and_return(nil_response)
+    allow(blockstorage_client).to receive(:delete_volume).with(iscsi_volume_ocid).and_return(nil_response)
+    allow(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid).and_return(nil_response)
+    allow(iscsi_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                  Lifecycle.volume_attachment("detached")).and_return(iscsi_attachment_response)
+    allow(iscsi_blockstorage_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("terminated")).and_return(nil_response)
+
+    allow(blockstorage_client).to receive(:create_volume).with(iscsi_volume_details).and_return(iscsi_blockstorage_response)
+    allow(blockstorage_client).to receive(:get_volume).with(iscsi_volume_ocid).and_return(iscsi_blockstorage_response)
+    allow(blockstorage_client).to receive(:get_volume).with(pv_volume_ocid).and_return(pv_blockstorage_response)
+    allow(blockstorage_client).to receive(:create_volume).with(pv_volume_details).and_return(pv_blockstorage_response)
+    allow(iscsi_blockstorage_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                    Lifecycle.volume("available")).and_return(iscsi_blockstorage_response)
+    allow(iscsi_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                                  Lifecycle.volume_attachment("attached")).and_return(iscsi_attachment_response)
+    allow(pv_attachment_response).to receive(:wait_until).with(:lifecycle_state,
+                                                               Lifecycle.volume_attachment("attached")).and_return(pv_attachment_response)
+    allow(pv_blockstorage_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("available")).and_return(pv_blockstorage_response)
   end
 end
 
@@ -191,11 +207,6 @@ RSpec.shared_context "iscsi", :iscsi do
   let(:ipv4) { "1.1.2.2" }
   let(:iqn) { "iqn.2099-13.com.fake" }
   let(:port) { "3260" }
-  let(:iscsi_blockstorage_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: iscsi_volume_ocid,
-                                                              display_name: iscsi_display_name,
-                                                              lifecycle_state: Lifecycle.volume("available")))
-  end
   let(:iscsi_volume_details) do
     OCI::Core::Models::CreateVolumeDetails.new(
       compartment_id: compartment_ocid,
@@ -211,30 +222,6 @@ RSpec.shared_context "iscsi", :iscsi do
       volume_id: iscsi_volume_ocid,
       instance_id: instance_ocid
     )
-  end
-  let(:iscsi_attachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
-                                                                             instance_id: instance_ocid,
-                                                                             volume_id: iscsi_volume_ocid,
-                                                                             display_name: iscsi_attachment_display_name,
-                                                                             lifecycle_state: Lifecycle.volume_attachment("attached"),
-                                                                             ipv4: ipv4,
-                                                                             iqn: iqn,
-                                                                             port: port))
-  end
-  let(:iscsi_detachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
-                                                                             lifecycle_state: Lifecycle.volume_attachment("detached")))
-  end
-
-  before do
-    allow(iscsi_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                              Lifecycle.volume_attachment("attached")).and_return(iscsi_attachment_resp)
-    allow(iscsi_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                              Lifecycle.volume_attachment("detached")).and_return(iscsi_detachment_resp)
-    allow(iscsi_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                                Lifecycle.volume("available")).and_return(iscsi_blockstorage_resp)
-    allow(iscsi_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("terminated")).and_return(nil_resp)
   end
 end
 
@@ -252,11 +239,6 @@ RSpec.shared_context "paravirtual", :paravirtual do
       vpus_per_gb: 10
     )
   end
-  let(:pv_blockstorage_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: pv_volume_ocid,
-                                                              display_name: pv_display_name,
-                                                              lifecycle_state: Lifecycle.volume("available")))
-  end
   let(:pv_attachment) do
     OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
       display_name: pv_attachment_display_name,
@@ -264,36 +246,11 @@ RSpec.shared_context "paravirtual", :paravirtual do
       instance_id: instance_ocid
     )
   end
-  let(:pv_attachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
-                                                                                       instance_id: instance_ocid,
-                                                                                       volume_id: pv_volume_ocid,
-                                                                                       display_name: pv_attachment_display_name,
-                                                                                       lifecycle_state: Lifecycle.volume_attachment("attached")))
-  end
-  let(:pv_detachment_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
-                                                                                       lifecycle_state: Lifecycle.volume_attachment("detached")))
-  end
-
-  before do
-    allow(pv_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                           Lifecycle.volume_attachment("attached")).and_return(pv_attachment_resp)
-    allow(pv_attachment_resp).to receive(:wait_until).with(:lifecycle_state,
-                                                           Lifecycle.volume_attachment("detached")).and_return(pv_detachment_resp)
-    allow(pv_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("available")).and_return(pv_blockstorage_resp)
-    allow(pv_blockstorage_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("terminated")).and_return(nil_resp)
-  end
 end
 
 RSpec.shared_context "compute", :compute do
   let(:driver_config) { base_driver_config }
   let(:instance_ocid) { "ocid1.instance.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
-  let(:compute_client) { instance_double(OCI::Core::ComputeClient) }
-  let(:compute_resp) do
-    OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
-                                                                lifecycle_state: Lifecycle.compute))
-  end
   let(:instance_metadata) do
     {
       "ssh_authorized_keys" => ssh_pub_key,
@@ -332,17 +289,19 @@ RSpec.shared_context "compute", :compute do
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(4).and_return("a1b2")
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(20).and_return("a1b2c3d4e5f6g7h8i9j0")
     allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci_config).and_return(compute_client)
-    allow(compute_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute)
-    allow(compute_client).to receive(:launch_instance).with(anything).and_return(compute_resp)
-    allow(compute_client).to receive(:get_instance).with(instance_ocid).and_return(compute_resp)
+    allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("terminated"))
+    allow(compute_client).to receive(:get_instance).with(instance_ocid).and_return(compute_response)
+    allow(compute_client).to receive(:terminate_instance).with(instance_ocid).and_return(nil_response)
+    allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("running"))
+    allow(compute_client).to receive(:launch_instance).with(anything).and_return(compute_response)
+    allow(compute_client).to receive(:get_instance).with(instance_ocid).and_return(compute_response)
     allow(compute_client).to receive(:list_vnic_attachments).with(compartment_ocid, instance_id: instance_ocid).and_return(vnic_attachments)
-    allow(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_resp)
-    allow(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_resp)
-    allow(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_resp)
-    allow(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_resp)
-    allow(compute_client).to receive(:detach_volume).with(iscsi_attachment_ocid).and_return(nil_resp)
-    allow(compute_client).to receive(:detach_volume).with(pv_attachment_ocid).and_return(nil_resp)
-    allow(compute_client).to receive(:terminate_instance).with(instance_ocid).and_return(nil_resp)
+    allow(compute_client).to receive(:attach_volume).with(iscsi_attachment).and_return(iscsi_attachment_response)
+    allow(compute_client).to receive(:attach_volume).with(pv_attachment).and_return(pv_attachment_response)
+    allow(compute_client).to receive(:get_volume_attachment).with(iscsi_attachment_ocid).and_return(iscsi_attachment_response)
+    allow(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_response)
+    allow(compute_client).to receive(:detach_volume).with(iscsi_attachment_ocid).and_return(nil_response)
+    allow(compute_client).to receive(:detach_volume).with(pv_attachment_ocid).and_return(nil_response)
   end
 end
 
@@ -364,15 +323,6 @@ RSpec.shared_context "dbaas", :dbaas do
   let(:hostname) { "kitchen-foo-a1b" }
   let(:db_system_ocid) { "ocid1.dbsystem.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
   let(:db_node_ocid) { "ocid1.dbnode.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
-  let(:dbaas_client) { instance_double(OCI::Database::DatabaseClient) }
-  let(:dbaas_resp) do
-    OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas))
-  end
-  let(:db_nodes_resp) do
-    OCI::Response.new(200, nil, [OCI::Database::Models::DbNodeSummary.new(db_system_id: db_system_ocid,
-                                                                          id: db_node_ocid,
-                                                                          vnic_id: vnic_ocid)])
-  end
   let(:db_system_launch_details) do
     OCI::Database::Models::LaunchDbSystemDetails.new.tap do |l|
       l.availability_domain = availability_domain
@@ -413,16 +363,95 @@ RSpec.shared_context "dbaas", :dbaas do
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(4).and_return("a1b2")
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(3).and_return("a1b")
     allow_any_instance_of(Kitchen::Driver::Mixins::Instance).to receive(:random_string).with(14).and_return("a1b2c3d4e5f6g7")
-
     allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
-    allow(dbaas_client).to receive(:launch_db_system).with(anything).and_return(dbaas_resp)
-    allow(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_resp)
-    allow(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_resp)
-    allow(dbaas_resp).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas,
-                                                   max_interval_seconds: 900,
-                                                   max_wait_seconds: 21_600)
-    allow(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid).and_return(nil_resp)
+    allow(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
+    allow(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminated"),
+                                                       max_interval_seconds: 900,
+                                                       max_wait_seconds: 21_600)
+    allow(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid).and_return(nil_response)
+    allow(dbaas_client).to receive(:launch_db_system).with(anything).and_return(dbaas_response)
+    allow(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
+    allow(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("available"),
+                                                       max_interval_seconds: 900,
+                                                       max_wait_seconds: 21_600)
+    allow(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_response)
   end
+end
+
+RSpec.shared_context "create", :create do
+  let(:compute_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
+                                                                lifecycle_state: Lifecycle.compute("running")))
+  end
+  let(:dbaas_response) do
+    OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas("available")))
+  end
+  let(:db_nodes_response) do
+    OCI::Response.new(200, nil, [OCI::Database::Models::DbNodeSummary.new(db_system_id: db_system_ocid,
+                                                                          id: db_node_ocid,
+                                                                          vnic_id: vnic_ocid)])
+  end
+  let(:iscsi_blockstorage_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: iscsi_volume_ocid,
+                                                              display_name: iscsi_display_name,
+                                                              lifecycle_state: Lifecycle.volume("available")))
+  end
+  let(:iscsi_attachment_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
+                                                                             instance_id: instance_ocid,
+                                                                             volume_id: iscsi_volume_ocid,
+                                                                             display_name: iscsi_attachment_display_name,
+                                                                             lifecycle_state: Lifecycle.volume_attachment("attached"),
+                                                                             ipv4: ipv4,
+                                                                             iqn: iqn,
+                                                                             port: port))
+  end
+  let(:pv_blockstorage_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: pv_volume_ocid,
+                                                              display_name: pv_display_name,
+                                                              lifecycle_state: Lifecycle.volume("available")))
+  end
+  let(:pv_attachment_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
+                                                                                       instance_id: instance_ocid,
+                                                                                       volume_id: pv_volume_ocid,
+                                                                                       display_name: pv_attachment_display_name,
+                                                                                       lifecycle_state: Lifecycle.volume_attachment("attached")))
+  end
+end
+
+RSpec.shared_context "destroy", :destroy do
+  let(:compute_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
+                                                                lifecycle_state: Lifecycle.compute("terminated")))
+  end
+  let(:dbaas_response) do
+    OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas("terminated")))
+  end
+  let(:db_nodes_response) do
+    OCI::Response.new(200, nil, [OCI::Database::Models::DbNodeSummary.new(db_system_id: db_system_ocid,
+                                                                          id: db_node_ocid,
+                                                                          vnic_id: vnic_ocid)])
+  end
+  let(:iscsi_blockstorage_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: iscsi_volume_ocid,
+                                                              display_name: iscsi_display_name,
+                                                              lifecycle_state: Lifecycle.volume("terminated")))
+  end
+  let(:iscsi_attachment_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::IScsiVolumeAttachment.new(id: iscsi_attachment_ocid,
+                                                                             lifecycle_state: Lifecycle.volume_attachment("detached")))
+  end
+  let(:pv_blockstorage_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: pv_volume_ocid,
+                                                              display_name: pv_display_name,
+                                                              lifecycle_state: Lifecycle.volume("terminated")))
+  end
+  let(:pv_attachment_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
+                                                                                       lifecycle_state: Lifecycle.volume_attachment("detached")))
+  end
+
 end
 
 RSpec.configure do |rspec|
@@ -433,12 +462,22 @@ RSpec.configure do |rspec|
 end
 
 class Lifecycle
-  def self.compute
-    OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING
+  def self.compute(state)
+    case state
+    when "running"
+      OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING
+    when "terminated"
+      OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATED
+    end
   end
 
-  def self.dbaas
-    OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE
+  def self.dbaas(state)
+    case state
+    when "available"
+      OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE
+    when "terminated"
+      OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATED
+    end
   end
 
   def self.volume(state)

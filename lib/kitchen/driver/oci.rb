@@ -105,37 +105,46 @@ module Kitchen
         return if state[:server_id]
 
         validate_config!
-        inst = instance_class.new(config, state)
+        oci, api = auth(:create)
+        inst = instance_class.new(config, state, oci, api)
         state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
 
-        create_and_attach_volumes(config, state)
+        create_and_attach_volumes(config, state, oci, api)
         process_post_script
       end
 
       def destroy(state)
         return unless state[:server_id]
 
+        oci, api = auth(:destroy)
         instance.transport.connection(state).close
 
         if state[:volumes]
-          bls = Blockstorage.new(config, state)
+          bls = Blockstorage.new(config, state, oci, api, :destroy)
           bls.detatch_and_delete
         end
 
-        inst = instance_class.new(config, state)
+        inst = instance_class.new(config, state, oci, api, :destroy)
         inst.terminate
       end
 
       private
 
-      def create_and_attach_volumes(config, state)
+      def auth(action)
+        oci = Oci::Config.new(config)
+        api = Oci::Api.new(oci.config, config)
+        oci.compartment if action == :create
+        [oci, api]
+      end
+
+      def create_and_attach_volumes(config, state, oci, api)
         return if config[:volumes].empty?
 
         volume_state = { volumes: [], volume_attachments: [] }
         config[:volumes].each do |volume|
-          vol = volume_class(volume[:type], config, state)
+          vol = volume_class(volume[:type], config, state, oci, api)
           volume_details, vol_state = vol.create_volume(volume)
           attach_state = vol.attach_volume(volume_details, state[:server_id])
           volume_state[:volumes] << vol_state
