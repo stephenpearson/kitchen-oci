@@ -105,8 +105,8 @@ module Kitchen
         return if state[:server_id]
 
         validate_config!
-        oci, api = auth(:create)
-        inst = instance_class.new(config, state, oci, api)
+        oci, api = auth(__method__)
+        inst = instance_class(config, state, oci, api, __method__)
         state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
@@ -117,10 +117,10 @@ module Kitchen
       def destroy(state)
         return unless state[:server_id]
 
-        oci, api = auth(:destroy)
+        oci, api = auth(__method__)
         instance.transport.connection(state).close
         detatch_and_delete_volumes(state, oci, api) if state[:volumes]
-        inst = instance_class.new(config, state, oci, api, :destroy)
+        inst = instance_class(config, state, oci, api, __method__)
         inst.terminate
       end
 
