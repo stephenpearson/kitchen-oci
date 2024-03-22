@@ -8,8 +8,6 @@
 name: Ruby
 
 on:
-  push:
-    branches-ignore: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -36,5 +34,5 @@ jobs:
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Run Style Check
       run: bundle exec rake style
-    - name: Run tests
+    - name: Run Unit Tests
       run: bundle exec rake test
