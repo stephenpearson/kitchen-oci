@@ -289,7 +289,7 @@ RSpec.shared_context "compute", :compute do
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(4).and_return("a1b2")
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(20).and_return("a1b2c3d4e5f6g7h8i9j0")
     allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci_config).and_return(compute_client)
-    allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("terminated"))
+    allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("terminating"))
     allow(compute_client).to receive(:get_instance).with(instance_ocid).and_return(compute_response)
     allow(compute_client).to receive(:terminate_instance).with(instance_ocid).and_return(nil_response)
     allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("running"))
@@ -365,7 +365,7 @@ RSpec.shared_context "dbaas", :dbaas do
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(14).and_return("a1b2c3d4e5f6g7")
     allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
     allow(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
-    allow(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminated"),
+    allow(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"),
                                                        max_interval_seconds: 900,
                                                        max_wait_seconds: 21_600)
     allow(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid).and_return(nil_response)
@@ -423,10 +423,10 @@ end
 RSpec.shared_context "destroy", :destroy do
   let(:compute_response) do
     OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
-                                                                lifecycle_state: Lifecycle.compute("terminated")))
+                                                                lifecycle_state: Lifecycle.compute("terminating")))
   end
   let(:dbaas_response) do
-    OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas("terminated")))
+    OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas("terminating")))
   end
   let(:db_nodes_response) do
     OCI::Response.new(200, nil, [OCI::Database::Models::DbNodeSummary.new(db_system_id: db_system_ocid,
@@ -466,8 +466,8 @@ class Lifecycle
     case state
     when "running"
       OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING
-    when "terminated"
-      OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATED
+    when "terminating"
+      OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATING
     end
   end
 
@@ -475,8 +475,8 @@ class Lifecycle
     case state
     when "available"
       OCI::Database::Models::DbSystem::LIFECYCLE_STATE_AVAILABLE
-    when "terminated"
-      OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATED
+    when "terminating"
+      OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATING
     end
   end
 

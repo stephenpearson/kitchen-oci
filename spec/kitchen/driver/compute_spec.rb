@@ -238,6 +238,7 @@ describe Kitchen::Driver::Oci do
         it "destroys a compute instance with volumes attached" do
           expect(compute_client).to receive(:detach_volume).with(pv_attachment_ocid)
           expect(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid)
+          expect(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("terminating"))
           driver.destroy(state)
         end
       end

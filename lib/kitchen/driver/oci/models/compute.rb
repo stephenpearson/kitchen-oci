@@ -39,7 +39,7 @@ module Kitchen
 
           def terminate
             api.compute.terminate_instance(state[:server_id])
-            api.compute.get_instance(state[:server_id]).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATED )
+            api.compute.get_instance(state[:server_id]).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATING)
           end
 
           private

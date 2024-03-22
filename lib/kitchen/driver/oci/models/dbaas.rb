@@ -42,7 +42,7 @@ module Kitchen
 
           def terminate
             api.dbaas.terminate_db_system(state[:server_id])
-            api.dbaas.get_db_system(state[:server_id]).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATED,
+            api.dbaas.get_db_system(state[:server_id]).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATING,
                                                                   max_interval_seconds: 900, max_wait_seconds: 21_600)
           end
 

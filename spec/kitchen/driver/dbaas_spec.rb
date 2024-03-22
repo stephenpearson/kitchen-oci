@@ -51,7 +51,7 @@ describe Kitchen::Driver::Oci do
       let(:state) { { server_id: db_system_ocid } }
       it "destroys a dbaas instance" do
         expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
-        expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminated"), max_interval_seconds: 900, max_wait_seconds: 21_600)
+        expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"), max_interval_seconds: 900, max_wait_seconds: 21_600)
         expect(transport).to receive_message_chain("connection.close")
         driver.destroy(state)
       end
