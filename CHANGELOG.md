@@ -1,5 +1,16 @@
 # kitchen-oci CHANGELOG
 
+# 1.16.0
+- refactor: split up main class into smaller modules
+- feat: add nsg_ids as property of database system
+- feat: add input validations for nsg_ids, volumes, and instance_type
+- fix: lookup compartment_id by name now works for tenancies with more than 99 compartments
+- fix: local environment proxy setting no longer causes nil class error from URI [#24](https://github.com/stephenpearson/kitchen-oci/issues/24)
+- fix: add default vault for hostname_prefix
+- fix: add default value for nsg_ids
+- lint: lint code per chefstyle standards
+- test: add spec for windows
+
 # 1.15.1
 - fix: bug fixes for volume attachments
 

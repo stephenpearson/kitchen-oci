@@ -19,7 +19,30 @@
 
 module Kitchen
   module Driver
-    # Version string for Oracle OCI Kitchen driver
-    OCI_VERSION = "1.16.0"
+    class Oci
+      # models definitions
+      module Models
+        require_relative "instance"
+        require_relative "blockstorage"
+
+        def instance_class(config, state, oci, api, action)
+          Oci::Models.const_get(config[:instance_type].capitalize).new(config, state, oci, api, action)
+        end
+
+        def volume_class(type, config, state, oci, api)
+          Oci::Models.const_get(volume_attachment_type(type)).new(config, state, oci, api)
+        end
+
+        private
+
+        def volume_attachment_type(type)
+          if type.nil?
+            "Paravirtual"
+          else
+            type.capitalize
+          end
+        end
+      end
+    end
   end
 end
