@@ -9,7 +9,7 @@ name: Ruby
 
 on:
   push:
-    branches: [ "master" ]
+    branches-ignore: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -34,5 +34,7 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+    - name: Run Style Check
+      run: bundle exec rake style
     - name: Run tests
-      run: bundle exec rake
+      run: bundle exec rake test
