@@ -105,6 +105,7 @@ These settings are optional:
    - `proxy_url`, Connect via the specified proxy URL
    - `user_data`, Add user data scripts
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
+   - `defined_tags`, Hash containing tag name(s) and values(s). Each key must be predefined and scoped into a namespace.
    - `freeform_tags`, Hash containing tag name(s) and values(s)
    - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
    - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below)
@@ -333,6 +334,9 @@ driver:
     baseline_ocpu_utilization: BASELINE_1_1
   ...
 ```
+
+The `baseline_ocpu_utilization` property is for a subcore burstable VM instance. Omit this attribute or use the `BASELINE_1_1` baseline for a non-burstable instance.
+Supported values are: `BASELINE_1_8`, `BASELINE_1_2`, `BASELINE_1_1`
 
 ## Windows Support
 
