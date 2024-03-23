@@ -249,6 +249,11 @@ RSpec.shared_context "paravirtual", :paravirtual do
 end
 
 RSpec.shared_context "compute", :compute do
+  include_context "common"
+  include_context "kitchen"
+  include_context "oci"
+  include_context "net"
+
   let(:driver_config) { base_driver_config }
   let(:instance_ocid) { "ocid1.instance.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
   let(:instance_metadata) do
@@ -306,6 +311,11 @@ RSpec.shared_context "compute", :compute do
 end
 
 RSpec.shared_context "dbaas", :dbaas do
+  include_context "common"
+  include_context "kitchen"
+  include_context "oci"
+  include_context "net"
+
   # kitchen.yml driver config section
   let(:driver_config) do
     base_driver_config.merge!(
@@ -451,14 +461,19 @@ RSpec.shared_context "destroy", :destroy do
     OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(id: pv_attachment_ocid,
                                                                                        lifecycle_state: Lifecycle.volume_attachment("detached")))
   end
-
 end
 
-RSpec.configure do |rspec|
-  rspec.include_context "common"
-  rspec.include_context "kitchen"
-  rspec.include_context "oci"
-  rspec.include_context "net"
+RSpec.shared_context "proxy", :proxy do |rspec|
+  before do
+    stub_const("ENV", ENV.to_hash.merge("http_proxy" => "http://myfakeproxy.com"))
+    allow(OCI::ApiClientProxySettings).to receive(:new).with("myfakeproxy.com", 80).and_return(proxy_settings)
+  end
+  let(:proxy_settings) { OCI::ApiClientProxySettings.new("myfakeproxy.com", 80) }
+end
+
+RSpec.shared_context "api", :common do |rspec|
+  let(:oci_config) { class_double(OCI::Config) }
+  let(:driver_config) { {} }
 end
 
 class Lifecycle
