@@ -23,12 +23,17 @@ module Kitchen
       module Models
         # paravirtual attachment model
         class Paravirtual < Blockstorage
-          attr_reader :attachment_type
-
           def initialize(config, state, oci, api)
             super
             @attachment_type = "paravirtual"
           end
+
+          #
+          # The type of attachment being created
+          #
+          # @return [String]
+          #
+          attr_reader :attachment_type
 
           def attachment_details(volume_details, server_id)
             OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(

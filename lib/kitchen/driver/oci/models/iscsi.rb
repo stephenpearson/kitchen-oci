@@ -23,12 +23,17 @@ module Kitchen
       module Models
         # iscsi volume attachment model
         class Iscsi < Blockstorage
-          attr_reader :attachment_type
-
           def initialize(config, state, oci, api)
             super
             @attachment_type = "iscsi"
           end
+
+          #
+          # The type of attachment being created
+          #
+          # @return [String]
+          #
+          attr_reader :attachment_type
 
           def attachment_details(volume_details, server_id)
             OCI::Core::Models::AttachIScsiVolumeDetails.new(

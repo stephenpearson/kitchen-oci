@@ -26,8 +26,6 @@ module Kitchen
         require_relative "models/iscsi"
         require_relative "models/paravirtual"
 
-        attr_accessor :config, :state, :oci, :api, :volume_state, :volume_attachment_state
-
         def initialize(config, state, oci, api, action = :create)
           super()
           @config = config
@@ -38,6 +36,46 @@ module Kitchen
           @volume_attachment_state = {}
           oci.compartment if action == :create
         end
+
+        #
+        # The config provided by the driver
+        #
+        # @return [Kitchen::LazyHash]
+        #
+        attr_accessor :config
+
+        #
+        # The definition of the state of the instance from the statefile
+        #
+        # @return [Hash]
+        #
+        attr_accessor :state
+
+        #
+        # The config object that contains properties of the authentication to OCI
+        #
+        # @return [Kitchen::Driver::Oci::Config]
+        #
+        attr_accessor :oci
+
+        #
+        # The API object that contains each of the authenticated clients for interfacing with OCI
+        #
+        # @return [Kitchen::Driver::Oci::Api]
+        #
+        attr_accessor :api
+
+        # The definition of the state of a volume
+        #
+        # @return [Hash]
+        #
+        attr_accessor :volume_state
+
+        # The definition of the state of a volume attachment
+        #
+        # @return [Hash]
+        #
+        attr_accessor :volume_attachment_state
 
         def create_volume(volume)
           info("Creating <#{volume[:name]}>...")
@@ -69,16 +107,6 @@ module Kitchen
           api.compute.get_volume_attachment(volume_attachment[:id])
             .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
           info("Finished detaching <#{attachment_name(volume_attachment)}>.")
-        end
-
-        def detatch_and_delete
-          state[:volume_attachments].each do |att|
-            detatch_volume(att)
-          end
-
-          state[:volumes].each do |vol|
-            delete_volume(vol)
-          end
         end
 
         def final_state(response)
