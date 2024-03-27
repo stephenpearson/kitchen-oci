@@ -22,12 +22,25 @@ module Kitchen
       module Models
         # Compute instance model
         class Compute < Instance # rubocop:disable Metrics/ClassLength
-          attr_accessor :launch_details
-
-          def initialize(config, state, oci, api, action = :create)
+          def initialize(config, state, oci, api, action)
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
+            @instance_details = %i{hostname_display_name instance_source_details instance_metadata preemptible_instance_config shape_config}
           end
+
+          #
+          # The details model that describes a compute instance
+          #
+          # @return [OCI::Core::Models::LaunchInstanceDetails]
+          #
+          attr_accessor :launch_details
+
+          #
+          # An array of symbols indicating the various getter and setter methods required to build the launch_details
+          #
+          # @return [Array]
+          #
+          attr_reader   :instance_details
 
           def launch
             process_windows_options
@@ -43,20 +56,6 @@ module Kitchen
           end
 
           private
-
-          def launch_instance_details # rubocop:disable Metrics/MethodLength
-            compartment_id
-            availability_domain
-            defined_tags
-            shape
-            freeform_tags
-            hostname_display_name
-            instance_source_details
-            instance_metadata
-            preemptible_instance_config
-            shape_config
-            launch_details
-          end
 
           def hostname_display_name
             display_name = hostname

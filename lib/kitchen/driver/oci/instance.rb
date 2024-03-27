@@ -21,13 +21,11 @@ module Kitchen
   module Driver
     class Oci
       # generic class for instance models
-      class Instance < Oci
+      class Instance < Oci # rubocop:disable Metrics/ClassLength
         require_relative "api"
         require_relative "config"
         require_relative "models/compute"
         require_relative "models/dbaas"
-
-        attr_accessor :config, :state, :oci, :api
 
         def initialize(config, state, oci, api, action)
           super()
@@ -35,7 +33,43 @@ module Kitchen
           @state = state
           @oci = oci
           @api = api
+          @common_details = %i{compartment_id availability_domain defined_tags freeform_tags shape}
         end
+
+        #
+        # The config provided by the driver
+        #
+        # @return [Kitchen::LazyHash]
+        #
+        attr_accessor :config
+
+        #
+        # The definition of the state of the instance from the statefile
+        #
+        # @return [Hash]
+        #
+        attr_accessor :state
+
+        #
+        # The config object that contains properties of the authentication to OCI
+        #
+        # @return [Kitchen::Driver::Oci::Config]
+        #
+        attr_accessor :oci
+
+        #
+        # The API object that contains each of the authenticated clients for interfacing with OCI
+        #
+        # @return [Kitchen::Driver::Oci::Api]
+        #
+        attr_accessor :api
+
+        #
+        # An array of symbols indicating the various getter and setter methods common to all instance types
+        #
+        # @return [Kitchen::LazyHash]
+        #
+        attr_accessor :common_details
 
         def compartment_id
           launch_details.compartment_id = oci.compartment
@@ -64,6 +98,11 @@ module Kitchen
         end
 
         private
+
+        def launch_instance_details
+          (common_details + instance_details).each { |m| send(m) }
+          launch_details
+        end
 
         def public_ip_allowed?
           subnet = api.network.get_subnet(config[:subnet_id]).data

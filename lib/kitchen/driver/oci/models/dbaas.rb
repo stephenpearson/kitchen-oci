@@ -22,14 +22,43 @@ module Kitchen
       module Models
         # dbaas model
         class Dbaas < Instance # rubocop:disable Metrics/ClassLength
-          attr_accessor :launch_details, :database_details, :db_home_details
-
-          def initialize(config, state, oci, api, action = :create)
+          def initialize(config, state, oci, api, action)
             super
             @launch_details = OCI::Database::Models::LaunchDbSystemDetails.new
             @database_details = OCI::Database::Models::CreateDatabaseDetails.new
             @db_home_details = OCI::Database::Models::CreateDbHomeDetails.new
+            @instance_details = %i{hostname display_name cluster_name cpu_core_count db_home database_edition subnet_id nsg_ids pubkey initial_data_storage_size_in_gb node_count license_model}
           end
+
+          #
+          # The details model that describes the db system
+          #
+          # @return [OCI::Database::Models::LaunchDbSystemDetails]
+          #
+          attr_accessor :launch_details
+
+          #
+          # The details model that describes the database
+          #
+          # @return [OCI::Database::Models::CreateDatabaseDetails]
+          #
+          attr_accessor :database_details
+
+          #
+          # The details model that describes the database home
+          #
+          # @return [OCI::Database::Models::CreateDbHomeDetails]
+          #
+          attr_accessor :db_home_details
+
+          #
+          # An array of symbols indicating the various getter and setter methods required to build the launch_details
+          #
+          # @return [Array]
+          # TODO: add support for the #domain property
+          #       add support for #database_software_image_id property
+          #
+          attr_reader   :instance_details
 
           def launch
             response = api.dbaas.launch_db_system(launch_instance_details)
@@ -48,35 +77,14 @@ module Kitchen
 
           private
 
-          def launch_instance_details # rubocop:disable Metrics/MethodLength
-            # TODO: add support for the #domain property
-            compartment_id
-            availability_domain
-            defined_tags
-            shape
-            freeform_tags
-            names
-            cpu_core_count
-            create_db_home_details
-            subnet_id
-            nsg_ids
-            pubkey
-            initial_data_storage_size_in_gb
-            node_count
-            license_model
-            launch_details
-          end
-
-          def create_db_home_details
+          def db_home
             db_version
             db_home_display_name
-            database_edition
             db_home_details.database = create_database_details
             launch_details.db_home = db_home_details
           end
 
           def create_database_details
-            cluster_name
             db_name
             pdb_name
             admin_password
@@ -92,12 +100,6 @@ module Kitchen
 
           def nsg_ids
             launch_details.nsg_ids = config[:nsg_ids]
-          end
-
-          def names
-            hostname
-            display_name
-            launch_details
           end
 
           def hostname
