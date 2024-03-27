@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 #
-# Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
+# Author:: Justin Steele (<justin.steele@oracle.com>)
 #
-# Copyright (C) 2019, Stephen Pearson
+# Copyright (C) 2024, Stephen Pearson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
