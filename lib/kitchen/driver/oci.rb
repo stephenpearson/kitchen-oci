@@ -37,6 +37,7 @@ module Kitchen
       require_relative "oci/models"
 
       plugin_version Kitchen::Driver::OCI_VERSION
+      kitchen_driver_api_version 1
 
       # required config items
       required_config :availability_domain
