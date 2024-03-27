@@ -19,7 +19,7 @@
 
 require "spec_helper"
 
-describe Kitchen::Driver::Oci do
+describe Kitchen::Driver::Oci::Models::Dbaas do
 
   context "dbaas" do
     include_context "dbaas"

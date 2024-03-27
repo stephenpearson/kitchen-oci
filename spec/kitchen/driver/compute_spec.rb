@@ -19,7 +19,7 @@
 
 require "spec_helper"
 
-describe Kitchen::Driver::Oci do
+describe Kitchen::Driver::Oci::Models::Compute do
   context "compute" do
     include_context "compute"
 
