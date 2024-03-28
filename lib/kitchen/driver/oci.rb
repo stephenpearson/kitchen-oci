@@ -112,7 +112,7 @@ module Kitchen
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
         create_and_attach_volumes(config, state, oci, api)
-        process_post_script
+        process_post_script(state)
       end
 
       def destroy(state)
@@ -154,7 +154,7 @@ module Kitchen
         state[:volumes].each { |vol| bls.delete_volume(vol) }
       end
 
-      def process_post_script
+      def process_post_script(state)
         return if config[:post_create_script].nil?
 
         info("Running post create script")

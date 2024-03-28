@@ -5,6 +5,9 @@
 - chore: remove some excess code from refactor
 - docs: add comments to instance methods
 
+# 1.16.2
+- fix: bug fix for post_create_script method call
+
 # 1.16.1
 - fix: remove `require_ruby_version` from gemspec for backward compatibility
 
