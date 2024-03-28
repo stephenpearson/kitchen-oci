@@ -19,7 +19,7 @@
 
 require "spec_helper"
 
-describe Kitchen::Driver::Oci do
+describe Kitchen::Driver::Oci::Models::Compute do
   context "compute" do
     include_context "compute"
 
@@ -44,6 +44,21 @@ describe Kitchen::Driver::Oci do
               server_id: instance_ocid,
             }
           )
+        end
+      end
+
+      context "standard compute (Linux) with post_create_script" do
+        let(:driver_config) do
+          base_driver_config.merge!({
+                                      post_create_script: "echo 'Hello World!'",
+                                    })
+        end
+        before do
+          allow(transport).to receive_message_chain("connection.wait_until_ready")
+        end
+        it "executes the post_create_script" do
+          expect(transport).to receive_message_chain("connection.execute").with("echo 'Hello World!'")
+          driver.create(state)
         end
       end
 
@@ -245,3 +260,4 @@ describe Kitchen::Driver::Oci do
     end
   end
 end
+
