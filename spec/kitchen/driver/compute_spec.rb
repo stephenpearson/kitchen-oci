@@ -50,7 +50,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
       context "standard compute (Linux) with post_create_script" do
         let(:driver_config) do
           base_driver_config.merge!({
-                                      post_create_script: "echo 'Hello World!'"
+                                      post_create_script: "echo 'Hello World!'",
                                     })
         end
         before do
