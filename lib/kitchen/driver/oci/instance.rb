@@ -33,8 +33,18 @@ module Kitchen
           @state = state
           @oci = oci
           @api = api
-          @common_details = %i{compartment_id availability_domain defined_tags freeform_tags shape}
         end
+
+        #
+        # Items in this array should correspond to methods in this class that set attributes in @launch_details that are common to all instance types
+        #
+        COMMON_DETAILS = %i{
+          compartment_id
+          availability_domain
+          defined_tags
+          freeform_tags
+          shape
+        }.freeze
 
         #
         # The config provided by the driver
@@ -63,13 +73,6 @@ module Kitchen
         # @return [Kitchen::Driver::Oci::Api]
         #
         attr_accessor :api
-
-        #
-        # An array of symbols indicating the various getter and setter methods common to all instance types
-        #
-        # @return [Kitchen::LazyHash]
-        #
-        attr_accessor :common_details
 
         def compartment_id
           launch_details.compartment_id = oci.compartment
@@ -100,7 +103,7 @@ module Kitchen
         private
 
         def launch_instance_details
-          (common_details + instance_details).each { |m| send(m) }
+          instance_details.each { |m| send(m) }
           launch_details
         end
 

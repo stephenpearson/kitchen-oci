@@ -25,8 +25,16 @@ module Kitchen
           def initialize(config, state, oci, api, action)
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
-            @instance_details = %i{hostname_display_name instance_source_details instance_metadata preemptible_instance_config shape_config}
+            @instance_details = COMMON_DETAILS + INSTANCE_DETAILS
           end
+
+          INSTANCE_DETAILS = %i{
+            hostname_display_name
+            instance_source_details
+            instance_metadata
+            preemptible_instance_config
+            shape_config
+          }.freeze
 
           #
           # The details model that describes a compute instance

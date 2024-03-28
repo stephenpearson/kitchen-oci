@@ -27,8 +27,29 @@ module Kitchen
             @launch_details = OCI::Database::Models::LaunchDbSystemDetails.new
             @database_details = OCI::Database::Models::CreateDatabaseDetails.new
             @db_home_details = OCI::Database::Models::CreateDbHomeDetails.new
-            @instance_details = %i{hostname display_name cluster_name cpu_core_count db_home database_edition subnet_id nsg_ids pubkey initial_data_storage_size_in_gb node_count license_model}
+            @instance_details = COMMON_DETAILS + INSTANCE_DETAILS
           end
+
+          #
+          # TODO: add support for the #domain property
+          #       add support for #database_software_image_id property
+          #
+          # Items in this array should correspond to private methods in this class that set attributes in @launch_details
+          #
+          INSTANCE_DETAILS = %i{
+            hostname
+            display_name
+            cluster_name
+            cpu_core_count
+            db_home
+            database_edition
+            subnet_id
+            nsg_ids
+            pubkey
+            initial_data_storage_size_in_gb
+            node_count
+            license_model
+          }.freeze
 
           #
           # The details model that describes the db system
@@ -55,8 +76,6 @@ module Kitchen
           # An array of symbols indicating the various getter and setter methods required to build the launch_details
           #
           # @return [Array]
-          # TODO: add support for the #domain property
-          #       add support for #database_software_image_id property
           #
           attr_reader   :instance_details
 
