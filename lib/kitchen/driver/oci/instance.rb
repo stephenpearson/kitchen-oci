@@ -26,6 +26,9 @@ module Kitchen
         require_relative "config"
         require_relative "models/compute"
         require_relative "models/dbaas"
+        require_relative "instance/common"
+
+        include CommonLaunchDetails
 
         def initialize(config, state, oci, api, action)
           super()
@@ -34,17 +37,6 @@ module Kitchen
           @oci = oci
           @api = api
         end
-
-        #
-        # Items in this array should correspond to methods in this class that set attributes in @launch_details that are common to all instance types
-        #
-        COMMON_DETAILS = %i{
-          compartment_id
-          availability_domain
-          defined_tags
-          freeform_tags
-          shape
-        }.freeze
 
         #
         # The config provided by the driver
@@ -74,26 +66,6 @@ module Kitchen
         #
         attr_accessor :api
 
-        def compartment_id
-          launch_details.compartment_id = oci.compartment
-        end
-
-        def availability_domain
-          launch_details.availability_domain = config[:availability_domain]
-        end
-
-        def defined_tags
-          launch_details.defined_tags = config[:defined_tags]
-        end
-
-        def shape
-          launch_details.shape = config[:shape]
-        end
-
-        def freeform_tags
-          launch_details.freeform_tags = process_freeform_tags
-        end
-
         def final_state(state, instance_id)
           state.store(:server_id, instance_id)
           state.store(:hostname, instance_ip(instance_id))
@@ -103,7 +75,11 @@ module Kitchen
         private
 
         def launch_instance_details
-          instance_details.each { |m| send(m) }
+          launch_methods = []
+          self.class.ancestors.reverse.select { |m| m.is_a?(Module) && m.name.start_with?("#{self.class.superclass}::") }.each do |klass|
+            launch_methods << klass.instance_methods(false)
+          end
+          launch_methods.flatten.each { |m| send(m) }
           launch_details
         end
 

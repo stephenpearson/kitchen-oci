@@ -16,25 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative "../instance/compute"
+
 module Kitchen
   module Driver
     class Oci
       module Models
         # Compute instance model
         class Compute < Instance # rubocop:disable Metrics/ClassLength
+          include ComputeLaunchDetails
+
           def initialize(config, state, oci, api, action)
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
-            @instance_details = COMMON_DETAILS + INSTANCE_DETAILS
           end
-
-          INSTANCE_DETAILS = %i{
-            hostname_display_name
-            instance_source_details
-            instance_metadata
-            preemptible_instance_config
-            shape_config
-          }.freeze
 
           #
           # The details model that describes a compute instance
@@ -65,43 +60,28 @@ module Kitchen
 
           private
 
-          def hostname_display_name
-            display_name = hostname
-            launch_details.display_name = display_name
-            launch_details.create_vnic_details = create_vnic_details(display_name)
+          def instance_ip(instance_id)
+            vnic = vnics(instance_id).select(&:is_primary).first
+            if public_ip_allowed?
+              config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
+            else
+              vnic.private_ip
+            end
+          end
+
+          def vnics(instance_id)
+            vnic_attachments(instance_id).map { |att| api.network.get_vnic(att.vnic_id).data }
+          end
+
+          def vnic_attachments(instance_id)
+            att = api.compute.list_vnic_attachments(oci.compartment, instance_id: instance_id).data
+            raise "Could not find any VNIC attachments" unless att.any?
+
+            att
           end
 
           def hostname
             [config[:hostname_prefix], random_string(6)].compact.join("-")
-          end
-
-          def preemptible_instance_config
-            return unless config[:preemptible_instance]
-
-            launch_details.preemptible_instance_config = OCI::Core::Models::PreemptibleInstanceConfigDetails.new(
-              preemption_action:
-                OCI::Core::Models::TerminatePreemptionAction.new(
-                  type: "TERMINATE", preserve_boot_volume: true
-                )
-            )
-          end
-
-          def shape_config
-            return if config[:shape_config].empty?
-
-            launch_details.shape_config = OCI::Core::Models::LaunchInstanceShapeConfigDetails.new(
-              ocpus: config[:shape_config][:ocpus],
-              memory_in_gbs: config[:shape_config][:memory_in_gbs],
-              baseline_ocpu_utilization: config[:shape_config][:baseline_ocpu_utilization] || "BASELINE_1_1"
-            )
-          end
-
-          def instance_source_details
-            launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
-              sourceType: "image",
-              imageId: config[:image_id],
-              bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
-            )
           end
 
           def create_vnic_details(name)
@@ -118,10 +98,6 @@ module Kitchen
             File.readlines(config[:ssh_keypath]).first.chomp
           end
 
-          def instance_metadata
-            launch_details.metadata = metadata
-          end
-
           def metadata
             md = {}
             inject_powershell
@@ -129,26 +105,6 @@ module Kitchen
             md.store("ssh_authorized_keys", pubkey)
             md.store("user_data", user_data) if config[:user_data] && !config[:user_data].empty?
             md
-          end
-
-          def vnics(instance_id)
-            vnic_attachments(instance_id).map { |att| api.network.get_vnic(att.vnic_id).data }
-          end
-
-          def vnic_attachments(instance_id)
-            att = api.compute.list_vnic_attachments(oci.compartment, instance_id: instance_id).data
-            raise "Could not find any VNIC attachments" unless att.any?
-
-            att
-          end
-
-          def instance_ip(instance_id)
-            vnic = vnics(instance_id).select(&:is_primary).first
-            if public_ip_allowed?
-              config[:use_private_ip] ? vnic.private_ip : vnic.public_ip
-            else
-              vnic.private_ip
-            end
           end
 
           def process_windows_options
