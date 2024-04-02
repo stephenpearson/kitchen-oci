@@ -20,7 +20,7 @@ module Kitchen
   module Driver
     class Oci
       class Instance
-        # instance details specific to the compute model
+        # setter methods that populate the details of OCI::Core::Models::LaunchInstanceDetails
         module ComputeLaunchDetails
           def hostname_display_name
             display_name = hostname
