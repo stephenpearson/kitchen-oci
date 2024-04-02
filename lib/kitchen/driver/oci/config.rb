@@ -24,15 +24,20 @@ module Kitchen
     class Oci
       # Config class that defines the oci config that will be used for the API calls
       class Config
-        attr_reader :config
-
         def initialize(driver_config)
           setup_driver_config(driver_config)
           @config = oci_config
         end
 
+        #
+        # The config used to authenticate to OCI
+        #
+        # @return [OCI::Config]
+        #
+        attr_reader :config
+
         def oci_config
-          # OCI::Config is missing this and we're definitely using compartment and security_token_file if specified in the config
+          # OCI::Config is missing this
           OCI::Config.class_eval { attr_accessor :security_token_file } if @driver_config[:use_token_auth]
           conf = config_loader(config_file_location: @driver_config[:oci_config_file], profile_name: @driver_config[:oci_profile_name])
           @driver_config[:oci_config].each do |key, value|

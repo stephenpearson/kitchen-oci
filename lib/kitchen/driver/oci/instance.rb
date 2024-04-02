@@ -21,13 +21,14 @@ module Kitchen
   module Driver
     class Oci
       # generic class for instance models
-      class Instance < Oci
+      class Instance < Oci # rubocop:disable Metrics/ClassLength
         require_relative "api"
         require_relative "config"
         require_relative "models/compute"
         require_relative "models/dbaas"
+        require_relative "instance/common"
 
-        attr_accessor :config, :state, :oci, :api
+        include CommonLaunchDetails
 
         def initialize(config, state, oci, api, action)
           super()
@@ -37,25 +38,33 @@ module Kitchen
           @api = api
         end
 
-        def compartment_id
-          launch_details.compartment_id = oci.compartment
-        end
+        #
+        # The config provided by the driver
+        #
+        # @return [Kitchen::LazyHash]
+        #
+        attr_accessor :config
 
-        def availability_domain
-          launch_details.availability_domain = config[:availability_domain]
-        end
+        #
+        # The definition of the state of the instance from the statefile
+        #
+        # @return [Hash]
+        #
+        attr_accessor :state
 
-        def defined_tags
-          launch_details.defined_tags = config[:defined_tags]
-        end
+        #
+        # The config object that contains properties of the authentication to OCI
+        #
+        # @return [Kitchen::Driver::Oci::Config]
+        #
+        attr_accessor :oci
 
-        def shape
-          launch_details.shape = config[:shape]
-        end
-
-        def freeform_tags
-          launch_details.freeform_tags = process_freeform_tags
-        end
+        #
+        # The API object that contains each of the authenticated clients for interfacing with OCI
+        #
+        # @return [Kitchen::Driver::Oci::Api]
+        #
+        attr_accessor :api
 
         def final_state(state, instance_id)
           state.store(:server_id, instance_id)
@@ -64,6 +73,15 @@ module Kitchen
         end
 
         private
+
+        def launch_instance_details
+          launch_methods = []
+          self.class.ancestors.reverse.select { |m| m.is_a?(Module) && m.name.start_with?("#{self.class.superclass}::") }.each do |klass|
+            launch_methods << klass.instance_methods(false)
+          end
+          launch_methods.flatten.each { |m| send(m) }
+          launch_details
+        end
 
         def public_ip_allowed?
           subnet = api.network.get_subnet(config[:subnet_id]).data

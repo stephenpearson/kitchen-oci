@@ -22,11 +22,24 @@ module Kitchen
     class Oci
       # Api class that defines the various API classes used to interact with OCI
       class Api
-        attr_reader :oci_config, :config
         def initialize(oci_config, config)
           @oci_config = oci_config
           @config = config
         end
+
+        #
+        # The config used to authenticate to OCI
+        #
+        # @return [OCI::Config]
+        #
+        attr_reader :oci_config
+
+        #
+        # The config provided by the driver
+        #
+        # @return [Kitchen::LazyHash]
+        #
+        attr_reader :config
 
         def compute
           generic_api(OCI::Core::ComputeClient)

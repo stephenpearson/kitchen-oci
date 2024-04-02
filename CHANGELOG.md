@@ -1,5 +1,10 @@
 # kitchen-oci CHANGELOG
 
+# 1.17.0
+- refactor: dry out instance classes and models
+- chore: remove some excess code from refactor
+- docs: add comments to instance methods
+
 # 1.16.2
 - fix: bug fix for post_create_script method call
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-#
 # Author:: Justin Steele (<justin.steele@oracle.com>)
 #
 # Copyright (C) 2024, Stephen Pearson
@@ -20,26 +19,21 @@
 module Kitchen
   module Driver
     class Oci
-      # models definitions
-      module Models
-        require_relative "instance"
-        require_relative "blockstorage"
+      class Instance
+        # setter methods that populate the details of OCI::Database::Models::CreateDbHomeDetails
+        module DbHomeDetails
+          def database
+            db_home_details.database = database_details
+          end
 
-        def instance_class(config, state, oci, api, action)
-          Oci::Models.const_get(config[:instance_type].capitalize).new(config, state, oci, api, action)
-        end
+          def db_version
+            raise "db_version cannot be nil!" if config[:dbaas][:db_version].nil?
 
-        def volume_class(type, config, state, oci, api)
-          Oci::Models.const_get(volume_attachment_type(type)).new(config, state, oci, api)
-        end
+            db_home_details.db_version = config[:dbaas][:db_version]
+          end
 
-        private
-
-        def volume_attachment_type(type)
-          if type.nil?
-            "Paravirtual"
-          else
-            type.capitalize
+          def db_home_display_name
+            db_home_details.display_name = ["dbhome", random_number(10)].compact.join
           end
         end
       end

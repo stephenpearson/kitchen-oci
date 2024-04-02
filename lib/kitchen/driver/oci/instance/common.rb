@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-#
 # Author:: Justin Steele (<justin.steele@oracle.com>)
 #
 # Copyright (C) 2024, Stephen Pearson
@@ -20,29 +19,31 @@
 module Kitchen
   module Driver
     class Oci
-      # models definitions
-      module Models
-        require_relative "instance"
-        require_relative "blockstorage"
+      class Instance
+        # setter methods that populate launch details common to all instance models
+        module CommonLaunchDetails
+          def compartment_id
+            launch_details.compartment_id = oci.compartment
+          end
 
-        def instance_class(config, state, oci, api, action)
-          Oci::Models.const_get(config[:instance_type].capitalize).new(config, state, oci, api, action)
-        end
+          def availability_domain
+            launch_details.availability_domain = config[:availability_domain]
+          end
 
-        def volume_class(type, config, state, oci, api)
-          Oci::Models.const_get(volume_attachment_type(type)).new(config, state, oci, api)
-        end
+          def defined_tags
+            launch_details.defined_tags = config[:defined_tags]
+          end
 
-        private
+          def shape
+            launch_details.shape = config[:shape]
+          end
 
-        def volume_attachment_type(type)
-          if type.nil?
-            "Paravirtual"
-          else
-            type.capitalize
+          def freeform_tags
+            launch_details.freeform_tags = process_freeform_tags
           end
         end
       end
     end
   end
 end
+
