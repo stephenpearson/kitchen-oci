@@ -54,13 +54,6 @@ module Kitchen
           #
           attr_accessor :db_home_details
 
-          #
-          # An array of symbols indicating the various getter and setter methods required to build the launch_details
-          #
-          # @return [Array]
-          #
-          attr_reader   :instance_details
-
           def launch
             response = api.dbaas.launch_db_system(launch_instance_details)
             instance_id = response.data.id
