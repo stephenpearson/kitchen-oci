@@ -21,7 +21,7 @@ platforms:
         ocpus: 2
         memory_in_gbs: 16
         baseline_ocpu_utilization: BASELINE_1_8
-      image_id: <%= ENV['LIN_IMAGE_ID'] %>
+      image_name: Oracle Linux 7.9
     provisioner:
       root_path: /home/opc/kitchen
     transport:

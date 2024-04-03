@@ -51,7 +51,8 @@ module Kitchen
       default_config :compartment_id, nil
       default_config :compartment_name, nil
       default_config :instance_type, "compute"
-      default_config :image_id
+      default_config :image_id, nil
+      default_config :image_name, nil
       default_config :hostname_prefix do |hnp|
         hnp.instance.name
       end

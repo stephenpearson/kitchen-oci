@@ -91,7 +91,21 @@ Note: The availability domain should be the full AD name including the tenancy s
 
 The following configuration is mandatory:
 
-   - `image_id`
+   - `image_id`, The ocid of the desired image\
+OR 
+   - `image_name`, The display name of the desired image
+
+Image ocids and display names can be found on the public [OCI Documentation / Images](https://docs.oracle.com/en-us/iaas/images/) page. The `image_name` property allows you to specify the display
+name of the image rather than the ocid.  There are two ways to do this:
+
+- specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
+- specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
+     Note: for aesthetics, the dashes can be replaced with spaces `Oracle Linux 8.9`. Both ways work, one way is prettier.
+
+If the second option is chosen (providing a portion of the display name), the behavior is to search all display names that match the string provided plus anything that looks like
+a date, then sort by time created and return the ocid for the newest one. This allows you to always get the latest version of a given image without having to continually update your kitchen.yml files.
+
+Only specify one of `image_id` or `image_name`.  If both are provided, the value specified by `image_id` will always win.
 
 These settings are optional:
 
@@ -398,7 +412,7 @@ suites:
 
 ## Maintainer
 
-Created and maintained by Stephen Pearson (<stephen.pearson@oracle.com>)
+Created by Stephen Pearson (<stephen.pearson@oracle.com>) maintained by Justin Steele (<justin.steele@oracle.com>) 
 
 ## License
 

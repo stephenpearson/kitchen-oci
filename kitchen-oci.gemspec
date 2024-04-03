@@ -21,8 +21,8 @@ require "kitchen/driver/oci_version"
 Gem::Specification.new do |spec|
   spec.name          = "kitchen-oci"
   spec.version       = Kitchen::Driver::OCI_VERSION
-  spec.authors       = ["Stephen Pearson"]
-  spec.email         = ["stephen.pearson@oracle.com"]
+  spec.authors       = ["Stephen Pearson", "Justin Steele"]
+  spec.email         = ["stephen.pearson@oracle.com", "justin.steele@oracle.com"]
   spec.description   = "A Test Kitchen Driver for Oracle OCI"
   spec.summary       = spec.description
   spec.homepage      = ""

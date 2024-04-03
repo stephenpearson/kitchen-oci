@@ -132,7 +132,8 @@ RSpec.shared_context "common", :common do
 end
 
 RSpec.shared_context "oci", :oci do
-  let(:oci_config) { class_double(OCI::Config) }
+  let(:oci_config) { Kitchen::Driver::Oci::Config.new(driver_config) }
+  let(:oci) { class_double(OCI::Config) }
   let(:nil_response) { OCI::Response.new(200, nil, nil) }
   let(:compute_client) { instance_double(OCI::Core::ComputeClient) }
   let(:dbaas_client) { instance_double(OCI::Database::DatabaseClient) }
@@ -141,7 +142,7 @@ RSpec.shared_context "oci", :oci do
 
   before do
     allow(driver).to receive(:instance).and_return(instance)
-    allow(OCI::ConfigFileLoader).to receive(:load_config).and_return(oci_config)
+    allow(OCI::ConfigFileLoader).to receive(:load_config).and_return(oci)
   end
 end
 
@@ -167,7 +168,7 @@ RSpec.shared_context "net", :net do
   end
 
   before do
-    allow(OCI::Core::VirtualNetworkClient).to receive(:new).with(config: oci_config).and_return(net_client)
+    allow(OCI::Core::VirtualNetworkClient).to receive(:new).with(config: oci).and_return(net_client)
     allow(net_client).to receive(:get_vnic).with(vnic_ocid).and_return(vnic)
     allow(net_client).to receive(:get_subnet).with(subnet_ocid).and_return(subnet)
   end
@@ -175,7 +176,7 @@ end
 
 RSpec.shared_context "blockstorage", :blockstorage do
   before do
-    allow(OCI::Core::BlockstorageClient).to receive(:new).with(config: oci_config).and_return(blockstorage_client)
+    allow(OCI::Core::BlockstorageClient).to receive(:new).with(config: oci).and_return(blockstorage_client)
     allow(pv_attachment_response).to receive(:wait_until).with(:lifecycle_state,
                                                                Lifecycle.volume_attachment("detached")).and_return(pv_attachment_response)
     allow(pv_blockstorage_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.volume("terminated")).and_return(nil_response)
@@ -293,7 +294,7 @@ RSpec.shared_context "compute", :compute do
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(6).and_return("abc123")
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(4).and_return("a1b2")
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(20).and_return("a1b2c3d4e5f6g7h8i9j0")
-    allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci_config).and_return(compute_client)
+    allow(OCI::Core::ComputeClient).to receive(:new).with(config: oci).and_return(compute_client)
     allow(compute_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.compute("terminating"))
     allow(compute_client).to receive(:get_instance).with(instance_ocid).and_return(compute_response)
     allow(compute_client).to receive(:terminate_instance).with(instance_ocid).and_return(nil_response)
@@ -373,7 +374,7 @@ RSpec.shared_context "dbaas", :dbaas do
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(4).and_return("a1b2")
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(3).and_return("a1b")
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:random_string).with(14).and_return("a1b2c3d4e5f6g7")
-    allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci_config).and_return(dbaas_client)
+    allow(OCI::Database::DatabaseClient).to receive(:new).with(config: oci).and_return(dbaas_client)
     allow(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
     allow(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"),
                                                        max_interval_seconds: 900,
@@ -427,6 +428,21 @@ RSpec.shared_context "create", :create do
                                                                                        volume_id: pv_volume_ocid,
                                                                                        display_name: pv_attachment_display_name,
                                                                                        lifecycle_state: Lifecycle.volume_attachment("attached")))
+  end
+  let(:list_images_response) do
+    OCI::Response.new(200, nil, [
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz123456", display_name: "Oracle-Linux-9.3-2024.02.26-0", time_created: DateTime.new(2024, 2, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz456789", display_name: "Oracle-Linux-9.3-2024.01.26-0", time_created: DateTime.new(2024, 1, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz147852", display_name: "Oracle-Linux-9.3-aarch64-2024.02.26-0", time_created: DateTime.new(2024, 2, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz258963", display_name: "Oracle-Linux-9.3-aarch64-2024.01.26-0", time_created: DateTime.new(2024, 1, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz369852", display_name: "Oracle-Linux-9.3-Minimal-2024.02.29-0", time_created: DateTime.new(2024, 2, 29, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz258741", display_name: "Oracle-Linux-8.9-Gen2-GPU-2024.02.26-0", time_created: DateTime.new(2024, 2, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz789654", display_name: "Oracle-Linux-8.9-aarch64-2024.02.26-0", time_created: DateTime.new(2024, 2, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz456321", display_name: "Oracle-Linux-8.9-2024.02.26-0", time_created: DateTime.new(2024, 2, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz145236", display_name: "Oracle-Linux-8.9-Gen2-GPU-2024.01.26-0", time_created: DateTime.new(2024, 1, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz365214", display_name: "Oracle-Linux-8.9-2024.01.26-0", time_created: DateTime.new(2024, 1, 26, 18, 34, 24)),
+      OCI::Core::Models::Image.new(id: "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz698547", display_name: "Oracle-Linux-8.9-aarch64-2024.01.26-0", time_created: DateTime.new(2024, 1, 26, 18, 34, 24)),
+    ])
   end
 end
 

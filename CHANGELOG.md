@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.18.0
+- feat: select image ocid for compute by display name with special sauce to select latest
+
 # 1.17.0
 - refactor: dry out instance classes and models
 - chore: remove some excess code from refactor

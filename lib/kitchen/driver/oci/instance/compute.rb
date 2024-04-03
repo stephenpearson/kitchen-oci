@@ -52,7 +52,7 @@ module Kitchen
           def instance_source_details
             launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
               sourceType: "image",
-              imageId: config[:image_id],
+              imageId: image_id,
               bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
             )
           end
