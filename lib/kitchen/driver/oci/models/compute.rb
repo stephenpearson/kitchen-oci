@@ -53,6 +53,41 @@ module Kitchen
 
           private
 
+          def image_id
+            return config[:image_id] if config[:image_id]
+
+            raise "must specify either image_id or image_name" unless config[:image_name]
+
+            image_id_by_name
+          end
+
+          def image_id_by_name
+            image_name = config[:image_name].gsub(" ", "-")
+            image_list = images.select { |i| i.display_name.match?(/#{image_name}/) }
+            raise "unable to find image_id" if image_list.empty?
+
+            image_list = filter_image_list(image_list, image_name) if image_list.count > 1
+            raise "unable to find image_id" if image_list.empty?
+
+            latest_image_id(image_list)
+          end
+
+          def filter_image_list(image_list, image_name)
+            image_list.select { |i| i.display_name.match?(/#{image_name}-[0-9]{4}\.[0-9]{2}\.[0-9]{2}/) }
+          end
+
+          def latest_image_id(image_list)
+            image_list.sort_by! { |o| ((DateTime.parse(Time.now.utc.to_s) - o.time_created) * 24 * 60 * 60).to_i }.first.id
+          end
+
+          def images(image_list = [], page = nil)
+            current_images = api.compute.list_images(oci.compartment, page: page)
+            next_page = current_images.next_page
+            image_list << current_images.data
+            images(image_list, next_page) unless next_page.nil?
+            image_list.flatten
+          end
+
           def instance_ip(instance_id)
             vnic = vnics(instance_id).select(&:is_primary).first
             if public_ip_allowed?

@@ -44,7 +44,7 @@ module Kitchen
           end
 
           def pdb_name
-            database_details.pdb_name = config[:dbaas][:pdb_name] ||= "pdb001"
+            database_details.pdb_name = config[:dbaas][:pdb_name]
           end
 
           def db_backup_config

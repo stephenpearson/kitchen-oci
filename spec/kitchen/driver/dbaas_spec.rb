@@ -20,41 +20,38 @@
 require "spec_helper"
 
 describe Kitchen::Driver::Oci::Models::Dbaas do
+  include_context "dbaas"
 
-  context "dbaas" do
+  describe "#create" do
+    include_context "create"
+
+    let(:state) { {} }
+    it "creates a dbaas instance" do
+      expect(dbaas_client).to receive(:launch_db_system).with(db_system_launch_details)
+      expect(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
+      expect(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_response)
+      expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("available"), max_interval_seconds: 900, max_wait_seconds: 21_600)
+      expect(transport).to receive_message_chain("connection.wait_until_ready")
+      driver.create(state)
+      expect(state).to match(
+        {
+          hostname: private_ip,
+          server_id: db_system_ocid,
+        }
+      )
+    end
+  end
+
+  describe "#destroy" do
+    include_context "destroy"
     include_context "dbaas"
 
-    describe "#create" do
-      include_context "create"
-
-      let(:state) { {} }
-      it "creates a dbaas instance" do
-        expect(dbaas_client).to receive(:launch_db_system).with(db_system_launch_details)
-        expect(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
-        expect(dbaas_client).to receive(:list_db_nodes).with(compartment_ocid, db_system_id: db_system_ocid).and_return(db_nodes_response)
-        expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("available"), max_interval_seconds: 900, max_wait_seconds: 21_600)
-        expect(transport).to receive_message_chain("connection.wait_until_ready")
-        driver.create(state)
-        expect(state).to match(
-          {
-            hostname: private_ip,
-            server_id: db_system_ocid,
-          }
-        )
-      end
-    end
-
-    describe "#destroy" do
-      include_context "destroy"
-      include_context "dbaas"
-
-      let(:state) { { server_id: db_system_ocid } }
-      it "destroys a dbaas instance" do
-        expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
-        expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"), max_interval_seconds: 900, max_wait_seconds: 21_600)
-        expect(transport).to receive_message_chain("connection.close")
-        driver.destroy(state)
-      end
+    let(:state) { { server_id: db_system_ocid } }
+    it "destroys a dbaas instance" do
+      expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
+      expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"), max_interval_seconds: 900, max_wait_seconds: 21_600)
+      expect(transport).to receive_message_chain("connection.close")
+      driver.destroy(state)
     end
   end
 end

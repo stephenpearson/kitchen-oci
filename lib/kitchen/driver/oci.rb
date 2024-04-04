@@ -51,7 +51,8 @@ module Kitchen
       default_config :compartment_id, nil
       default_config :compartment_name, nil
       default_config :instance_type, "compute"
-      default_config :image_id
+      default_config :image_id, nil
+      default_config :image_name, nil
       default_config :hostname_prefix do |hnp|
         hnp.instance.name
       end
@@ -67,6 +68,9 @@ module Kitchen
       default_config :use_token_auth, false
       default_config :shape_config, {}
       default_config :nsg_ids, []
+      default_config :all_plugins_disabled, false
+      default_config :management_disabled, false
+      default_config :monitoring_disabled, false
 
       # compute only configs
       default_config :setup_winrm, false
