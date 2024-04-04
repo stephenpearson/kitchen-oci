@@ -283,6 +283,11 @@ RSpec.shared_context "compute", :compute do
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
       l.metadata = instance_metadata
+      l.agent_config = OCI::Core::Models::LaunchInstanceAgentConfigDetails.new(
+        is_monitoring_disabled: false,
+        is_management_disabled: false,
+        are_all_plugins_disabled: false
+      )
     end
   end
 

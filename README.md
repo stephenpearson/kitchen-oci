@@ -109,37 +109,40 @@ Only specify one of `image_id` or `image_name`.  If both are provided, the value
 
 These settings are optional:
 
-   - `boot_volume_size_in_gbs`, The size of the boot volume, in GB
-   - `use_private_ip`, Whether to connect to the instance using a private IP, default is false (public ip)
+   - `boot_volume_size_in_gbs`, The size of the boot volume, in GB (range: 50GB - 32TB)
+   - `use_private_ip`, Whether to connect to the instance using a private IP (default: `false`) (public ip)
    - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
-   - `oci_profile_name`, OCI profile to use, default value is "DEFAULT"
+   - `oci_profile_name`, OCI profile to use (default: `DEFAULT`)
    - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file (see below)
-   - `ssh_keypath`, SSH public key, default is ~/.ssh/id\_rsa.pub
+   - `ssh_keypath`, SSH public key (default: `~/.ssh/id\_rsa.pub`)
    - `post_create_script`, run a script on compute\_instance after deployment
    - `proxy_url`, Connect via the specified proxy URL
    - `user_data`, Add user data scripts
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `defined_tags`, Hash containing tag name(s) and values(s). Each key must be predefined and scoped into a namespace.
    - `freeform_tags`, Hash containing tag name(s) and values(s)
-   - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below)
-   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below)
-   - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible, default is `false`.
+   - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below) (default: `false`)
+   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below) (default: `false`)
+   - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible (default: `false`)
    - `shape_config`, Hash of shape config parameters required when using Flex shapes.
      - `ocpus`, number of CPUs requested
      - `memory_in_gbs`, the amount of memory requested
-     - `baseline_ocpu_utilization`, the minimum CPU utilization, default `BASELINE_1_1`
+     - `baseline_ocpu_utilization`, the minimum CPU utilization (default: `BASELINE_1_1`)
    - `volumes`, an array of hashes with configuration options of each volume
      - `name`, the display name of the volume
-     - `size_in_gbs`, the size in Gbs for the volume. Can't be lower than 50Gbs (Oracle Limit)
+     - `size_in_gbs`, the size in Gbs for the volume. (minimum value: 50GB)
      - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
      - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
    - `custom_metadata`, Add metadata to the compute instance request
+   - `all_plugins_disabled`, Whether Oracle Cloud Agent can run all the available plugins (default: `false`)
+   - `management_disabled`, Whether Oracle Cloud Agent can run all the available management plugins (default: `false`)
+   - `monitoring_disabled`, Whether Oracle Cloud Agent can gather performance metrics and monitor the instance using the monitoring plugins (default: `false`)
 
 Optional settings for WinRM support in Windows:
 
-   - `setup_winrm`, Inject Windows powershell to set password and enable WinRM, default false.
-   - `winrm_username`, Used to set the WinRM transport username, defaults to 'opc'.
+   - `setup_winrm`, Inject Windows powershell to set password and enable WinRM (default: `false`)
+   - `winrm_username`, Used to set the WinRM transport username (default: `opc`)
    - `winrm_password`, Set the winrm password.  By default a randomly generated password will be used, so don't set this unless you have to.  Beware that the password must meet the Windows password complexity requirements otherwise the bootstrapping procedure will fail silently and Kitchen will eventually time out.
 
 The `use_private_ip` influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
@@ -181,16 +184,16 @@ The following configuration item is mandatory for the DBaaS `instance_type`:
 
 The following is a list of optional items for the DBaaS `instance_type`:
 
-   - `cpu_core_count`, CPU core count for DBaaS nodes.  Default value is 2
-   - `database_edition`, The edition of the Oracle database software to be installed.  Default value is ENTERPRISE_EDITION
-   - `license_model`, The licensing model for the Oracle database software.  Default value is BRING_YOUR_OWN_LICENSE
-   - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric.  Default value is `dbaas1`.
-   - `pdb_name`, The name of the pdb to be provisioned.  Only valid if `db_version` is 12cR1 or higher.  Default value is nil (OCI will create a single pdb with the name `db_name`\_PDB1)
-   - `admin_password`, The SYS password of the database to be provisioned.  Password must be 9 to 30 characters and contain at least 2 uppercase, 2 lowercase, 2 special, and 2 numeric characters. The special characters must be `_`, `#`, or `-`.  Default value will be a randomly generated password
-   - `initial_data_storage_size_in_gb`, The desired amount of database storage in GB.  Default value is 256
-   - `character_set`, The characterset of the database.  Default value is AL32UTF8
-   - `ncharacter_set`, The national characterset of the database.  Default value is AL16UTF16
-   - `db_workload`, The desired workload configuration for the database.  Acceptable values are 'OLTP' and 'DSS'.  Default value is 'OLTP'
+   - `cpu_core_count`, CPU core count for DBaaS nodes (default: `2`)
+   - `database_edition`, The edition of the Oracle database software to be installed (default: `ENTERPRISE_EDITION`)
+   - `license_model`, The licensing model for the Oracle database software. (default: `BRING_YOUR_OWN_LICENSE`)
+   - `db_name`, The name of the database to be provisioned.  Must be 8 characters or less, alphanumeric (default: `dbaas1`)
+   - `pdb_name`, The name of the pdb to be provisioned.  Only valid if `db_version` is 12cR1 or higher (default: `nil` OCI will create a single pdb with the name `db_name`\_PDB1)
+   - `admin_password`, The SYS password of the database to be provisioned.  Password must be 9 to 30 characters and contain at least 2 uppercase, 2 lowercase, 2 special, and 2 numeric characters. The special characters must be `_`, `#`, or `-`. If not provided, a random password will be generated.
+   - `initial_data_storage_size_in_gb`, The desired amount of database storage in GB (default: `256`)
+   - `character_set`, The characterset of the database (default: `AL32UTF8`)
+   - `ncharacter_set`, The national characterset of the database (default: `AL16UTF16`)
+   - `db_workload`, The desired workload configuration for the database.  Acceptable values are `OLTP` and `DSS`. (default: `OLTP`)
 
 Note: At this time, `node_count` is forced to be 1.  RAC provisioning is not supported.
 

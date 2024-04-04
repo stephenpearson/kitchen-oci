@@ -22,6 +22,7 @@ platforms:
         memory_in_gbs: 16
         baseline_ocpu_utilization: BASELINE_1_8
       image_name: Oracle Linux 7.9
+      all_plugins_disabled: true
     provisioner:
       root_path: /home/opc/kitchen
     transport:
@@ -49,7 +50,6 @@ platforms:
       dbaas:
         cpu_core_count: 16
         db_name: dbaas1
-        pdb_name: test001
         db_version: "19.0.0.0"
     provisioner:
       root_path: /home/opc/kitchen

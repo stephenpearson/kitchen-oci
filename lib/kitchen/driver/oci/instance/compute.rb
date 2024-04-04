@@ -49,6 +49,14 @@ module Kitchen
             )
           end
 
+          def agent_config
+            launch_details.agent_config = OCI::Core::Models::LaunchInstanceAgentConfigDetails.new(
+              are_all_plugins_disabled: config[:all_plugins_disabled],
+              is_management_disabled: config[:management_disabled],
+              is_monitoring_disabled: config[:monitoring_disabled]
+            )
+          end
+
           def instance_source_details
             launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
               sourceType: "image",
