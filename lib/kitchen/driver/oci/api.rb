@@ -72,7 +72,7 @@ module Kitchen
                               token_signer
                             end
           params[:config] = oci_config unless config[:use_instance_principals]
-          klass.new(**params.compact)
+          klass.new(**compact_params(params))
         end
 
         def token_signer
@@ -101,6 +101,11 @@ module Kitchen
           else
             OCI::ApiClientProxySettings.new(prx.host, prx.port)
           end
+        end
+
+        # this is to accommodate old versions of ruby that do not have a compact method on a Hash
+        def compact_params(params)
+          params.reject { |_, v| v.nil? }
         end
       end
     end
