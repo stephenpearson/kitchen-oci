@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.18.1
+- fix: OCI config loader is broken on super old versions of ruby because compact doesn't exist on a Hash
+
 # 1.18.0
 - feat: select image ocid for compute by display name with special sauce to select latest
 - feat: add `agent_config` property to compute launch details

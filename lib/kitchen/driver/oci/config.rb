@@ -65,7 +65,7 @@ module Kitchen
         end
 
         def config_loader(opts = {})
-          OCI::ConfigFileLoader.load_config(**opts.compact)
+          OCI::ConfigFileLoader.load_config(**opts)
         rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
           OCI::Config.new
         end
