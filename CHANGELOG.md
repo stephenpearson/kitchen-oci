@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.18.1
+- fix: backward compatible fixes to support Ruby 2.3.0
+  
 # 1.18.0
 - feat: select image ocid for compute by display name with special sauce to select latest
 - feat: add `agent_config` property to compute launch details

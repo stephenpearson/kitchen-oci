@@ -66,13 +66,19 @@ module Kitchen
         def generic_api(klass)
           params = {}
           params[:proxy_settings] = api_proxy if api_proxy
-          params[:signer] = if config[:use_instance_principals]
-                              OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
-                            elsif config[:use_token_auth]
-                              token_signer
-                            end
+          params[:signer] = signer
           params[:config] = oci_config unless config[:use_instance_principals]
-          klass.new(**params.compact)
+          # this is to accommodate old versions of ruby that do not have a compact method on a Hash
+          params.reject! { |_, v| v.nil? }
+          klass.new(**params)
+        end
+
+        def signer
+          if config[:use_instance_principals]
+            OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
+          elsif config[:use_token_auth]
+            token_signer
+          end
         end
 
         def token_signer

@@ -65,7 +65,9 @@ module Kitchen
         end
 
         def config_loader(opts = {})
-          OCI::ConfigFileLoader.load_config(**opts.compact)
+          # this is to accommodate old versions of ruby that do not have a compact method on a Hash
+          opts.reject! { |_, v| v.nil? }
+          OCI::ConfigFileLoader.load_config(**opts)
         rescue OCI::ConfigFileLoader::Errors::ConfigFileNotFoundError
           OCI::Config.new
         end

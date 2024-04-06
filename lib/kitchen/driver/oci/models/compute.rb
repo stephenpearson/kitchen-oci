@@ -63,7 +63,7 @@ module Kitchen
 
           def image_id_by_name
             image_name = config[:image_name].gsub(" ", "-")
-            image_list = images.select { |i| i.display_name.match?(/#{image_name}/) }
+            image_list = images.select { |i| i.display_name.match(/#{image_name}/) }
             raise "unable to find image_id" if image_list.empty?
 
             image_list = filter_image_list(image_list, image_name) if image_list.count > 1
@@ -73,7 +73,7 @@ module Kitchen
           end
 
           def filter_image_list(image_list, image_name)
-            image_list.select { |i| i.display_name.match?(/#{image_name}-[0-9]{4}\.[0-9]{2}\.[0-9]{2}/) }
+            image_list.select { |i| i.display_name.match(/#{image_name}-[0-9]{4}\.[0-9]{2}\.[0-9]{2}/) }
           end
 
           def latest_image_id(image_list)

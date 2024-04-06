@@ -4,6 +4,8 @@ Layout/LineLength:
     Max : 150
 Metrics/AbcSize:
     Enabled : true
+# setting a max size here to match current standards so old ruby environments don't fail in the pipeline
+    Max : 17
 Metrics/BlockLength:
     Enabled : true
     Exclude:
