@@ -2,13 +2,16 @@
 
 A Test Kitchen Driver for Oracle Cloud Infrastructure (OCI)
 
+`kitchen-oci` can create two types of instances: [compute](#compute-instance-type)
+
+
 ## Prerequisites
 
 You need an ssh keypair defined for your current user.  By default the driver
-expects to find the public key in ~/.ssh/id\_rsa.pub, but this can be
+expects to find the public key in `~/.ssh/id_rsa.pub`, but this can be
 overridden in .kitchen.yml.
 
-You need to create suitable configuration for OCI in ~/.oci/config and this
+You need to create suitable configuration for OCI in `~/.oci/config` and this
 can be created using the CLI:
 ```bash
 oci setup config
@@ -101,6 +104,8 @@ name of the image rather than the ocid.  There are two ways to do this:
 - specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
 - specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
      Note: for aesthetics, the dashes can be replaced with spaces `Oracle Linux 8.9`. Both ways work, one way is prettier.
+- Regular Expressions are also supported.  For example, `Oracle Linux 8.\d+` will give the latest `Oracle Linux 8.x`
+     Note: be careful here.  If the regular expression is too broad, the newest image id of the matching set will be returned and might not be of the desired operating system.
 
 If the second option is chosen (providing a portion of the display name), the behavior is to search all display names that match the string provided plus anything that looks like
 a date, then sort by time created and return the ocid for the newest one. This allows you to always get the latest version of a given image without having to continually update your kitchen.yml files.
@@ -111,11 +116,12 @@ These settings are optional:
 
    - `boot_volume_size_in_gbs`, The size of the boot volume, in GB (range: 50GB - 32TB)
    - `use_private_ip`, Whether to connect to the instance using a private IP (default: `false`) (public ip)
-   - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
+   - `oci_config_file`, OCI configuration file (default: `~/.oci/config`)
    - `oci_profile_name`, OCI profile to use (default: `DEFAULT`)
    - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file (see below)
-   - `ssh_keypath`, SSH public key (default: `~/.ssh/id\_rsa.pub`)
-   - `post_create_script`, run a script on compute\_instance after deployment
+   - `ssh_keypath`, SSH public key (default: `~/.ssh/id_rsa.pub`)
+   - `post_create_script`, run a script on an instance after deployment
+   - `post_create_reboot`, reboot the instance after instance creation (default: `false`)
    - `proxy_url`, Connect via the specified proxy URL
    - `user_data`, Add user data scripts
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)

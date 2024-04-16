@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.19.0
+- feat: add `post_create_reboot` config option
+
 # 1.18.1
 - fix: backward compatible fixes to support Ruby 2.3.0
   

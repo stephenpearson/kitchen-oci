@@ -17,3 +17,12 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+
+# OS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
