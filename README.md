@@ -285,7 +285,7 @@ transport:
 
 See also the section above on Instance Principals if you plan to use a proxy in conjunction with a proxy.  The proxy needs to be avoided when accessing the metadata address.
 
-## Preemptible Instances
+## Preemptible Instance
 
 This will allow you to create a [preemptible instance](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/preemptible.htm).  Preemptible instances behave the same as regular compute instances, but the capacity is reclaimed when it's needed elsewhere, and the instances are terminated. If your workloads are fault-tolerant and can withstand interruptions, then preemptible instances can reduce your costs.
 
@@ -346,7 +346,7 @@ When launching Oracle provided Windows images, it may be helpful to allow kitche
 
 Make sure that the transport name is set to `winrm` and that the os\_type in the driver is set to `windows`.  See the following example.
 
-Full example (.kitchen.yml):
+## Full example (kitchen.yml):
 
 ```yml
 ---
@@ -447,7 +447,8 @@ context from here.
 
 ## Maintainer
 
-Created by Stephen Pearson (<stephen.pearson@oracle.com>) maintained by Justin Steele (<justin.steele@oracle.com>) 
+Created by Stephen Pearson (<stephen.pearson@oracle.com>)\
+Maintained by Justin Steele (<justin.steele@oracle.com>) 
 
 ## License
 
