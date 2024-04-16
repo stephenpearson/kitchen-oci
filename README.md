@@ -6,7 +6,7 @@ A Test Kitchen Driver for Oracle Cloud Infrastructure (OCI)
 * [compute](#compute-instance-type)
 * [dbaas](#dbaas-instance-type)
 
-Both Instance types share some [common required](#required-driver-parameters) parameters as well as some [common optional](#common-optional-driver-parameters) parameters.
+Both Instance types share some [common required](#required-driver-parameters) parameters as well as some [common optional](#optional-driver-parameters) parameters.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ There is an additional driver parameter that allows for toggling instance types.
 
 Note: The availability domain should be the full AD name including the tenancy specific prefix.  For example: "AaBb:US-ASHBURN-AD-1".  Look in the OCI console to get your tenancy specific string.
 
-## Common Optional Driver Parameters
+## Optional Driver Parameters
 
 The following driver parameters are common to both instance types, but are not required:
 
@@ -76,7 +76,7 @@ name of the image rather than the ocid.  There are two ways to do this:
 - specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
 - specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
      Note: for aesthetics, the dashes can be replaced with spaces `Oracle Linux 8.9`. Both ways work, one way is prettier.
-- Regular Expressions are also supported.  For example, `Oracle Linux 8.\d+` will give the latest `Oracle Linux 8.x`
+- Regular Expressions are also supported.  For example, `Oracle Linux 8.\d+` will give the latest `Oracle Linux 8.x`\
      Note: be careful here.  If the regular expression is too broad, the newest image id of the matching set will be returned and might not be of the desired operating system.
 
 If the second option is chosen (providing a portion of the display name), the behavior is to search all display names that match the string provided plus anything that looks like
@@ -300,7 +300,7 @@ driver:
 
 ## Flex Shape Instances
 
-This will allow you to launch a flexible shape instance.  A flexible shape lets you customize the number of CPUs and memory available when launching or resizing the VM.  Note that there are smaller number of shapes available and the image ocid must also be compatible.  Please consult [OCI documentation](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible) to ensure the proper combination of shape and image ocid.
+This will allow you to launch a flexible shape instance.  A flexible shape lets you customize the number of CPUs and memory available when launching or resizing the VM.  Note that there are smaller number of shapes available and the image ocid must also be compatible.  Please consult [OCI Documentation / Compute Shapes](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible) page to ensure the proper combination of shape and image ocid.
 
 ```yml
 ---
@@ -315,6 +315,7 @@ driver:
 ```
 
 The `baseline_ocpu_utilization` property is for a subcore burstable VM instance. Omit this attribute or use the `BASELINE_1_1` baseline for a non-burstable instance.
+
 Supported values are: `BASELINE_1_8`, `BASELINE_1_2`, `BASELINE_1_1`
 
 ## Block Volume Attachments
