@@ -62,7 +62,7 @@ The `use_private_ip` influences whether the public or private IP will be used by
 
 If the `subnet_id` refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the `use_private_ip` flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the `use_private_ip` flag can still be used to override whether the private or public IP will be used.
 
-### Compute Instance Type
+## Compute Instance Type
 
 The following driver parameter is mandatory:
 
@@ -137,7 +137,7 @@ Optional settings for WinRM support in Windows [[more](#windows-support)]:
     post_create_script: >-
 ```
 
-### DBaaS Instance Type
+## DBaaS Instance Type
 
 The DBaaS instance type configuration should be written in a hash beginning with `dbaas`.
 
