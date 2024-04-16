@@ -2,13 +2,19 @@
 
 A Test Kitchen Driver for Oracle Cloud Infrastructure (OCI)
 
+`kitchen-oci` can create two types of instances: 
+* [compute](#compute-instance-type)
+* [dbaas](#dbaas-instance-type)
+
+Both Instance types share some [common required](#required-driver-parameters) parameters as well as some [common optional](#optional-driver-parameters) parameters.
+
 ## Prerequisites
 
 You need an ssh keypair defined for your current user.  By default the driver
-expects to find the public key in ~/.ssh/id\_rsa.pub, but this can be
+expects to find the public key in `~/.ssh/id_rsa.pub`, but this can be
 overridden in .kitchen.yml.
 
-You need to create suitable configuration for OCI in ~/.oci/config and this
+You need to create suitable configuration for OCI in `~/.oci/config` and this
 can be created using the CLI:
 ```bash
 oci setup config
@@ -18,68 +24,16 @@ Ensure that you have a suitable compartment defined, an external subnet, and
 security rules that allow incoming SSH and outgoing HTTP to allow Kitchen to
 pull the Chef binaries.
 
-## Building the gem
+## Required Driver Parameters
 
-This step is only necessary if you wish to make local modifications.  The gem
-has already been published to rubygems.org.
-
-```bash
-rake build
-```
-
-## Installing the gem
-
-You must install the gem into whatever Ruby is used to run kitchen.  On a
-workstation this will likely be the Chef Workstation environment.  To switch to
-Chef Workstation if you haven't already:
-
-```bash
-eval "$(chef shell-init bash)"
-```
-
-You can install the gem from RubyGems.org with:
-
-```bash
-gem install kitchen-oci
-```
-
-To install a gem you built yourself:
-
-```bash
-gem install pkg/kitchen-oci-<VERSION>.gem
-```
-
-## Testing
-
-Ensure you have Chef Workstation installed and initialized.  From the root of this project, execute `bundle install`.
-Set the following environment variables in your shell:
-
-```bash
-COMPARTMENT_ID
-AVAILABILITY_DOMAIN
-SUBNET_ID
-STANDARD_SHAPE
-FLEX_SHAPE
-LIN_IMAGE_ID
-WIN_IMAGE_ID
-```
-
-These environment variables should align with your tenancy and the region in which you intend to test.
-
-There is a kitchen.yml file in the `test/integration/fixtures` directory in this project that can be used to test the gem. From this
-directory, execute `bundle exec kitchen list` to see a list of instances.  All normal kitchen commands work within the `bundle exec`
-context from here.
-
-## Example kitchen.yml
-
-Adjust below template as required.  The following configuration is mandatory for all instance types:
+The following driver parameters are mandatory for all instance types:
 
    - `compartment_id` or `compartment_name`
    - `availability_domain`
    - `shape`
    - `subnet_id`
 
-There is an additional configuration item that allows for toggling instance types.  If this item is not included, it defaults to `compute`.
+There is an additional driver parameter that allows for toggling instance types.  If this item is not included, it defaults to `compute`.
 
    - Permitted values of `instance_type`:
       - compute
@@ -87,9 +41,30 @@ There is an additional configuration item that allows for toggling instance type
 
 Note: The availability domain should be the full AD name including the tenancy specific prefix.  For example: "AaBb:US-ASHBURN-AD-1".  Look in the OCI console to get your tenancy specific string.
 
-### Compute Instance Type
+## Optional Driver Parameters
 
-The following configuration is mandatory:
+The following driver parameters are common to both instance types, but are not required:
+
+   - `use_private_ip`, Whether to connect to the instance using a private IP (default: `false`)
+   - `oci_config_file`, OCI configuration file (default: `~/.oci/config`)
+   - `oci_profile_name`, OCI profile to use (default: `DEFAULT`)
+   - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file [[more](#use-without-oci-config-file)]
+   - `ssh_keypath`, SSH public key (default: `~/.ssh/id_rsa.pub`)
+   - `post_create_script`, run a script on an instance after deployment
+   - `post_create_reboot`, reboot the instance after instance creation (default: `false`)
+   - `proxy_url`, Connect via the specified proxy URL [[more](#proxy-support)]
+   - `defined_tags`, Hash containing tag name(s) and values(s). Each key must be predefined and scoped into a namespace.
+   - `freeform_tags`, Hash containing tag name(s) and values(s)
+   - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below) (default: `false`) [[more](#instance-principals)]
+   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below) (default: `false`) [[more](#token-auth)]
+
+The `use_private_ip` influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
+
+If the `subnet_id` refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the `use_private_ip` flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the `use_private_ip` flag can still be used to override whether the private or public IP will be used.
+
+## Compute Instance Type
+
+The following driver parameter is mandatory:
 
    - `image_id`, The ocid of the desired image\
 OR 
@@ -101,6 +76,8 @@ name of the image rather than the ocid.  There are two ways to do this:
 - specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
 - specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
      Note: for aesthetics, the dashes can be replaced with spaces `Oracle Linux 8.9`. Both ways work, one way is prettier.
+- Regular Expressions are also supported.  For example, `Oracle Linux 8.\d+` will give the latest `Oracle Linux 8.x`\
+     Note: be careful here.  If the regular expression is too broad, the newest image id of the matching set will be returned and might not be of the desired operating system.
 
 If the second option is chosen (providing a portion of the display name), the behavior is to search all display names that match the string provided plus anything that looks like
 a date, then sort by time created and return the ocid for the newest one. This allows you to always get the latest version of a given image without having to continually update your kitchen.yml files.
@@ -110,25 +87,14 @@ Only specify one of `image_id` or `image_name`.  If both are provided, the value
 These settings are optional:
 
    - `boot_volume_size_in_gbs`, The size of the boot volume, in GB (range: 50GB - 32TB)
-   - `use_private_ip`, Whether to connect to the instance using a private IP (default: `false`) (public ip)
-   - `oci_config_file`, OCI configuration file, by default this is ~/.oci/config
-   - `oci_profile_name`, OCI profile to use (default: `DEFAULT`)
-   - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file (see below)
-   - `ssh_keypath`, SSH public key (default: `~/.ssh/id\_rsa.pub`)
-   - `post_create_script`, run a script on compute\_instance after deployment
-   - `proxy_url`, Connect via the specified proxy URL
-   - `user_data`, Add user data scripts
+   - `user_data`, Add user data scripts to cloud-init [[more](#support-for-user-data-scripts-and-cloud-init)]
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
-   - `defined_tags`, Hash containing tag name(s) and values(s). Each key must be predefined and scoped into a namespace.
-   - `freeform_tags`, Hash containing tag name(s) and values(s)
-   - `use_instance_principals`, Boolean flag indicated whether Instance Principals should be used as credentials (see below) (default: `false`)
-   - `use_token_auth`, Boolean flag indicating if token authentication should be used (see below) (default: `false`)
-   - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible (default: `false`)
-   - `shape_config`, Hash of shape config parameters required when using Flex shapes.
+   - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible (default: `false`) [[more](#preemptible-instance)]
+   - `shape_config`, Hash of shape config parameters required when using Flex shapes. [[more](#flex-shape-instances)]
      - `ocpus`, number of CPUs requested
      - `memory_in_gbs`, the amount of memory requested
      - `baseline_ocpu_utilization`, the minimum CPU utilization (default: `BASELINE_1_1`)
-   - `volumes`, an array of hashes with configuration options of each volume
+   - `volumes`, an array of hashes with configuration options of each volume [[more](#block-volume-attachments)]
      - `name`, the display name of the volume
      - `size_in_gbs`, the size in Gbs for the volume. (minimum value: 50GB)
      - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
@@ -139,15 +105,12 @@ These settings are optional:
    - `management_disabled`, Whether Oracle Cloud Agent can run all the available management plugins (default: `false`)
    - `monitoring_disabled`, Whether Oracle Cloud Agent can gather performance metrics and monitor the instance using the monitoring plugins (default: `false`)
 
-Optional settings for WinRM support in Windows:
+Optional settings for WinRM support in Windows [[more](#windows-support)]:
 
    - `setup_winrm`, Inject Windows powershell to set password and enable WinRM (default: `false`)
    - `winrm_username`, Used to set the WinRM transport username (default: `opc`)
    - `winrm_password`, Set the winrm password.  By default a randomly generated password will be used, so don't set this unless you have to.  Beware that the password must meet the Windows password complexity requirements otherwise the bootstrapping procedure will fail silently and Kitchen will eventually time out.
 
-The `use_private_ip` influences whether the public or private IP will be used by Kitchen to connect to the instance.  If it is set to false (the default) then it will connect to the public IP, otherwise it'll use the private IP.
-
-If the `subnet_id` refers to a subnet configured to disallow public IPs on any attached VNICs, then the VNIC will be created without a public IP and the `use_private_ip` flag will assumed to be true irrespective of the config setting.  On subnets that do allow a public IP a public IP will be allocated to the VNIC, but the `use_private_ip` flag can still be used to override whether the private or public IP will be used.
 
 ```yml
 ---
@@ -174,15 +137,15 @@ If the `subnet_id` refers to a subnet configured to disallow public IPs on any a
     post_create_script: >-
 ```
 
-### DBaaS Instance Type
+## DBaaS Instance Type
 
 The DBaaS instance type configuration should be written in a hash beginning with `dbaas`.
 
-The following configuration item is mandatory for the DBaaS `instance_type`:
+The following driver parameter is mandatory for the DBaaS `instance_type`:
 
    - `db_version`, The specific version of the Oracle database software to be installed. Values can be at either the major version level (eg. 12.1.0.2) or at a PSU level (eg. 12.1.0.2.191015). If no PSU is provided, the latest available will be installed.
 
-The following is a list of optional items for the DBaaS `instance_type`:
+The following is a list of optional parameters for the DBaaS `instance_type`:
 
    - `cpu_core_count`, CPU core count for DBaaS nodes (default: `2`)
    - `database_edition`, The edition of the Oracle database software to be installed (default: `ENTERPRISE_EDITION`)
@@ -264,7 +227,6 @@ platforms:
       ...
 ```
 
-
 ## Support for user data scripts and cloud-init
 
 The driver has support for adding user data that can be executed as scripts by cloud-init.  These can either be specified inline or by referencing a file.  Examples:
@@ -323,7 +285,7 @@ transport:
 
 See also the section above on Instance Principals if you plan to use a proxy in conjunction with a proxy.  The proxy needs to be avoided when accessing the metadata address.
 
-## Preemptible Instances
+## Preemptible Instance
 
 This will allow you to create a [preemptible instance](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/preemptible.htm).  Preemptible instances behave the same as regular compute instances, but the capacity is reclaimed when it's needed elsewhere, and the instances are terminated. If your workloads are fault-tolerant and can withstand interruptions, then preemptible instances can reduce your costs.
 
@@ -338,7 +300,7 @@ driver:
 
 ## Flex Shape Instances
 
-This will allow you to launch a flexible shape instance.  A flexible shape lets you customize the number of CPUs and memory available when launching or resizing the VM.  Note that there are smaller number of shapes available and the image ocid must also be compatible.  Please consult [OCI documentation](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible) to ensure the proper combination of shape and image ocid.
+This will allow you to launch a flexible shape instance.  A flexible shape lets you customize the number of CPUs and memory available when launching or resizing the VM.  Note that there are smaller number of shapes available and the image ocid must also be compatible.  Please consult [OCI Documentation / Compute Shapes](https://docs.oracle.com/en-us/iaas/Content/Compute/References/computeshapes.htm#flexible) page to ensure the proper combination of shape and image ocid.
 
 ```yml
 ---
@@ -353,7 +315,26 @@ driver:
 ```
 
 The `baseline_ocpu_utilization` property is for a subcore burstable VM instance. Omit this attribute or use the `BASELINE_1_1` baseline for a non-burstable instance.
+
 Supported values are: `BASELINE_1_8`, `BASELINE_1_2`, `BASELINE_1_1`
+
+## Block Volume Attachments
+
+This parameter will allow you to specify additional block volumes to be created and attached to your instance.
+
+```yml
+---
+driver:
+  name: oci
+  ...
+  volumes:
+    - name: vol01
+      size_in_gbs: 50
+      type: iscsi
+    - name: vol02
+      size_in_gbs: 100
+      vpus_per_gb: 30
+```
 
 ## Windows Support
 
@@ -366,7 +347,7 @@ When launching Oracle provided Windows images, it may be helpful to allow kitche
 
 Make sure that the transport name is set to `winrm` and that the os\_type in the driver is set to `windows`.  See the following example.
 
-Full example (.kitchen.yml):
+## Full example (kitchen.yml):
 
 ```yml
 ---
@@ -413,9 +394,62 @@ suites:
     attributes:
 ```
 
+## Building the gem
+
+This step is only necessary if you wish to make local modifications.  The gem
+has already been published to rubygems.org.
+
+```bash
+rake build
+```
+
+## Installing the gem
+
+You must install the gem into whatever Ruby is used to run kitchen.  On a
+workstation this will likely be the Chef Workstation environment.  To switch to
+Chef Workstation if you haven't already:
+
+```bash
+eval "$(chef shell-init bash)"
+```
+
+You can install the gem from RubyGems.org with:
+
+```bash
+gem install kitchen-oci
+```
+
+To install a gem you built yourself:
+
+```bash
+gem install pkg/kitchen-oci-<VERSION>.gem
+```
+
+## Testing
+
+Ensure you have Chef Workstation installed and initialized.  From the root of this project, execute `bundle install`.
+Set the following environment variables in your shell:
+
+```bash
+COMPARTMENT_ID
+AVAILABILITY_DOMAIN
+SUBNET_ID
+STANDARD_SHAPE
+FLEX_SHAPE
+LIN_IMAGE_ID
+WIN_IMAGE_ID
+```
+
+These environment variables should align with your tenancy and the region in which you intend to test.
+
+There is a kitchen.yml file in the `test/integration/fixtures` directory in this project that can be used to test the gem. From this
+directory, execute `bundle exec kitchen list` to see a list of instances.  All normal kitchen commands work within the `bundle exec`
+context from here.
+
 ## Maintainer
 
-Created by Stephen Pearson (<stephen.pearson@oracle.com>) maintained by Justin Steele (<justin.steele@oracle.com>) 
+Created by Stephen Pearson (<stephen.pearson@oracle.com>)\
+Maintained by Justin Steele (<justin.steele@oracle.com>) 
 
 ## License
 

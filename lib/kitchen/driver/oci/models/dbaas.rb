@@ -69,6 +69,12 @@ module Kitchen
                                                                   max_interval_seconds: 900, max_wait_seconds: 21_600)
           end
 
+          def reboot
+            db_node_id = dbaas_node(state[:server_id]).first.id
+            api.dbaas.db_node_action(db_node_id, "SOFTRESET")
+            api.dbaas.get_db_node(db_node_id).wait_until(:lifecycle_state, OCI::Database::Models::DbNode::LIFECYCLE_STATE_AVAILABLE)
+          end
+
           private
 
           def instance_ip(instance_id)

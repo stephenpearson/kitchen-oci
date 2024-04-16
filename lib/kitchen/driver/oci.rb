@@ -71,6 +71,7 @@ module Kitchen
       default_config :all_plugins_disabled, false
       default_config :management_disabled, false
       default_config :monitoring_disabled, false
+      default_config :post_create_reboot, false
 
       # compute only configs
       default_config :setup_winrm, false
@@ -112,21 +113,19 @@ module Kitchen
         validate_config!
         oci, api = auth(__method__)
         inst = instance_class(config, state, oci, api, __method__)
-        state_details = inst.launch
-        state.merge!(state_details)
-        instance.transport.connection(state).wait_until_ready
+        launch(state, inst)
         create_and_attach_volumes(config, state, oci, api)
         process_post_script(state)
+        reboot(state, inst)
       end
 
       def destroy(state)
         return unless state[:server_id]
 
         oci, api = auth(__method__)
-        instance.transport.connection(state).close
-        detatch_and_delete_volumes(state, oci, api) if state[:volumes]
         inst = instance_class(config, state, oci, api, __method__)
-        inst.terminate
+        detatch_and_delete_volumes(state, oci, api)
+        terminate(state, inst)
       end
 
       private
@@ -136,6 +135,12 @@ module Kitchen
         api = Oci::Api.new(oci.config, config)
         oci.compartment if action == :create
         [oci, api]
+      end
+
+      def launch(state, inst)
+        state_details = inst.launch
+        state.merge!(state_details)
+        instance.transport.connection(state).wait_until_ready
       end
 
       def create_and_attach_volumes(config, state, oci, api)
@@ -152,18 +157,33 @@ module Kitchen
         state.merge!(volume_state)
       end
 
-      def detatch_and_delete_volumes(state, oci, api)
-        bls = Blockstorage.new(config, state, oci, api, :destroy)
-        state[:volume_attachments].each { |att| bls.detatch_volume(att) }
-        state[:volumes].each { |vol| bls.delete_volume(vol) }
-      end
-
       def process_post_script(state)
         return if config[:post_create_script].nil?
 
         info("Running post create script")
         script = config[:post_create_script]
         instance.transport.connection(state).execute(script)
+      end
+
+      def reboot(state, inst)
+        return unless config[:post_create_reboot]
+
+        instance.transport.connection(state).close
+        inst.reboot
+        instance.transport.connection(state).wait_until_ready
+      end
+
+      def detatch_and_delete_volumes(state, oci, api)
+        return unless state[:volumes]
+
+        bls = Blockstorage.new(config, state, oci, api, :destroy)
+        state[:volume_attachments].each { |att| bls.detatch_volume(att) }
+        state[:volumes].each { |vol| bls.delete_volume(vol) }
+      end
+
+      def terminate(state, inst)
+        instance.transport.connection(state).close
+        inst.terminate
       end
     end
   end

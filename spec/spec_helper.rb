@@ -323,7 +323,7 @@ RSpec.shared_context "dbaas", :dbaas do
   include_context "net"
 
   # kitchen.yml driver config section
-  let(:driver_config) do
+  let(:base_dbaas_driver_config) do
     base_driver_config.merge!(
       {
         instance_type: "dbaas",
@@ -406,6 +406,9 @@ RSpec.shared_context "create", :create do
     OCI::Response.new(200, nil, [OCI::Database::Models::DbNodeSummary.new(db_system_id: db_system_ocid,
                                                                           id: db_node_ocid,
                                                                           vnic_id: vnic_ocid)])
+  end
+  let(:db_node_response) do
+    OCI::Response.new(200, nil, OCI::Database::Models::DbNode.new(id: db_node_ocid, lifecycle_state: Lifecycle.dbaas("available")))
   end
   let(:iscsi_blockstorage_response) do
     OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(id: iscsi_volume_ocid,

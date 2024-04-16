@@ -257,4 +257,20 @@ describe Kitchen::Driver::Oci::Models::Compute do
       end
     end
   end
+
+  describe "#reboot" do
+    include_context "create"
+
+    let(:state) { {} }
+    let(:driver_config) { base_driver_config.merge!({ post_create_reboot: true }) }
+
+    before do
+      allow(compute_client).to receive(:instance_action).with(instance_ocid, "SOFTRESET")
+    end
+
+    it "creates and reboots a standard compute (Linux)" do
+      expect(compute_client).to receive(:instance_action).with(instance_ocid, "SOFTRESET")
+      driver.create(state)
+    end
+  end
 end

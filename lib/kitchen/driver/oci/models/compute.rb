@@ -42,13 +42,18 @@ module Kitchen
             process_windows_options
             response = api.compute.launch_instance(launch_instance_details)
             instance_id = response.data.id
-            api.compute.get_instance(instance_id).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING )
+            api.compute.get_instance(instance_id).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING)
             final_state(state, instance_id)
           end
 
           def terminate
             api.compute.terminate_instance(state[:server_id])
             api.compute.get_instance(state[:server_id]).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_TERMINATING)
+          end
+
+          def reboot
+            api.compute.instance_action(state[:server_id], "SOFTRESET")
+            api.compute.get_instance(state[:server_id]).wait_until(:lifecycle_state, OCI::Core::Models::Instance::LIFECYCLE_STATE_RUNNING)
           end
 
           private

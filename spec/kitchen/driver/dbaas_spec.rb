@@ -26,6 +26,7 @@ describe Kitchen::Driver::Oci::Models::Dbaas do
     include_context "create"
 
     let(:state) { {} }
+    let(:driver_config) { base_dbaas_driver_config }
     it "creates a dbaas instance" do
       expect(dbaas_client).to receive(:launch_db_system).with(db_system_launch_details)
       expect(dbaas_client).to receive(:get_db_system).with(db_system_ocid).and_return(dbaas_response)
@@ -44,14 +45,32 @@ describe Kitchen::Driver::Oci::Models::Dbaas do
 
   describe "#destroy" do
     include_context "destroy"
-    include_context "dbaas"
 
     let(:state) { { server_id: db_system_ocid } }
+    let(:driver_config) { base_dbaas_driver_config }
     it "destroys a dbaas instance" do
       expect(dbaas_client).to receive(:terminate_db_system).with(db_system_ocid)
       expect(dbaas_response).to receive(:wait_until).with(:lifecycle_state, Lifecycle.dbaas("terminating"), max_interval_seconds: 900, max_wait_seconds: 21_600)
       expect(transport).to receive_message_chain("connection.close")
       driver.destroy(state)
+    end
+  end
+
+  describe "#reboot" do
+    include_context "create"
+
+    let(:state) { {} }
+    let(:driver_config) { base_dbaas_driver_config.merge!({ post_create_reboot: true }) }
+
+    before do
+      allow(dbaas_client).to receive(:db_node_action).with(db_node_ocid, "SOFTRESET")
+      allow(dbaas_client).to receive(:get_db_node).with(db_node_ocid).and_return(db_node_response)
+      allow(db_node_response).to receive(:wait_until).with(:lifecycle_state, OCI::Database::Models::DbNode::LIFECYCLE_STATE_AVAILABLE)
+    end
+
+    it "creates and reboots a dbaas instance" do
+      expect(dbaas_client).to receive(:db_node_action).with(db_node_ocid, "SOFTRESET")
+      driver.create(state)
     end
   end
 end

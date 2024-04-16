@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.version       = Kitchen::Driver::OCI_VERSION
   spec.authors       = ["Stephen Pearson", "Justin Steele"]
   spec.email         = ["stephen.pearson@oracle.com", "justin.steele@oracle.com"]
-  spec.description   = "A Test Kitchen Driver for Oracle OCI"
+  spec.description   = "A Test Kitchen Driver for Oracle Cloud Infrastructure"
   spec.summary       = spec.description
   spec.homepage      = ""
   spec.license       = "Apache-2.0"
