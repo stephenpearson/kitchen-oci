@@ -2,6 +2,7 @@
 
 # 1.20.0
 - feat: add `boot_volume_id` config option to allow for instance creation from a clone of the specified boot volume
+- fix: add `instance_name` back to the generated hostname and display_name
 
 # 1.19.0
 - feat: add `post_create_reboot` config option

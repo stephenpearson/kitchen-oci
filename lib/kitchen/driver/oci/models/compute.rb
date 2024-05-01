@@ -136,7 +136,8 @@ module Kitchen
           end
 
           def hostname
-            [config[:hostname_prefix], random_string(6)].compact.join("-")
+            prefix = %W{#{config[:hostname_prefix]} #{config[:instance_name]}}.uniq.join("-")
+            [prefix, random_string(6)].compact.join("-")
           end
 
           def create_vnic_details(name)
