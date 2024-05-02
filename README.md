@@ -155,6 +155,7 @@ The following driver parameter is mandatory for the DBaaS `instance_type`:
 
 The following is a list of optional parameters for the DBaaS `instance_type`:
 
+   - `db_software_image_id`, The ocid of an Oracle-published software release or a [custom software image](https://docs.oracle.com/en-us/iaas/exadatacloud/exacs/ecc-manage-images.html)
    - `cpu_core_count`, CPU core count for DBaaS nodes (default: `2`)
    - `database_edition`, The edition of the Oracle database software to be installed (default: `ENTERPRISE_EDITION`)
    - `license_model`, The licensing model for the Oracle database software. (default: `BRING_YOUR_OWN_LICENSE`)
