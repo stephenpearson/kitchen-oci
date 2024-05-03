@@ -216,6 +216,20 @@ describe Kitchen::Driver::Oci::Models::Compute do
         end
       end
     end
+
+    context "standard compute (Linux) from boot volume" do
+      let(:driver_config) do
+        base_driver_config.merge!({
+                                    image_id: nil,
+                                    boot_volume_id: boot_volume_ocid,
+                                  })
+      end
+
+      it "creates a compute instance from a boot volume" do
+        expect(compute_client).to receive(:launch_instance).with(launch_instance_from_bv_request)
+        driver.create(state)
+      end
+    end
   end
 
   describe "#destroy" do

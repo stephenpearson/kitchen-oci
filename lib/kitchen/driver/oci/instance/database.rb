@@ -22,6 +22,12 @@ module Kitchen
       class Instance
         # setter methods that populate the details of OCI::Database::Models::CreateDatabaseDetails
         module DatabaseDetails
+          def database_software_image
+            return unless config[:dbaas][:db_software_image_id]
+
+            database_details.database_software_image_id = config[:dbaas][:db_software_image_id]
+          end
+
           def character_set
             database_details.character_set = config[:dbaas][:character_set] ||= "AL32UTF8"
           end

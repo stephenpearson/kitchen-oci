@@ -68,7 +68,9 @@ The following driver parameter is mandatory:
 
    - `image_id`, The ocid of the desired image\
 OR 
-   - `image_name`, The display name of the desired image
+   - `image_name`, The display name of the desired image\
+OR
+   - `boot_volume_id`, The ocid of a boot volume
 
 Image ocids and display names can be found on the public [OCI Documentation / Images](https://docs.oracle.com/en-us/iaas/images/) page. The `image_name` property allows you to specify the display
 name of the image rather than the ocid.  There are two ways to do this:
@@ -83,6 +85,12 @@ If the second option is chosen (providing a portion of the display name), the be
 a date, then sort by time created and return the ocid for the newest one. This allows you to always get the latest version of a given image without having to continually update your kitchen.yml files.
 
 Only specify one of `image_id` or `image_name`.  If both are provided, the value specified by `image_id` will always win.
+
+If specifying `boot_volume_id`, this will take precedence over both `image_id` and `image_name`.  It should be noted that the use case
+for using `boot_volume_id` is somewhat limited in that you are restricted by availability domain in so much as the instance you create must
+be in the same AD as the boot volume. If this option is chosen, the driver will clone the specified boot volume and attach the clone to the instance
+created thus preserving the original boot volume as a sort of golden image. Another way to accomplish this would be to create a [custom image](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/managingcustomimages.htm#To) and provide that ocid
+as the `image_id`. Both require you to do some work up front.  The trade-off between the two options is that using a boot volume spins up the instance in about half the time, while a custom image is not limited by AD.
 
 These settings are optional:
 
@@ -147,6 +155,7 @@ The following driver parameter is mandatory for the DBaaS `instance_type`:
 
 The following is a list of optional parameters for the DBaaS `instance_type`:
 
+   - `db_software_image_id`, The ocid of an Oracle-published software release or a [custom software image](https://docs.oracle.com/en-us/iaas/exadatacloud/exacs/ecc-manage-images.html)
    - `cpu_core_count`, CPU core count for DBaaS nodes (default: `2`)
    - `database_edition`, The edition of the Oracle database software to be installed (default: `ENTERPRISE_EDITION`)
    - `license_model`, The licensing model for the Oracle database software. (default: `BRING_YOUR_OWN_LICENSE`)

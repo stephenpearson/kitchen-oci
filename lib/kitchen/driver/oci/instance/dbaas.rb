@@ -29,7 +29,6 @@ module Kitchen
           include DbHomeDetails
           #
           # TODO: add support for the #domain property
-          #       add support for #database_software_image_id property
           #
           def db_home
             launch_details.db_home = db_home_details

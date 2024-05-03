@@ -93,6 +93,28 @@ module Kitchen
             image_list.flatten
           end
 
+          def clone_boot_volume
+            info("Cloning boot volume...")
+            cbv = api.blockstorage.create_boot_volume(clone_boot_volume_details)
+            api.blockstorage.get_boot_volume(cbv.data.id).wait_until(:lifecycle_state, OCI::Core::Models::BootVolume::LIFECYCLE_STATE_AVAILABLE)
+            info("Finished cloning boot volume.")
+            cbv.data.id
+          end
+
+          def clone_boot_volume_details
+            OCI::Core::Models::CreateBootVolumeDetails.new(
+              source_details: OCI::Core::Models::BootVolumeSourceFromBootVolumeDetails.new(
+                id: config[:boot_volume_id]
+              ),
+              display_name: boot_volume_display_name,
+              compartment_id: oci.compartment
+            )
+          end
+
+          def boot_volume_display_name
+            "#{api.blockstorage.get_boot_volume(config[:boot_volume_id]).data.display_name} (Clone)"
+          end
+
           def instance_ip(instance_id)
             vnic = vnics(instance_id).select(&:is_primary).first
             if public_ip_allowed?
@@ -114,7 +136,7 @@ module Kitchen
           end
 
           def hostname
-            [config[:hostname_prefix], random_string(6)].compact.join("-")
+            %W{#{config[:hostname_prefix]} #{config[:instance_name]} #{random_string(6)}}.uniq.compact.join("-")
           end
 
           def create_vnic_details(name)

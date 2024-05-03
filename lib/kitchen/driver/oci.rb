@@ -52,9 +52,13 @@ module Kitchen
       default_config :compartment_name, nil
       default_config :instance_type, "compute"
       default_config :image_id, nil
+      default_config :boot_volume_id, nil
       default_config :image_name, nil
       default_config :hostname_prefix do |hnp|
         hnp.instance.name
+      end
+      default_config :instance_name do |inst|
+        inst.instance.name
       end
       default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath

@@ -35,6 +35,12 @@ module Kitchen
           def db_home_display_name
             db_home_details.display_name = ["dbhome", random_number(10)].compact.join
           end
+
+          def db_home_software_image
+            return unless config[:dbaas][:db_software_image_id]
+
+            db_home_details.database_software_image_id = config[:dbaas][:db_software_image_id]
+          end
         end
       end
     end

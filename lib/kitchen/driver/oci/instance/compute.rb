@@ -57,11 +57,22 @@ module Kitchen
             )
           end
 
-          def instance_source_details
+          def instance_source_via_image
+            return if config[:boot_volume_id]
+
             launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
               sourceType: "image",
               imageId: image_id,
               bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
+            )
+          end
+
+          def instance_source_via_boot_volume
+            return unless config[:boot_volume_id]
+
+            launch_details.source_details = OCI::Core::Models::InstanceSourceViaBootVolumeDetails.new(
+              boot_volume_id: clone_boot_volume,
+              sourceType: "bootVolume"
             )
           end
 
