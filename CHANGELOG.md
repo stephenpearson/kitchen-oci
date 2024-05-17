@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.20.1
+- fix: use provided `defined_tags` when creating block volume, boot volume clones, and all dbaas components
+
 # 1.20.0
 - feat: add `boot_volume_id` config option to allow for instance creation from a clone of the specified boot volume
 - feat: add `db_software_image_id` config option for dbaas to allow instance creation from a database software image

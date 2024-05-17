@@ -59,6 +59,10 @@ module Kitchen
             end
             database_details
           end
+
+          def db_defined_tags
+            database_details.defined_tags = config[:defined_tags]
+          end
         end
       end
     end

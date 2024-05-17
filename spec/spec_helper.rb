@@ -192,7 +192,8 @@ RSpec.shared_context "blockstorage", :blockstorage do
         id: boot_volume_ocid
       ),
       display_name: "#{boot_volume_display_name} (Clone)",
-      compartment_id: compartment_ocid
+      compartment_id: compartment_ocid,
+      defined_tags: {}
     )
   end
   before do
@@ -239,7 +240,8 @@ RSpec.shared_context "iscsi", :iscsi do
       availability_domain: availability_domain,
       display_name: iscsi_display_name,
       size_in_gbs: 10,
-      vpus_per_gb: 10
+      vpus_per_gb: 10,
+      defined_tags: {}
     )
   end
   let(:iscsi_attachment) do
@@ -262,7 +264,8 @@ RSpec.shared_context "paravirtual", :paravirtual do
       availability_domain: availability_domain,
       display_name: pv_display_name,
       size_in_gbs: 10,
-      vpus_per_gb: 10
+      vpus_per_gb: 10,
+      defined_tags: {}
     )
   end
   let(:pv_attachment) do
@@ -406,10 +409,12 @@ RSpec.shared_context "dbaas", :dbaas do
           db_workload: OCI::Database::Models::CreateDatabaseDetails::DB_WORKLOAD_OLTP,
           ncharacter_set: "AL16UTF16",
           pdb_name: driver_config[:dbaas][:pdb_name],
-          db_backup_config: OCI::Database::Models::DbBackupConfig.new(auto_backup_enabled: false)
+          db_backup_config: OCI::Database::Models::DbBackupConfig.new(auto_backup_enabled: false),
+          defined_tags: {}
         ),
         db_version: driver_config[:dbaas][:db_version],
-        display_name: "dbhome1029384576"
+        display_name: "dbhome1029384576",
+        defined_tags: {}
       )
       l.display_name = "kitchen-foo-a1b2-12"
       l.hostname = hostname

@@ -136,7 +136,8 @@ module Kitchen
             availability_domain: config[:availability_domain],
             display_name: volume[:name],
             size_in_gbs: volume[:size_in_gbs],
-            vpus_per_gb: volume[:vpus_per_gb] || 10
+            vpus_per_gb: volume[:vpus_per_gb] || 10,
+            defined_tags: config[:defined_tags]
           )
         end
 
