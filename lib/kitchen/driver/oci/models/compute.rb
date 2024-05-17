@@ -107,7 +107,8 @@ module Kitchen
                 id: config[:boot_volume_id]
               ),
               display_name: boot_volume_display_name,
-              compartment_id: oci.compartment
+              compartment_id: oci.compartment,
+              defined_tags: config[:defined_tags]
             )
           end
 

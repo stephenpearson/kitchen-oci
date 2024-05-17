@@ -41,6 +41,10 @@ module Kitchen
 
             db_home_details.database_software_image_id = config[:dbaas][:db_software_image_id]
           end
+
+          def db_home_defined_tags
+            db_home_details.defined_tags = config[:defined_tags]
+          end
         end
       end
     end
