@@ -71,7 +71,7 @@ module Kitchen
       default_config :use_instance_principals, false
       default_config :use_token_auth, false
       default_config :shape_config, {}
-      default_config :nsg_ids, []
+      default_config :nsg_ids, nil
       default_config :all_plugins_disabled, false
       default_config :management_disabled, false
       default_config :monitoring_disabled, false
@@ -94,7 +94,9 @@ module Kitchen
       end
 
       validations[:nsg_ids] = lambda do |attr, val, driver|
-        validation_error("[:#{attr}] list cannot be longer than 5 items", driver) if val.length > 5
+        unless val.nil?
+          validation_error("[:#{attr}] list cannot be longer than 5 items", driver) if val.length > 5
+        end
       end
 
       validations[:volumes] = lambda do |attr, val, driver|
