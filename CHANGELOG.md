@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.20.2
+- fix: change default value for `nsg_ids` to `nil`
+
 # 1.20.1
 - fix: use provided `defined_tags` when creating block volume, boot volume clones, and all dbaas components
 
