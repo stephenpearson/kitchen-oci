@@ -23,7 +23,7 @@ module Kitchen
         # setter methods that populate the details of OCI::Core::Models::LaunchInstanceDetails
         module ComputeLaunchDetails
           def hostname_display_name
-            display_name = hostname
+            display_name = config[:display_name] || hostname
             launch_details.display_name = display_name
             launch_details.create_vnic_details = create_vnic_details(display_name)
           end

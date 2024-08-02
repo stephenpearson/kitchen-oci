@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.21.0
+- feat: add `display_name` config value to override name randomization for compute
+
 # 1.20.2
 - fix: change default value for `nsg_ids` to `nil`
 

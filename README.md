@@ -96,6 +96,7 @@ These settings are optional:
 
    - `boot_volume_size_in_gbs`, The size of the boot volume, in GB (range: 50GB - 32TB)
    - `user_data`, Add user data scripts to cloud-init [[more](#support-for-user-data-scripts-and-cloud-init)]
+   - `display_name`, Overrides the display name and hostname randomaization provided by the `hostname_prefix` setting
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible (default: `false`) [[more](#preemptible-instance)]
    - `shape_config`, Hash of shape config parameters required when using Flex shapes. [[more](#flex-shape-instances)]
