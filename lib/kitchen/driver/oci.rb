@@ -60,6 +60,7 @@ module Kitchen
       default_config :instance_name do |inst|
         inst.instance.name
       end
+      default_config :display_name, nil
       default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath
       default_config :post_create_script, nil
