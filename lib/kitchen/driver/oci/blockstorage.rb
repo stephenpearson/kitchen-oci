@@ -131,7 +131,7 @@ module Kitchen
         end
 
         def volume_details(volume)
-          OCI::Core::Models::CreateVolumeDetails.new(
+          details = OCI::Core::Models::CreateVolumeDetails.new(
             compartment_id: oci.compartment,
             availability_domain: config[:availability_domain],
             display_name: volume[:name],
@@ -139,6 +139,14 @@ module Kitchen
             vpus_per_gb: volume[:vpus_per_gb] || 10,
             defined_tags: config[:defined_tags]
           )
+
+          if volume.key?(:source_details)
+            details.source_details = OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
+              type: volume[:source_details][:type],
+              id: volume[:source_details][:id]
+            )
+          end
+          details
         end
 
         def attachment_name(attachment)
