@@ -139,7 +139,10 @@ module Kitchen
             vpus_per_gb: volume[:vpus_per_gb] || 10,
             defined_tags: config[:defined_tags]
           )
+          add_volume_source_details(details, volume)
+        end
 
+        def add_volume_source_details(details, volume)
           if volume.key?(:source_details)
             details.source_details = OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
               type: volume[:source_details][:type],
