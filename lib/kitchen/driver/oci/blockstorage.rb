@@ -20,7 +20,7 @@ module Kitchen
   module Driver
     class Oci
       # generic class for blockstorage
-      class Blockstorage < Oci
+      class Blockstorage < Oci # rubocop:disable Metrics/ClassLength
         require_relative "api"
         require_relative "config"
         require_relative "models/iscsi"
@@ -85,6 +85,15 @@ module Kitchen
           [response, final_state(response)]
         end
 
+        def create_clone_volume(volume)
+          clone_volume_name = clone_volume_display_name(volume[:volume_id])
+          info("Creating <#{clone_volume_name}>...")
+          result = api.blockstorage.create_volume(volume_clone_details(volume, clone_volume_name))
+          response = volume_response(result.data.id)
+          info("Finished creating <#{clone_volume_name}>.")
+          [response, final_state(response)]
+        end
+
         def attach_volume(volume_details, server_id)
           info("Attaching <#{volume_details.display_name}>...")
           attach_volume = api.compute.attach_volume(attachment_details(volume_details, server_id))
@@ -141,6 +150,18 @@ module Kitchen
           )
         end
 
+        def volume_clone_details(volume, clone_volume_name)
+          OCI::Core::Models::CreateVolumeDetails.new(
+            compartment_id: oci.compartment,
+            availability_domain: config[:availability_domain],
+            display_name: clone_volume_name,
+            defined_tags: config[:defined_tags],
+            size_in_gbs: volume[:size_in_gbs],
+            vpus_per_gb: volume[:vpus_per_gb],
+            source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(id: volume[:volume_id])
+          )
+        end
+
         def attachment_name(attachment)
           attachment[:display_name].gsub(/(?:paravirtual|iscsi)-/, "")
         end
@@ -149,6 +170,10 @@ module Kitchen
           volume_state.store(:id, response.id)
           volume_state.store(:display_name, response.display_name)
           volume_state
+        end
+
+        def clone_volume_display_name(volume_id)
+          "#{api.blockstorage.get_volume(volume_id).data.to_hash[:displayName]} (Clone)"
         end
       end
     end
