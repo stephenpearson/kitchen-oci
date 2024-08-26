@@ -232,8 +232,8 @@ describe Kitchen::Driver::Oci::Models::Compute do
                 name: source_volume_name,
                 size_in_gbs: 10,
                 volume_id: source_volume_id,
-              }
-            ]
+              },
+            ],
           })
         end
 
@@ -260,7 +260,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
           OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
             display_name: clone_attachment_display_name,
             volume_id: clone_volume_ocid,
-            instance_id: instance_ocid,
+            instance_id: instance_ocid
           )
         end
 
@@ -268,7 +268,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
           OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(
             id: clone_volume_ocid,
             display_name: clone_volume_name,
-            lifecycle_state: Lifecycle.volume("available"),
+            lifecycle_state: Lifecycle.volume("available")
           ))
         end
 
@@ -278,7 +278,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
             instance_id: instance_ocid,
             volume_id: clone_volume_ocid,
             display_name: clone_attachment_display_name,
-            lifecycle_state: Lifecycle.volume_attachment("attached"),
+            lifecycle_state: Lifecycle.volume_attachment("attached")
           ))
         end
 
@@ -303,13 +303,13 @@ describe Kitchen::Driver::Oci::Models::Compute do
                 {
                   id: clone_attachment_ocid,
                   display_name: clone_attachment_display_name,
-                }
+                },
               ],
               volumes: [
                 {
                   display_name: clone_volume_name,
                   id: clone_volume_ocid,
-                }
+                },
               ]
             }
           )
