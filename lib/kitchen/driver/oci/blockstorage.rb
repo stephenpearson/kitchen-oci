@@ -86,7 +86,6 @@ module Kitchen
         end
 
         def create_clone_volume(volume)
-          info("This is volume id: #{volume[:volume_id]}")
           clone_volume_name = clone_volume_display_name(volume[:volume_id])
           info("Creating <#{clone_volume_name}>...")
           result = api.blockstorage.create_volume(volume_clone_details(volume, clone_volume_name))
@@ -155,7 +154,7 @@ module Kitchen
           OCI::Core::Models::CreateVolumeDetails.new(
             compartment_id: oci.compartment,
             availability_domain: config[:availability_domain],
-            display_name: volume[:name] || clone_volume_name,
+            display_name: clone_volume_name,
             defined_tags: config[:defined_tags],
             size_in_gbs: volume[:size_in_gbs] || nil,
             vpus_per_gb: volume[:vpus_per_gb] || nil,
