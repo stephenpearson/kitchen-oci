@@ -105,7 +105,7 @@ These settings are optional:
      - `baseline_ocpu_utilization`, the minimum CPU utilization (default: `BASELINE_1_1`)
    - `volumes`, an array of hashes with configuration options of each volume [[more](#block-volume-attachments)]
      - `name`, the display name of the volume
-     - `size_in_gbs`, the size in Gbs for the volume. (minimum value: 50GB)
+     - `size_in_gbs`, the size in Gbs for the volume. (minimum value: 50GB). When used in conjunction with `volume_id`, the size must be equal to or greater than the source volume's size if unset, it will default to the size of the source volume. 
      - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
      - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
      - `volume_id`, If you wish to clone your volume from an existing volume set this to the source volume's ID. They must be in the same Availability Domain.
