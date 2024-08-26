@@ -175,7 +175,6 @@ module Kitchen
         end
 
         def clone_volume_display_name(volume_id)
-          info("#{api.blockstorage.get_volume(volume_id).data.to_hash[:displayName]} (Clone)")
           "#{api.blockstorage.get_volume(volume_id).data.to_hash[:displayName]} (Clone)"
         end
       end
