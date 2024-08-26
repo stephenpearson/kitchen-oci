@@ -156,8 +156,8 @@ module Kitchen
             availability_domain: config[:availability_domain],
             display_name: clone_volume_name,
             defined_tags: config[:defined_tags],
-            size_in_gbs: volume[:size_in_gbs] || nil,
-            vpus_per_gb: volume[:vpus_per_gb] || nil,
+            size_in_gbs: volume[:size_in_gbs],
+            vpus_per_gb: volume[:vpus_per_gb],
             source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
               id: volume[:volume_id]
             )
