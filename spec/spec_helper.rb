@@ -125,6 +125,7 @@ RSpec.shared_context "common", :common do
   before do
     allow(File).to receive(:readlines).with(anything).and_return([ssh_pub_key])
     allow_any_instance_of(Kitchen::Driver::Oci::Blockstorage).to receive(:info)
+    allow_any_instance_of(Kitchen::Driver::Oci::Models::Compute).to receive(:info)
     allow_any_instance_of(Kitchen::Driver::Oci::Config).to receive(:compartment).and_return(compartment_ocid)
     # stubbed for now. the encoding is making spec difficult right now.  plan to add specific units for the user data methods.
     allow_any_instance_of(Kitchen::Driver::Oci::Instance).to receive(:user_data).and_return("FaKeUsErDaTa")
