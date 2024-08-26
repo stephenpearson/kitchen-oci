@@ -20,7 +20,7 @@ module Kitchen
   module Driver
     class Oci
       # generic class for blockstorage
-      class Blockstorage < Oci
+      class Blockstorage < Oci # rubocop:disable Metrics/ClassLength
         require_relative "api"
         require_relative "config"
         require_relative "models/iscsi"
