@@ -158,9 +158,7 @@ module Kitchen
             defined_tags: config[:defined_tags],
             size_in_gbs: volume[:size_in_gbs],
             vpus_per_gb: volume[:vpus_per_gb],
-            source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
-              id: volume[:volume_id]
-            )
+            source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(id: volume[:volume_id])
           )
         end
 
