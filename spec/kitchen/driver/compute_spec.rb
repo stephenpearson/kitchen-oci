@@ -215,6 +215,106 @@ describe Kitchen::Driver::Oci::Models::Compute do
           )
         end
       end
+
+      context "cloned volume" do
+        let(:source_volume_id) { "ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz11111" }
+        let(:source_volume_name) { "source-volume" }
+        let(:clone_volume_name) { "#{source_volume_name} (Clone)" }
+        let(:clone_volume_ocid) { "ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz22222" }
+        let(:clone_attachment_ocid) { "ocid1.volumeattachment.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz22222" }
+        let(:clone_attachment_display_name) { "paravirtual-#{clone_volume_name}" }
+
+        # kitchen.yml driver config section
+        let(:driver_config) do
+          base_driver_config.merge!({
+            volumes: [
+              {
+                name: source_volume_name,
+                size_in_gbs: 10,
+                volume_id: source_volume_id
+              }
+            ]
+          })
+        end
+
+        let(:source_volume_response) do
+          OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(
+            id: source_volume_id,
+            display_name: source_volume_name,
+            lifecycle_state: Lifecycle.volume("available")
+          ))
+        end
+
+        let(:clone_volume_details) do
+          OCI::Core::Models::CreateVolumeDetails.new(
+            compartment_id: compartment_ocid,
+            availability_domain: availability_domain,
+            display_name: clone_volume_name,
+            size_in_gbs: 10,
+            defined_tags: {},
+            source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(id: source_volume_id)
+          )
+        end
+
+        let(:clone_attachment) do
+          OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
+            display_name: clone_attachment_display_name,
+            volume_id: clone_volume_ocid,
+            instance_id: instance_ocid
+          )
+        end
+
+        let(:clone_blockstorage_response) do
+          OCI::Response.new(200, nil, OCI::Core::Models::Volume.new(
+            id: clone_volume_ocid,
+            display_name: clone_volume_name,
+            lifecycle_state: Lifecycle.volume("available")
+          ))
+        end
+
+        let(:clone_attachment_response) do
+          OCI::Response.new(200, nil, OCI::Core::Models::ParavirtualizedVolumeAttachment.new(
+            id: clone_attachment_ocid,
+            instance_id: instance_ocid,
+            volume_id: clone_volume_ocid,
+            display_name: clone_attachment_display_name,
+            lifecycle_state: Lifecycle.volume_attachment("attached")
+          ))
+        end
+
+        it "creates a compute instance with cloned paravirtual attached volume" do
+          expect(blockstorage_client).to receive(:get_volume).with(source_volume_id).and_return(source_volume_response)
+          expect(blockstorage_client).to receive(:create_volume).with(clone_volume_details).and_return(clone_blockstorage_response)
+          expect(blockstorage_client).to receive(:get_volume).with(clone_volume_ocid).and_return(clone_blockstorage_response)
+          expect(compute_client).to receive(:attach_volume).with(clone_attachment).and_return(clone_attachment_response)
+          expect(compute_client).to receive(:get_volume_attachment).with(clone_attachment_ocid).and_return(clone_attachment_response)
+          expect(clone_blockstorage_response).to receive(:wait_until)
+            .with(:lifecycle_state, Lifecycle.volume("available")).and_return(clone_blockstorage_response)
+          expect(clone_attachment_response).to receive(:wait_until)
+            .with(:lifecycle_state, Lifecycle.volume_attachment("attached")).and_return(clone_attachment_response)
+
+          driver.create(state)
+
+          expect(state).to match(
+            {
+              hostname: private_ip,
+              server_id: instance_ocid,
+              volume_attachments: [
+                {
+                  id: clone_attachment_ocid,
+                  display_name: clone_attachment_display_name
+                }
+              ],
+              volumes: [
+                {
+                  display_name: clone_volume_name,
+                  id: clone_volume_ocid
+                }
+              ]
+            }
+          )
+        end
+      end
     end
 
     context "standard compute (Linux) from boot volume" do
