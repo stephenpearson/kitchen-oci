@@ -125,6 +125,10 @@ describe Kitchen::Driver::Oci::Models::Compute do
 
     context "compute with volumes" do
       context "iscsi volume" do
+        before do
+          allow(compute_client).to receive(:get_image).with(image_ocid).and_return(get_linux_image_response)
+        end
+
         # kitchen.yml driver config section
         let(:driver_config) do
           base_driver_config.merge!({
@@ -172,7 +176,11 @@ describe Kitchen::Driver::Oci::Models::Compute do
         end
       end
 
-      context "paravirtual volume" do
+      context "paravirtual volume (Linux)" do
+        before do
+          allow(compute_client).to receive(:get_image).with(image_ocid).and_return(get_linux_image_response)
+        end
+
         # kitchen.yml driver config section
         let(:driver_config) do
           base_driver_config.merge!({
@@ -180,6 +188,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
                                         {
                                           name: pv_display_name,
                                           size_in_gbs: 10,
+                                          device: "/dev/oracleoci/oraclevde",
                                         },
                                       ],
                                     })
@@ -216,7 +225,35 @@ describe Kitchen::Driver::Oci::Models::Compute do
         end
       end
 
+      context "paravirtual volume (Windows)" do
+        before do
+          allow(compute_client).to receive(:get_image).with(image_ocid).and_return(get_windows_image_response)
+        end
+
+        # kitchen.yml driver config section
+        let(:driver_config) do
+          base_driver_config.merge!({
+                                      volumes: [
+                                        {
+                                          name: pv_display_name,
+                                          size_in_gbs: 10,
+                                          device: "/dev/oracleoci/oraclevde", # even though device is provided, the driver removes it from the call because Windows doesn't support it
+                                        },
+                                      ],
+                                    })
+        end
+
+        it "attaches a paravirtual volume to a Windows instance" do
+          expect(compute_client).to receive(:attach_volume).with(windows_pv_attachment).and_return(pv_attachment_response)
+          driver.create(state)
+        end
+      end
+
       context "cloned volume" do
+        before do
+          allow(compute_client).to receive(:get_image).with(image_ocid).and_return(get_linux_image_response)
+        end
+
         let(:source_volume_id) { "ocid1.volume.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz11111" }
         let(:source_volume_name) { "source-volume" }
         let(:clone_volume_name) { "#{source_volume_name} (Clone)" }

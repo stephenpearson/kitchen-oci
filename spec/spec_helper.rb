@@ -268,11 +268,19 @@ RSpec.shared_context "paravirtual", :paravirtual do
       defined_tags: {}
     )
   end
-  let(:pv_attachment) do
+  let(:windows_pv_attachment) do
     OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
       display_name: pv_attachment_display_name,
       volume_id: pv_volume_ocid,
       instance_id: instance_ocid
+    )
+  end
+  let(:pv_attachment) do
+    OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
+      display_name: pv_attachment_display_name,
+      volume_id: pv_volume_ocid,
+      instance_id: instance_ocid,
+      device: "/dev/oracleoci/oraclevde"
     )
   end
 end
@@ -455,6 +463,7 @@ end
 RSpec.shared_context "create", :create do
   let(:compute_response) do
     OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
+                                                                image_id: image_ocid,
                                                                 lifecycle_state: Lifecycle.compute("running")))
   end
   let(:dbaas_response) do
@@ -494,6 +503,12 @@ RSpec.shared_context "create", :create do
                                                                                        volume_id: pv_volume_ocid,
                                                                                        display_name: pv_attachment_display_name,
                                                                                        lifecycle_state: Lifecycle.volume_attachment("attached")))
+  end
+  let(:get_linux_image_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Image.new(id: image_ocid, operating_system: "Oracle Linux"))
+  end
+  let(:get_windows_image_response) do
+    OCI::Response.new(200, nil, OCI::Core::Models::Image.new(id: image_ocid, operating_system: "Windows"))
   end
   let(:list_images_response) do
     OCI::Response.new(200, nil, [

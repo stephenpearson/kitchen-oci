@@ -162,7 +162,7 @@ module Kitchen
         config[:volumes].each do |volume|
           vol = volume_class(volume[:type], config, state, oci, api)
           volume_details, vol_state = create_volume(vol, volume)
-          attach_state = vol.attach_volume(volume_details, state[:server_id])
+          attach_state = vol.attach_volume(volume_details, state[:server_id], volume)
           volume_state[:volumes] << vol_state
           volume_state[:volume_attachments] << attach_state
         end
