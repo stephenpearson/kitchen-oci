@@ -156,7 +156,7 @@ module Kitchen
         volume_state = { volumes: [], volume_attachments: [] }
         config[:volumes].each do |volume|
           vol = volume_class(volume[:type], config, state, oci, api)
-          unless volume.has_key?(:volume_id)
+          unless volume.key?(:volume_id)
             volume_details, vol_state = vol.create_volume(volume)
           else
             volume_details, vol_state = vol.create_clone_volume(volume)
