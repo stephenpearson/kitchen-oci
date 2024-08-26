@@ -85,6 +85,16 @@ module Kitchen
           [response, final_state(response)]
         end
 
+        def create_clone_volume(volume)
+          info("This is volume id: #{volume[:volume_id]}")
+          clone_volume_name = clone_volume_display_name(volume[:volume_id])
+          info("Creating <#{clone_volume_name}>...")
+          result = api.blockstorage.create_volume(volume_clone_details(volume, clone_volume_name))
+          response = volume_response(result.data.id)
+          info("Finished creating <#{clone_volume_name}>.")
+          [response, final_state(response)]
+        end
+
         def attach_volume(volume_details, server_id)
           info("Attaching <#{volume_details.display_name}>...")
           attach_volume = api.compute.attach_volume(attachment_details(volume_details, server_id))
@@ -131,7 +141,7 @@ module Kitchen
         end
 
         def volume_details(volume)
-          details = OCI::Core::Models::CreateVolumeDetails.new(
+          OCI::Core::Models::CreateVolumeDetails.new(
             compartment_id: oci.compartment,
             availability_domain: config[:availability_domain],
             display_name: volume[:name],
@@ -139,17 +149,20 @@ module Kitchen
             vpus_per_gb: volume[:vpus_per_gb] || 10,
             defined_tags: config[:defined_tags]
           )
-          add_volume_source_details(details, volume)
         end
 
-        def add_volume_source_details(details, volume)
-          if volume.key?(:source_details)
-            details.source_details = OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
-              type: volume[:source_details][:type],
-              id: volume[:source_details][:id]
+        def volume_clone_details(volume, clone_volume_name)
+          OCI::Core::Models::CreateVolumeDetails.new(
+            compartment_id: oci.compartment,
+            availability_domain: config[:availability_domain],
+            display_name: volume[:name] || clone_volume_name,
+            defined_tags: config[:defined_tags],
+            size_in_gbs: volume[:size_in_gbs] || nil,
+            vpus_per_gb: volume[:vpus_per_gb] || nil,
+            source_details: OCI::Core::Models::VolumeSourceFromVolumeDetails.new(
+              id: volume[:volume_id]
             )
-          end
-          details
+          )
         end
 
         def attachment_name(attachment)
@@ -160,6 +173,11 @@ module Kitchen
           volume_state.store(:id, response.id)
           volume_state.store(:display_name, response.display_name)
           volume_state
+        end
+
+        def clone_volume_display_name(volume_id)
+          info("#{api.blockstorage.get_volume(volume_id).data.to_hash[:displayName]} (Clone)")
+          "#{api.blockstorage.get_volume(volume_id).data.to_hash[:displayName]} (Clone)"
         end
       end
     end
