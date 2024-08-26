@@ -310,7 +310,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
                   display_name: clone_volume_name,
                   id: clone_volume_ocid,
                 },
-              ]
+              ],
             }
           )
         end
