@@ -153,19 +153,28 @@ module Kitchen
       def create_and_attach_volumes(config, state, oci, api)
         return if config[:volumes].empty?
 
+        volume_state = process_volumes(config, state, oci, api)
+        state.merge!(volume_state)
+      end
+
+      def process_volumes(config, state, oci, api)
         volume_state = { volumes: [], volume_attachments: [] }
         config[:volumes].each do |volume|
           vol = volume_class(volume[:type], config, state, oci, api)
-          unless volume.key?(:volume_id)
-            volume_details, vol_state = vol.create_volume(volume)
-          else
-            volume_details, vol_state = vol.create_clone_volume(volume)
-          end
+          volume_details, vol_state = create_volume(vol, volume)
           attach_state = vol.attach_volume(volume_details, state[:server_id])
           volume_state[:volumes] << vol_state
           volume_state[:volume_attachments] << attach_state
         end
-        state.merge!(volume_state)
+        volume_state
+      end
+
+      def create_volume(vol, volume)
+        if volume.key?(:volume_id)
+          vol.create_clone_volume(volume)
+        else
+          vol.create_volume(volume)
+        end
       end
 
       def process_post_script(state)
