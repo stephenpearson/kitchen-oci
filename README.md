@@ -108,6 +108,7 @@ These settings are optional:
      - `size_in_gbs`, the size in Gbs for the volume. (minimum value: 50GB). When used in conjunction with `volume_id`, the size must be equal to or greater than the source volume's size if unset, it will default to the size of the source volume. 
      - `type`, oracle only supports `iscsi` or `paravirtual` options (default: `paravirtual`)
      - `vpus_per_gb`, vpus per gb. Make sure to consult the documentation for your shape to take advantage of UHP as MultiPath is enabled only with certain combinations of memory/cpus.
+     - `device`, specify the device to which the volume should be mapped. Valid for Linux images only.
      - `volume_id`, If you wish to clone your volume from an existing volume set this to the source volume's ID. They must be in the same Availability Domain.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
    - `custom_metadata`, Add metadata to the compute instance request

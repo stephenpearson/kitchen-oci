@@ -94,9 +94,9 @@ module Kitchen
           [response, final_state(response)]
         end
 
-        def attach_volume(volume_details, server_id)
+        def attach_volume(volume_details, server_id, volume_config)
           info("Attaching <#{volume_details.display_name}>...")
-          attach_volume = api.compute.attach_volume(attachment_details(volume_details, server_id))
+          attach_volume = api.compute.attach_volume(attachment_details(volume_details, server_id, volume_config))
           response = attachment_response(attach_volume.data.id)
           info("Finished attaching <#{volume_details.display_name}>.")
           final_state(response)
@@ -164,6 +164,11 @@ module Kitchen
 
         def attachment_name(attachment)
           attachment[:display_name].gsub(/(?:paravirtual|iscsi)-/, "")
+        end
+
+        def server_os(server_id)
+          image_id = api.compute.get_instance(server_id).data.image_id
+          api.compute.get_image(image_id).data.operating_system
         end
 
         def final_volume_state(response)

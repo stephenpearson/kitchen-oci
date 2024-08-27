@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["stephen.pearson@oracle.com", "justin.steele@oracle.com"]
   spec.description   = "A Test Kitchen Driver for Oracle Cloud Infrastructure"
   spec.summary       = spec.description
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/stephenpearson/kitchen-oci"
   spec.license       = "Apache-2.0"
 
   spec.files         = `git ls-files`.split($/).grep(/LICENSE|^lib|^tpl/)

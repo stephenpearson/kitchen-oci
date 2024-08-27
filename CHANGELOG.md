@@ -1,5 +1,9 @@
 # kitchen-oci CHANGELOG
 
+# 1.22.0
+- feat: add `volume_id` to `volumes` config option to allow for cloning of block volumes
+- feat: add `device` to `volumes` config option to allow for mapping block volumes on attachment
+
 # 1.21.0
 - feat: add `display_name` config value to override name randomization for compute
 

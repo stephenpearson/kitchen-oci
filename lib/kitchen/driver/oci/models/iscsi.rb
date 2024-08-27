@@ -35,11 +35,13 @@ module Kitchen
           #
           attr_reader :attachment_type
 
-          def attachment_details(volume_details, server_id)
+          def attachment_details(volume_details, server_id, volume_config)
+            device = volume_config[:device] unless server_os(server_id).downcase =~ /windows/
             OCI::Core::Models::AttachIScsiVolumeDetails.new(
               display_name: "#{attachment_type}-#{volume_details.display_name}",
               volume_id: volume_details.id,
-              instance_id: server_id
+              instance_id: server_id,
+              device: device
             )
           end
 
