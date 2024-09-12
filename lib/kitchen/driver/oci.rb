@@ -79,6 +79,7 @@ module Kitchen
       default_config :post_create_reboot, false
 
       # compute only configs
+      default_config :capacity_reservation_id
       default_config :setup_winrm, false
       default_config :winrm_user, "opc"
       default_config :winrm_password, nil

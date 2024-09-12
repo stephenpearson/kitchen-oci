@@ -26,7 +26,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
     include_context "create"
 
     let(:state) { {} }
-    let(:driver_config) { base_driver_config }
+    let(:driver_config) { compute_driver_config }
 
     context "standard compute (Linux)" do
       it "creates a compute instance with no volumes" do
@@ -64,14 +64,15 @@ describe Kitchen::Driver::Oci::Models::Compute do
     context "standard compute (Windows) with custom metadata" do
       # kitchen.yml driver config section
       let(:driver_config) do
-        base_driver_config.merge!({
-                                    setup_winrm: true,
-                                    winrm_password: "f4k3p@55w0rd",
-                                    custom_metadata: {
-                                      "hostclass" => "foo",
-                                    },
-                                  })
+        compute_driver_config.merge!({
+                                      setup_winrm: true,
+                                      winrm_password: "f4k3p@55w0rd",
+                                      custom_metadata: {
+                                        "hostclass" => "foo",
+                                      },
+                                    })
       end
+
       let(:instance_metadata) do
         {
           "ssh_authorized_keys" => ssh_pub_key,
@@ -102,13 +103,12 @@ describe Kitchen::Driver::Oci::Models::Compute do
     context "standard compute with nsg" do
       # kitchen.yml driver config section
       let(:driver_config) do
-        base_driver_config.merge!({
-
-                                    nsg_ids: [
-                                      "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345",
-                                      "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890",
-                                    ],
-                                  })
+        compute_driver_config.merge!({
+                                      nsg_ids: [
+                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345",
+                                        "ocid1.networksecuritygroup.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz67890",
+                                      ],
+                                    })
       end
 
       it "creates a compute instance with nsg_ids specified" do
@@ -374,6 +374,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
 
     context "standard compute" do
       let(:state) { { server_id: instance_ocid } }
+      let(:driver_config) { compute_driver_config }
 
       it "destroys a compute instance with no volumes" do
         expect(compute_client).to receive(:terminate_instance).with(instance_ocid)
@@ -383,6 +384,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
     end
 
     context "compute with volumes" do
+      let(:driver_config) { compute_driver_config }
       let(:state) do
         {
           server_id: instance_ocid,
@@ -400,6 +402,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
           ],
         }
       end
+
       it "destroys a compute instance with volumes attached" do
         expect(compute_client).to receive(:detach_volume).with(pv_attachment_ocid)
         expect(blockstorage_client).to receive(:delete_volume).with(pv_volume_ocid)
@@ -413,7 +416,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
     include_context "create"
 
     let(:state) { {} }
-    let(:driver_config) { base_driver_config.merge!({ post_create_reboot: true }) }
+    let(:driver_config) { compute_driver_config.merge!({ post_create_reboot: true }) }
 
     before do
       allow(compute_client).to receive(:instance_action).with(instance_ocid, "SOFTRESET")
