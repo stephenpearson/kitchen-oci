@@ -99,6 +99,7 @@ These settings are optional:
    - `display_name`, Overrides the display name and hostname randomaization provided by the `hostname_prefix` setting
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
    - `preemptible_instance`, Boolean flag to indicate if the compute instance should be preemptible (default: `false`) [[more](#preemptible-instance)]
+   - `capacity_reservation_id`, OCID of the [capacity reservation](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/reserve-capacity.htm) that should be used for provisioning the instance
    - `shape_config`, Hash of shape config parameters required when using Flex shapes. [[more](#flex-shape-instances)]
      - `ocpus`, number of CPUs requested
      - `memory_in_gbs`, the amount of memory requested

@@ -49,6 +49,10 @@ module Kitchen
             )
           end
 
+          def capacity_reservation
+            launch_details.capacity_reservation_id = config[:capacity_reservation_id]
+          end
+
           def agent_config
             launch_details.agent_config = OCI::Core::Models::LaunchInstanceAgentConfigDetails.new(
               are_all_plugins_disabled: config[:all_plugins_disabled],
