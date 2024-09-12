@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.23.0
+- feat: add `capacity_reservation_id` for compute shapes
+
 # 1.22.0
 - feat: add `volume_id` to `volumes` config option to allow for cloning of block volumes
 - feat: add `device` to `volumes` config option to allow for mapping block volumes on attachment

@@ -292,13 +292,14 @@ RSpec.shared_context "compute", :compute do
   include_context "oci"
   include_context "net"
 
-  let(:driver_config) { base_driver_config }
+  let(:compute_driver_config) { base_driver_config.merge!({ capacity_reservation_id: capacity_reservation }) }
   let(:instance_ocid) { "ocid1.instance.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
   let(:instance_metadata) do
     {
       "ssh_authorized_keys" => ssh_pub_key,
     }
   end
+  let(:capacity_reservation) { "ocid1.capacityreservation.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
   let(:launch_instance_request) do
     OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
       l.availability_domain = availability_domain
@@ -310,6 +311,7 @@ RSpec.shared_context "compute", :compute do
         bootVolumeSizeInGBs: nil
       )
       l.shape = shape
+      l.capacity_reservation_id = capacity_reservation
       l.create_vnic_details = OCI::Core::Models::CreateVnicDetails.new(
         assign_public_ip: false,
         display_name: hostname,
