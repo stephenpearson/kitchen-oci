@@ -1,7 +1,7 @@
 # kitchen-oci CHANGELOG
 
 # 1.24.0
-- feat: Set dependency on oci gem to `~> 2.21` 
+- feat: change pessimistic lock on oci gem to just `~> 2.18` 
 
 # 1.23.0
 - feat: add `capacity_reservation_id` for compute shapes
