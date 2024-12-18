@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.executables   = []
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "oci", "~> 2.18.0"
+  spec.add_dependency "oci", "~> 2.18"
   spec.add_dependency "test-kitchen"
 
   spec.add_development_dependency "bundler"
