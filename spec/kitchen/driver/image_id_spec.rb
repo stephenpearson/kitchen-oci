@@ -19,7 +19,6 @@
 
 require "spec_helper"
 
-# First test block: Basic image name selection (without considering the shape)
 describe Kitchen::Driver::Oci::Models::Compute do
   include_context "compute"
   include_context "create"
@@ -62,7 +61,6 @@ describe Kitchen::Driver::Oci::Models::Compute do
   end
 end
 
-# Image name selection with ARM shape set
 describe Kitchen::Driver::Oci::Models::Compute do
   include_context "compute"
   include_context "create"
@@ -75,8 +73,8 @@ describe Kitchen::Driver::Oci::Models::Compute do
       base_driver_config.merge!(
         {
           image_id: nil,
-          image_name: "Oracle-Linux-9.3", # Test with an image name that does not include aarch64
-          shape: "VM.Standard.A1.Flex", # ARM shape
+          image_name: "Oracle-Linux-9.3", # test with an image name that does not include aarch64
+          shape: "VM.Standard.A1.Flex", # Arm shape
         }
       )
     end
