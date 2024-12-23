@@ -67,7 +67,7 @@ module Kitchen
           end
 
           def image_id_by_name
-            image_name = image_name_convertion
+            image_name = image_name_conversion
             image_list = images.select { |i| i.display_name.match(/#{image_name}/) }
             raise "unable to find image_id" if image_list.empty?
 
@@ -77,7 +77,7 @@ module Kitchen
             latest_image_id(image_list)
           end
 
-          def image_name_convertion
+          def image_name_conversion
             image_name = config[:image_name].gsub(" ", "-")
             if config[:shape] =~ /^VM\.Standard\.A\d+\.Flex$/ && !config[:image_name].include?("aarch64")
               image_name = "#{image_name}-aarch64"

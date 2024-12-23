@@ -88,7 +88,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
 
     it "adjusts the image name to include -aarch64" do
       expected_image_name = "Oracle-Linux-9.3-aarch64"
-      expect(subject.send(:image_name_convertion)).to eq(expected_image_name)
+      expect(subject.send(:image_name_conversion)).to eq(expected_image_name)
     end
 
     it "selects the right image ocid for Oracle-Linux-9.3" do
