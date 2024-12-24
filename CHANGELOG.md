@@ -1,7 +1,7 @@
 # kitchen-oci CHANGELOG
 
-# 1.24.1
-- fix: allow `image_name` to function the same for ARM as it does for Linux
+# 1.25.0
+- feat: allow `image_name` to function the same for ARM as it does for Linux
 
 # 1.24.0
 - feat: change pessimistic lock on oci gem to just `~> 2.18` 
