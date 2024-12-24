@@ -75,11 +75,16 @@ OR
 Image ocids and display names can be found on the public [OCI Documentation / Images](https://docs.oracle.com/en-us/iaas/images/) page. The `image_name` property allows you to specify the display
 name of the image rather than the ocid.  There are two ways to do this:
 
-- specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
-- specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
+- Specify the entire image name.  For example, `Oracle-Linux-8.9-2024.02.26-0`
+- Specify the un-dated, un-versioned portion of the display name. For example, `Oracle-Linux-8.9`\
      Note: for aesthetics, the dashes can be replaced with spaces `Oracle Linux 8.9`. Both ways work, one way is prettier.
 - Regular Expressions are also supported.  For example, `Oracle Linux 8.\d+` will give the latest `Oracle Linux 8.x`\
      Note: be careful here.  If the regular expression is too broad, the newest image id of the matching set will be returned and might not be of the desired operating system.
+- For an ARM specific `shape` you can add in `-aarch64` to the `image_name`.  For example, `Oracle-Linux-8.9-aarch64-2024.02.26-0` or `Oracle Linux 8.\d+-aarch64`\
+     But you don't have to as if a `shape` matches `VM.Standard.A<##>.Flex` then `-aarch64` gets added automatically and `Oracle Linux 8.\d+` will work the same.\
+     [ARM Documentation Here](https://docs.oracle.com/en-us/iaas/Content/Compute/References/arm.htm)
+- **Caution:** Platform images are refreshed regularly. When new images are released, older versions are replaced. The image OCIDs remain available, but when the platform image is replaced, the image OCIDs are no longer returned as part of the platform image list.\
+     [OCI Documentation Here](https://docs.oracle.com/en-us/iaas/tools/ruby/2.21.0/OCI/Core/ComputeClient.html#list_images-instance_method)
 
 If the second option is chosen (providing a portion of the display name), the behavior is to search all display names that match the string provided plus anything that looks like
 a date, then sort by time created and return the ocid for the newest one. This allows you to always get the latest version of a given image without having to continually update your kitchen.yml files.
