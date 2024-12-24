@@ -60,3 +60,39 @@ describe Kitchen::Driver::Oci::Models::Compute do
     it_behaves_like "image_name provided", images
   end
 end
+
+describe Kitchen::Driver::Oci::Models::Compute do
+  include_context "compute"
+  include_context "create"
+
+  context "append aarch64 for ARM shapes" do
+    subject { Kitchen::Driver::Oci::Models::Compute.new(driver_config, state, oci_config, api, :create) }
+    let(:state) { {} }
+    let(:api) { Kitchen::Driver::Oci::Api.new(oci, driver_config) }
+    let(:driver_config) do
+      base_driver_config.merge!(
+        {
+          image_id: nil,
+          image_name: "Oracle-Linux-9.3", # test with an image name that does not include aarch64
+          shape: "VM.Standard.A1.Flex", # Arm shape
+        }
+      )
+    end
+
+    before do
+      allow(compute_client).to receive(:list_images).and_return(list_images_response)
+      allow(list_images_response).to receive(:next_page).and_return(nil)
+    end
+
+    it "adjusts the image name to include -aarch64" do
+      expected_image_name = "Oracle-Linux-9.3-aarch64"
+      expect(subject.send(:image_name_conversion)).to eq(expected_image_name)
+    end
+
+    it "selects the right image ocid for Oracle-Linux-9.3" do
+      expected_image_ocid = "ocid1.image.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz147852"
+      selected_image_id = subject.send(:image_id)
+      expect(selected_image_id).to eq(expected_image_ocid)
+    end
+  end
+end
