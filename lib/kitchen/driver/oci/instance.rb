@@ -30,12 +30,13 @@ module Kitchen
 
         include CommonLaunchDetails
 
-        def initialize(config, state, oci, api, action)
+        def initialize(opts = {})
           super()
-          @config = config
-          @state = state
-          @oci = oci
-          @api = api
+          @config = opts[:config]
+          @state = opts[:state]
+          @oci = opts[:oci]
+          @api = opts[:api]
+          @logger = opts[:logger]
         end
 
         #
@@ -65,6 +66,13 @@ module Kitchen
         # @return [Kitchen::Driver::Oci::Api]
         #
         attr_accessor :api
+
+        #
+        # The instance of Kitchen::Logger in use by the active Kitchen::Instance
+        #
+        # @return [Kitchen::Logger]
+        #
+        attr_accessor :logger
 
         def final_state(state, instance_id)
           state.store(:server_id, instance_id)
