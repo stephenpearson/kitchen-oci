@@ -75,6 +75,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
 
       let(:instance_metadata) do
         {
+          "ssh_authorized_keys" => ssh_pub_key,
           "user_data" => "FaKeUsErDaTa",
           "hostclass" => "foo",
         }
