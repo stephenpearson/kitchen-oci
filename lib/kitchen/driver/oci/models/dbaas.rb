@@ -26,7 +26,7 @@ module Kitchen
         class Dbaas < Instance # rubocop:disable Metrics/ClassLength
           include DbaasLaunchDetails
 
-          def initialize(config, state, oci, api, action)
+          def initialize(opts = {})
             super
             @launch_details = OCI::Database::Models::LaunchDbSystemDetails.new
             @database_details = OCI::Database::Models::CreateDatabaseDetails.new

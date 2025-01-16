@@ -37,7 +37,7 @@ module Kitchen
       require_relative "oci/models"
 
       plugin_version Kitchen::Driver::OCI_VERSION
-      kitchen_driver_api_version 1
+      kitchen_driver_api_version 2
 
       # required config items
       required_config :availability_domain
@@ -197,7 +197,7 @@ module Kitchen
       def detatch_and_delete_volumes(state, oci, api)
         return unless state[:volumes]
 
-        bls = Blockstorage.new(config, state, oci, api, :destroy)
+        bls = Blockstorage.new(config: config, state: state, oci: oci, api: api, action: :destroy, logger: instance.logger)
         state[:volume_attachments].each { |att| bls.detatch_volume(att) }
         state[:volumes].each { |vol| bls.delete_volume(vol) }
       end

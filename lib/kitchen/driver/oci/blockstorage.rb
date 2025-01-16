@@ -26,15 +26,16 @@ module Kitchen
         require_relative "models/iscsi"
         require_relative "models/paravirtual"
 
-        def initialize(config, state, oci, api, action = :create)
+        def initialize(opts = {})
           super()
-          @config = config
-          @state = state
-          @oci = oci
-          @api = api
+          @config = opts[:config]
+          @state = opts[:state]
+          @oci = opts[:oci]
+          @api = opts[:api]
+          @logger = opts[:logger]
           @volume_state = {}
           @volume_attachment_state = {}
-          oci.compartment if action == :create
+          oci.compartment if opts[:action] == :create
         end
 
         #
@@ -65,6 +66,13 @@ module Kitchen
         #
         attr_accessor :api
 
+        #
+        # The instance of Kitchen::Logger in use by the active Kitchen::Instance
+        #
+        # @return [Kitchen::Logger]
+        #
+        attr_accessor :logger
+
         # The definition of the state of a volume
         #
         # @return [Hash]
@@ -78,44 +86,44 @@ module Kitchen
         attr_accessor :volume_attachment_state
 
         def create_volume(volume)
-          info("Creating <#{volume[:name]}>...")
+          logger.info("Creating <#{volume[:name]}>...")
           result = api.blockstorage.create_volume(volume_details(volume))
           response = volume_response(result.data.id)
-          info("Finished creating <#{volume[:name]}>.")
+          logger.info("Finished creating <#{volume[:name]}>.")
           [response, final_state(response)]
         end
 
         def create_clone_volume(volume)
           clone_volume_name = clone_volume_display_name(volume[:volume_id])
-          info("Creating <#{clone_volume_name}>...")
+          logger.info("Creating <#{clone_volume_name}>...")
           result = api.blockstorage.create_volume(volume_clone_details(volume, clone_volume_name))
           response = volume_response(result.data.id)
-          info("Finished creating <#{clone_volume_name}>.")
+          logger.info("Finished creating <#{clone_volume_name}>.")
           [response, final_state(response)]
         end
 
         def attach_volume(volume_details, server_id, volume_config)
-          info("Attaching <#{volume_details.display_name}>...")
+          logger.info("Attaching <#{volume_details.display_name}>...")
           attach_volume = api.compute.attach_volume(attachment_details(volume_details, server_id, volume_config))
           response = attachment_response(attach_volume.data.id)
-          info("Finished attaching <#{volume_details.display_name}>.")
+          logger.info("Finished attaching <#{volume_details.display_name}>.")
           final_state(response)
         end
 
         def delete_volume(volume)
-          info("Deleting <#{volume[:display_name]}>...")
+          logger.info("Deleting <#{volume[:display_name]}>...")
           api.blockstorage.delete_volume(volume[:id])
           api.blockstorage.get_volume(volume[:id])
             .wait_until(:lifecycle_state, OCI::Core::Models::Volume::LIFECYCLE_STATE_TERMINATED)
-          info("Finished deleting <#{volume[:display_name]}>.")
+          logger.info("Finished deleting <#{volume[:display_name]}>.")
         end
 
         def detatch_volume(volume_attachment)
-          info("Detaching <#{attachment_name(volume_attachment)}>...")
+          logger.info("Detaching <#{attachment_name(volume_attachment)}>...")
           api.compute.detach_volume(volume_attachment[:id])
           api.compute.get_volume_attachment(volume_attachment[:id])
             .wait_until(:lifecycle_state, OCI::Core::Models::VolumeAttachment::LIFECYCLE_STATE_DETACHED)
-          info("Finished detaching <#{attachment_name(volume_attachment)}>.")
+          logger.info("Finished detaching <#{attachment_name(volume_attachment)}>.")
         end
 
         def final_state(response)
