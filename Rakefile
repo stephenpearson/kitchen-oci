@@ -37,7 +37,7 @@ rescue LoadError
   puts "chefstyle is not available. (sudo) gem install chefstyle to do style checking."
 end
 
-task build: :default do
+task :build do
   Gem::Package.build(spec, nil, nil, gemfile)
 end
 
