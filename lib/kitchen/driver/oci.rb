@@ -35,6 +35,7 @@ module Kitchen
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       require_relative "oci_version"
       require_relative "oci/models"
+      require_relative "oci/volumes"
 
       plugin_version Kitchen::Driver::OCI_VERSION
       kitchen_driver_api_version 2
@@ -114,6 +115,7 @@ module Kitchen
       end
 
       include Kitchen::Driver::Oci::Models
+      include Kitchen::Driver::Oci::Volumes
 
       def create(state)
         return if state[:server_id]
@@ -149,33 +151,6 @@ module Kitchen
         state_details = inst.launch
         state.merge!(state_details)
         instance.transport.connection(state).wait_until_ready
-      end
-
-      def create_and_attach_volumes(config, state, oci, api)
-        return if config[:volumes].empty?
-
-        volume_state = process_volumes(config, state, oci, api)
-        state.merge!(volume_state)
-      end
-
-      def process_volumes(config, state, oci, api)
-        volume_state = { volumes: [], volume_attachments: [] }
-        config[:volumes].each do |volume|
-          vol = volume_class(volume[:type], config, state, oci, api)
-          volume_details, vol_state = create_volume(vol, volume)
-          attach_state = vol.attach_volume(volume_details, state[:server_id], volume)
-          volume_state[:volumes] << vol_state
-          volume_state[:volume_attachments] << attach_state
-        end
-        volume_state
-      end
-
-      def create_volume(vol, volume)
-        if volume.key?(:volume_id)
-          vol.create_clone_volume(volume)
-        else
-          vol.create_volume(volume)
-        end
       end
 
       def process_post_script(state)
