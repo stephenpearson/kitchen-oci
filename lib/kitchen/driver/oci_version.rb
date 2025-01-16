@@ -20,6 +20,6 @@
 module Kitchen
   module Driver
     # Version string for Oracle OCI Kitchen driver
-    OCI_VERSION = "1.25.0"
+    OCI_VERSION = "1.26.0"
   end
 end

@@ -64,6 +64,7 @@ module Kitchen
       default_config :display_name, nil
       default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath
+      default_config :ssh_keygen, false
       default_config :post_create_script, nil
       default_config :proxy_url, nil
       default_config :user_data, nil
@@ -180,6 +181,10 @@ module Kitchen
       def terminate(state, inst)
         instance.transport.connection(state).close
         inst.terminate
+        if state[:ssh_key]
+          FileUtils.rm_f(state[:ssh_key])
+          FileUtils.rm_f("#{state[:ssh_key]}.pub")
+        end
       end
     end
   end

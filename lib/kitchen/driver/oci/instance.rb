@@ -96,6 +96,43 @@ module Kitchen
           !subnet.prohibit_public_ip_on_vnic
         end
 
+        def public_key_file
+          if config[:ssh_keygen]
+            "#{config[:kitchen_root]}/.kitchen/.ssh/#{config[:instance_name]}_rsa.pub"
+          else
+            config[:ssh_keypath]
+          end
+        end
+
+        def private_key_file
+          public_key_file.gsub(".pub", "")
+        end
+
+        def gen_key_pair
+          FileUtils.mkdir_p("#{config[:kitchen_root]}/.kitchen/.ssh")
+          rsa_key = OpenSSL::PKey::RSA.new(4096)
+          write_private_key(rsa_key)
+          write_public_key(rsa_key)
+          state.store(:ssh_key, private_key_file)
+        end
+
+        def write_private_key(rsa_key)
+          File.open(private_key_file, "wb") { |k| k.write(rsa_key.to_pem) }
+          File.chmod(0600, private_key_file)
+        end
+
+        def write_public_key(rsa_key)
+          File.open(public_key_file, "wb") { |k| k.write("ssh-rsa #{encode_private_key(rsa_key)} #{config[:instance_name]}") }
+          File.chmod(0600, public_key_file)
+        end
+
+        def encode_private_key(rsa_key)
+          prefix = "#{[7].pack("N")}ssh-rsa"
+          exponent = rsa_key.e.to_s(0)
+          modulus = rsa_key.n.to_s(0)
+          ["#{prefix}#{exponent}#{modulus}"].pack("m0")
+        end
+
         def random_password(special_chars)
           (Array.new(5) { special_chars.sample } +
             Array.new(5) { ("a".."z").to_a.sample } +
