@@ -26,7 +26,7 @@ module Kitchen
         class Compute < Instance # rubocop:disable Metrics/ClassLength
           include ComputeLaunchDetails
 
-          def initialize(opts = {})
+          def initialize(config, state, oci, api, action)
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
           end
@@ -102,10 +102,10 @@ module Kitchen
           end
 
           def clone_boot_volume
-            logger.info("Cloning boot volume...")
+            info("Cloning boot volume...")
             cbv = api.blockstorage.create_boot_volume(clone_boot_volume_details)
             api.blockstorage.get_boot_volume(cbv.data.id).wait_until(:lifecycle_state, OCI::Core::Models::BootVolume::LIFECYCLE_STATE_AVAILABLE)
-            logger.info("Finished cloning boot volume.")
+            info("Finished cloning boot volume.")
             cbv.data.id
           end
 

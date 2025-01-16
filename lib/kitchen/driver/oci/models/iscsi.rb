@@ -23,7 +23,7 @@ module Kitchen
       module Models
         # iscsi volume attachment model
         class Iscsi < Blockstorage
-          def initialize(opts = {})
+          def initialize(config, state, oci, api)
             super
             @attachment_type = "iscsi"
           end

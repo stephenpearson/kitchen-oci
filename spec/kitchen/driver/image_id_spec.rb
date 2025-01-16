@@ -26,7 +26,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
   shared_examples "image_name provided" do |images|
     images.each do |display_name, ocid|
       context display_name do
-        subject { Kitchen::Driver::Oci::Models::Compute.new(config: driver_config, state: state, oci: oci_config, api: api, action: :create) }
+        subject { Kitchen::Driver::Oci::Models::Compute.new(driver_config, state, oci_config, api, :create) }
         let(:state) { {} }
         let(:api) { Kitchen::Driver::Oci::Api.new(oci, driver_config) }
         let(:driver_config) do
@@ -66,7 +66,7 @@ describe Kitchen::Driver::Oci::Models::Compute do
   include_context "create"
 
   context "append aarch64 for ARM shapes" do
-    subject { Kitchen::Driver::Oci::Models::Compute.new(config: driver_config, state: state, oci: oci_config, api: api, action: :create) }
+    subject { Kitchen::Driver::Oci::Models::Compute.new(driver_config, state, oci_config, api, :create) }
     let(:state) { {} }
     let(:api) { Kitchen::Driver::Oci::Api.new(oci, driver_config) }
     let(:driver_config) do
