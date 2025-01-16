@@ -50,7 +50,6 @@ The following driver parameters are common to both instance types, but are not r
    - `oci_profile_name`, OCI profile to use (default: `DEFAULT`)
    - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file [[more](#use-without-oci-config-file)]
    - `ssh_keypath`, SSH public key (default: `~/.ssh/id_rsa.pub`)
-   - `ssh_keygen`, Automatically generate the rsa key pair for an instance (default: `false`) [[more](#ssh-keygen)]
    - `post_create_script`, run a script on an instance after deployment
    - `post_create_reboot`, reboot the instance after instance creation (default: `false`)
    - `proxy_url`, Connect via the specified proxy URL [[more](#proxy-support)]
@@ -273,26 +272,6 @@ Alternately, if you simply pass a string to the user_data, it will be base64 enc
     login: user1
     uid: 1000
     gid: 1000
-```
-
-## SSH Keygen
-
-The driver can generate an ssh key pair for an instance during creation.  In order to turn this feature on, add the `ssh_keygen` property to the `driver` and set the value to `true`. This can be set in the `driver` section on a 
-per-platform or per-suite basis, but can also be enabled globally for the entire kitchen.yml in the top-level `driver` section.
-
-Ensure that the `transport` section does not contain a path to a private key (the `ssh_key` property). If the `transport` has a value in `ssh_key` property, this will mismatch with the key pair that the driver will create causing your 
-instance creation to be stuck in an endless loop waiting for `transport` to receive a confirmed ssh connection.
-
-The generated key pair is stored in the `.kitchen/.ssh` directory and is named for the instance that generated it so each instance in your `kitchen.yml` can have its own key pair.  
-
-Upon instance termination (`kitchen destroy`), the generated key pair will be removed from the `.kitchen/.ssh` directory along with the state file as should be expected.
-
-```yml
-  driver:
-    ssh_keygen: true
-
-  transport:
-    username: opc
 ```
 
 ## Proxy support

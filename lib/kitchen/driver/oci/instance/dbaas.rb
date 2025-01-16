@@ -61,7 +61,7 @@ module Kitchen
 
           def pubkey
             result = []
-            result << read_public_key
+            result << File.readlines(config[:ssh_keypath]).first.chomp
             launch_details.ssh_public_keys = result
           end
 

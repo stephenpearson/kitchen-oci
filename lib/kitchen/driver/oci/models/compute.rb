@@ -159,19 +159,15 @@ module Kitchen
           end
 
           def pubkey
-            if config[:ssh_keygen]
-              logger.info("Generating public/private rsa key pair")
-              gen_key_pair
-            end
-            File.readlines(public_key_file).first.chomp
+            File.readlines(config[:ssh_keypath]).first.chomp
           end
 
           def metadata
             md = {}
             inject_powershell
             config[:custom_metadata]&.each { |k, v| md.store(k, v) }
-            md.store("ssh_authorized_keys", pubkey) unless config[:setup_winrm]
-            md.store("user_data", user_data) if user_data?
+            md.store("ssh_authorized_keys", pubkey)
+            md.store("user_data", user_data) if config[:user_data] && !config[:user_data].empty?
             md
           end
 
@@ -184,10 +180,6 @@ module Kitchen
 
           def windows_state?
             config[:setup_winrm] && config[:password].nil? && state[:password].nil?
-          end
-
-          def user_data?
-            config[:user_data] && !config[:user_data].empty?
           end
 
           def winrm_ps1
