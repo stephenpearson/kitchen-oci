@@ -20,7 +20,7 @@
 module Kitchen
   module Driver
     class Oci
-      # mixin for working with volume and attachments
+      # mixin for working with volumes and attachments
       module Volumes
         def create_and_attach_volumes(config, state, oci, api)
           return if config[:volumes].empty?
