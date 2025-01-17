@@ -35,9 +35,10 @@ module Kitchen
     class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
       require_relative "oci_version"
       require_relative "oci/models"
+      require_relative "oci/volumes"
 
       plugin_version Kitchen::Driver::OCI_VERSION
-      kitchen_driver_api_version 1
+      kitchen_driver_api_version 2
 
       # required config items
       required_config :availability_domain
@@ -63,6 +64,7 @@ module Kitchen
       default_config :display_name, nil
       default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath
+      default_config :ssh_keygen, false
       default_config :post_create_script, nil
       default_config :proxy_url, nil
       default_config :user_data, nil
@@ -114,6 +116,7 @@ module Kitchen
       end
 
       include Kitchen::Driver::Oci::Models
+      include Kitchen::Driver::Oci::Volumes
 
       def create(state)
         return if state[:server_id]
@@ -151,33 +154,6 @@ module Kitchen
         instance.transport.connection(state).wait_until_ready
       end
 
-      def create_and_attach_volumes(config, state, oci, api)
-        return if config[:volumes].empty?
-
-        volume_state = process_volumes(config, state, oci, api)
-        state.merge!(volume_state)
-      end
-
-      def process_volumes(config, state, oci, api)
-        volume_state = { volumes: [], volume_attachments: [] }
-        config[:volumes].each do |volume|
-          vol = volume_class(volume[:type], config, state, oci, api)
-          volume_details, vol_state = create_volume(vol, volume)
-          attach_state = vol.attach_volume(volume_details, state[:server_id], volume)
-          volume_state[:volumes] << vol_state
-          volume_state[:volume_attachments] << attach_state
-        end
-        volume_state
-      end
-
-      def create_volume(vol, volume)
-        if volume.key?(:volume_id)
-          vol.create_clone_volume(volume)
-        else
-          vol.create_volume(volume)
-        end
-      end
-
       def process_post_script(state)
         return if config[:post_create_script].nil?
 
@@ -197,7 +173,7 @@ module Kitchen
       def detatch_and_delete_volumes(state, oci, api)
         return unless state[:volumes]
 
-        bls = Blockstorage.new(config, state, oci, api, :destroy)
+        bls = Blockstorage.new(config: config, state: state, oci: oci, api: api, action: :destroy, logger: instance.logger)
         state[:volume_attachments].each { |att| bls.detatch_volume(att) }
         state[:volumes].each { |vol| bls.delete_volume(vol) }
       end
@@ -205,6 +181,10 @@ module Kitchen
       def terminate(state, inst)
         instance.transport.connection(state).close
         inst.terminate
+        if state[:ssh_key]
+          FileUtils.rm_f(state[:ssh_key])
+          FileUtils.rm_f("#{state[:ssh_key]}.pub")
+        end
       end
     end
   end

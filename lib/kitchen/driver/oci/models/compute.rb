@@ -26,7 +26,7 @@ module Kitchen
         class Compute < Instance # rubocop:disable Metrics/ClassLength
           include ComputeLaunchDetails
 
-          def initialize(config, state, oci, api, action)
+          def initialize(opts = {})
             super
             @launch_details = OCI::Core::Models::LaunchInstanceDetails.new
           end
@@ -102,10 +102,10 @@ module Kitchen
           end
 
           def clone_boot_volume
-            info("Cloning boot volume...")
+            logger.info("Cloning boot volume...")
             cbv = api.blockstorage.create_boot_volume(clone_boot_volume_details)
             api.blockstorage.get_boot_volume(cbv.data.id).wait_until(:lifecycle_state, OCI::Core::Models::BootVolume::LIFECYCLE_STATE_AVAILABLE)
-            info("Finished cloning boot volume.")
+            logger.info("Finished cloning boot volume.")
             cbv.data.id
           end
 
@@ -159,15 +159,19 @@ module Kitchen
           end
 
           def pubkey
-            File.readlines(config[:ssh_keypath]).first.chomp
+            if config[:ssh_keygen]
+              logger.info("Generating public/private rsa key pair")
+              gen_key_pair
+            end
+            File.readlines(public_key_file).first.chomp
           end
 
           def metadata
             md = {}
             inject_powershell
             config[:custom_metadata]&.each { |k, v| md.store(k, v) }
-            md.store("ssh_authorized_keys", pubkey)
-            md.store("user_data", user_data) if config[:user_data] && !config[:user_data].empty?
+            md.store("ssh_authorized_keys", pubkey) unless config[:setup_winrm]
+            md.store("user_data", user_data) if user_data?
             md
           end
 
@@ -180,6 +184,10 @@ module Kitchen
 
           def windows_state?
             config[:setup_winrm] && config[:password].nil? && state[:password].nil?
+          end
+
+          def user_data?
+            config[:user_data] && !config[:user_data].empty?
           end
 
           def winrm_ps1

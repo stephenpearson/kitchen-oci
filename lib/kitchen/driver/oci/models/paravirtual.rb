@@ -23,7 +23,7 @@ module Kitchen
       module Models
         # paravirtual attachment model
         class Paravirtual < Blockstorage
-          def initialize(config, state, oci, api)
+          def initialize(opts = {})
             super
             @attachment_type = "paravirtual"
           end

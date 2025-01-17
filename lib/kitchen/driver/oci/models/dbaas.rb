@@ -26,7 +26,7 @@ module Kitchen
         class Dbaas < Instance # rubocop:disable Metrics/ClassLength
           include DbaasLaunchDetails
 
-          def initialize(config, state, oci, api, action)
+          def initialize(opts = {})
             super
             @launch_details = OCI::Database::Models::LaunchDbSystemDetails.new
             @database_details = OCI::Database::Models::CreateDatabaseDetails.new
@@ -96,6 +96,14 @@ module Kitchen
 
           def long_hostname_suffix
             [random_string(25 - hostname_prefix.length), random_string(3)].compact.join("-")
+          end
+
+          def read_public_key
+            if config[:ssh_keygen]
+              logger.info("Generating public/private rsa key pair")
+              gen_key_pair
+            end
+            File.readlines(public_key_file).first.chomp
           end
         end
       end

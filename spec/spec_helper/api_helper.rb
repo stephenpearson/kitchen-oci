@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 #
-# Author:: Stephen Pearson (<stephen.pearson@oracle.com>)
+# Author:: Justin Steele (<justin.steele@oracle.com>)
 #
-# Copyright (C) 2019, Stephen Pearson
+# Copyright (C) 2024, Stephen Pearson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module Kitchen
-  module Driver
-    # Version string for Oracle OCI Kitchen driver
-    OCI_VERSION = "1.26.0"
-  end
+RSpec.shared_context "api", :common do |rspec|
+  let(:oci_config) { class_double(OCI::Config) }
+  let(:driver_config) { {} }
 end

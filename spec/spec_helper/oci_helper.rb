@@ -17,28 +17,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require "bundler/gem_tasks"
-require "rspec/core/rake_task"
-require "rubygems/package"
+RSpec.shared_context "oci", :oci do
+  let(:oci_config) { Kitchen::Driver::Oci::Config.new(driver_config) }
+  let(:oci) { class_double(OCI::Config) }
+  let(:nil_response) { OCI::Response.new(200, nil, nil) }
+  let(:compute_client) { instance_double(OCI::Core::ComputeClient) }
+  let(:dbaas_client) { instance_double(OCI::Database::DatabaseClient) }
+  let(:net_client) { instance_double(OCI::Core::VirtualNetworkClient) }
+  let(:blockstorage_client) { instance_double(OCI::Core::BlockstorageClient) }
 
-RSpec::Core::RakeTask.new(:test)
-
-spec_path = Dir.glob(File.join(File.dirname(__FILE__), "*.gemspec")).first
-spec = Gem::Specification.load(spec_path)
-gemfile = "pkg/#{spec.name}-#{spec.version}.gem"
-
-begin
-  require "chefstyle"
-  require "rubocop/rake_task"
-  RuboCop::RakeTask.new(:style) do |task|
-    task.options += ["--display-cop-names"]
+  before do
+    allow(driver).to receive(:instance).and_return(instance)
+    allow(OCI::ConfigFileLoader).to receive(:load_config).and_return(oci)
   end
-rescue LoadError
-  puts "chefstyle is not available. (sudo) gem install chefstyle to do style checking."
 end
-
-task :build do
-  Gem::Package.build(spec, nil, nil, gemfile)
-end
-
-task default: %i{test style}

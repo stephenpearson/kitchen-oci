@@ -26,11 +26,11 @@ module Kitchen
         require_relative "blockstorage"
 
         def instance_class(config, state, oci, api, action)
-          Oci::Models.const_get(config[:instance_type].capitalize).new(config, state, oci, api, action)
+          Oci::Models.const_get(config[:instance_type].capitalize).new(config: config, state: state, oci: oci, api: api, action: action, logger: instance.logger)
         end
 
         def volume_class(type, config, state, oci, api)
-          Oci::Models.const_get(volume_attachment_type(type)).new(config, state, oci, api)
+          Oci::Models.const_get(volume_attachment_type(type)).new(config: config, state: state, oci: oci, api: api, logger: instance.logger)
         end
 
         private

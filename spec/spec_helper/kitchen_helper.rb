@@ -17,28 +17,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require "bundler/gem_tasks"
-require "rspec/core/rake_task"
-require "rubygems/package"
-
-RSpec::Core::RakeTask.new(:test)
-
-spec_path = Dir.glob(File.join(File.dirname(__FILE__), "*.gemspec")).first
-spec = Gem::Specification.load(spec_path)
-gemfile = "pkg/#{spec.name}-#{spec.version}.gem"
-
-begin
-  require "chefstyle"
-  require "rubocop/rake_task"
-  RuboCop::RakeTask.new(:style) do |task|
-    task.options += ["--display-cop-names"]
+RSpec.shared_context "kitchen", :kitchen do
+  let(:driver) { Kitchen::Driver::Oci.new(driver_config) }
+  let(:logged_output) { StringIO.new }
+  let(:logger)        { Logger.new(logged_output) }
+  let(:platform)      { Kitchen::Platform.new(name: "fooos-99") }
+  let(:transport)     { Kitchen::Transport::Dummy.new }
+  let(:provisioner)   { Kitchen::Provisioner::Dummy.new }
+  let(:instance) do
+    instance_double(
+      Kitchen::Instance,
+      name: "kitchen-foo",
+      logger: logger,
+      transport: transport,
+      provisioner: provisioner,
+      platform: platform,
+      to_str: "str"
+    )
   end
-rescue LoadError
-  puts "chefstyle is not available. (sudo) gem install chefstyle to do style checking."
 end
-
-task :build do
-  Gem::Package.build(spec, nil, nil, gemfile)
-end
-
-task default: %i{test style}
