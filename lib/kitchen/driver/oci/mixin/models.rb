@@ -20,26 +20,27 @@
 module Kitchen
   module Driver
     class Oci
-      # models definitions
-      module Models
-        require_relative "instance"
-        require_relative "blockstorage"
+      module Mixin
+        module Models
+          require_relative "../instance"
+          require_relative "../blockstorage"
 
-        def instance_class(config, state, oci, api, action)
-          Oci::Models.const_get(config[:instance_type].capitalize).new(config: config, state: state, oci: oci, api: api, action: action, logger: instance.logger)
-        end
+          def instance_class(config, state, oci, api, action)
+            Oci::Models.const_get(config[:instance_type].capitalize).new(config: config, state: state, oci: oci, api: api, action: action, logger: instance.logger)
+          end
 
-        def volume_class(type, config, state, oci, api)
-          Oci::Models.const_get(volume_attachment_type(type)).new(config: config, state: state, oci: oci, api: api, logger: instance.logger)
-        end
+          def volume_class(type, config, state, oci, api)
+            Oci::Models.const_get(volume_attachment_type(type)).new(config: config, state: state, oci: oci, api: api, logger: instance.logger)
+          end
 
-        private
+          private
 
-        def volume_attachment_type(type)
-          if type.nil?
-            "Paravirtual"
-          else
-            type.capitalize
+          def volume_attachment_type(type)
+            if type.nil?
+              "Paravirtual"
+            else
+              type.capitalize
+            end
           end
         end
       end

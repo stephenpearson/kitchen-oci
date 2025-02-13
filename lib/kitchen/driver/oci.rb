@@ -32,10 +32,11 @@ module Kitchen
     # Oracle OCI driver for Kitchen.
     #
     # @author Stephen Pearson <stephen.pearson@oracle.com>
-    class Oci < Kitchen::Driver::Base # rubocop:disable Metrics/ClassLength
+    class Oci < Kitchen::Driver::Base
       require_relative "oci_version"
-      require_relative "oci/models"
-      require_relative "oci/volumes"
+      require_relative "oci/mixin/actions"
+      require_relative "oci/mixin/models"
+      require_relative "oci/mixin/volumes"
 
       plugin_version Kitchen::Driver::OCI_VERSION
       kitchen_driver_api_version 2
@@ -115,9 +116,6 @@ module Kitchen
         raise UserError, "#{driver.class}<#{driver.instance.name}>#config#{message}"
       end
 
-      include Kitchen::Driver::Oci::Models
-      include Kitchen::Driver::Oci::Volumes
-
       def create(state)
         return if state[:server_id]
 
@@ -141,50 +139,15 @@ module Kitchen
 
       private
 
+      include Kitchen::Driver::Oci::Mixin::Actions
+      include Kitchen::Driver::Oci::Mixin::Models
+      include Kitchen::Driver::Oci::Mixin::Volumes
+
       def auth(action)
         oci = Oci::Config.new(config)
         api = Oci::Api.new(oci.config, config)
         oci.compartment if action == :create
         [oci, api]
-      end
-
-      def launch(state, inst)
-        state_details = inst.launch
-        state.merge!(state_details)
-        instance.transport.connection(state).wait_until_ready
-      end
-
-      def process_post_script(state)
-        return if config[:post_create_script].nil?
-
-        info("Running post create script")
-        script = config[:post_create_script]
-        instance.transport.connection(state).execute(script)
-      end
-
-      def reboot(state, inst)
-        return unless config[:post_create_reboot]
-
-        instance.transport.connection(state).close
-        inst.reboot
-        instance.transport.connection(state).wait_until_ready
-      end
-
-      def detatch_and_delete_volumes(state, oci, api)
-        return unless state[:volumes]
-
-        bls = Blockstorage.new(config: config, state: state, oci: oci, api: api, action: :destroy, logger: instance.logger)
-        state[:volume_attachments].each { |att| bls.detatch_volume(att) }
-        state[:volumes].each { |vol| bls.delete_volume(vol) }
-      end
-
-      def terminate(state, inst)
-        instance.transport.connection(state).close
-        inst.terminate
-        if state[:ssh_key]
-          FileUtils.rm_f(state[:ssh_key])
-          FileUtils.rm_f("#{state[:ssh_key]}.pub")
-        end
       end
     end
   end
