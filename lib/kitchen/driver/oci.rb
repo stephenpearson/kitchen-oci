@@ -128,7 +128,7 @@ module Kitchen
         inst = instance_class(config, state, oci, api, __method__)
         launch(state, inst)
         create_and_attach_volumes(config, state, oci, api)
-        process_post_script(state)
+        execute_post_create_script(state)
         reboot(state, inst)
       end
 

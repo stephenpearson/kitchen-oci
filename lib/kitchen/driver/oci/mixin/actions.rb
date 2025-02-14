@@ -38,12 +38,34 @@ module Kitchen
           # Executes the post script on the instance.
           #
           # @param state [Hash] (see Kitchen::StateFile)
-          def process_post_script(state)
+          def execute_post_create_script(state)
             return if config[:post_create_script].nil?
 
+            if config[:post_create_script].is_a?(String)
+              execute_post_create_string(state)
+            elsif config[:post_create_script].is_a?(Array)
+              execute_post_create_file(state)
+            end
+          end
+
+          # Executes the post create script from a String.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          def execute_post_create_string(state)
             info("Running post create script")
             script = config[:post_create_script]
             instance.transport.connection(state).execute(script)
+          end
+
+          # Reads the specified file and executes as a post create script.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          def execute_post_create_file(state)
+            config[:post_create_script].each do |script|
+              info("Running post create script #{File.basename(script)}")
+              script = File.read script
+              instance.transport.connection(state).execute(script)
+            end
           end
 
           # Reboots an instance.
