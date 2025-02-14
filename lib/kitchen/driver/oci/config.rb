@@ -22,20 +22,23 @@ require_relative "api"
 module Kitchen
   module Driver
     class Oci
-      # Config class that defines the oci config that will be used for the API calls
+      # Config class that defines the oci config that will be used for the API calls.
+      #
+      # @author Justin Steele <justin.steele@oracle.com>
       class Config
         def initialize(driver_config)
           setup_driver_config(driver_config)
           @config = oci_config
         end
 
-        #
-        # The config used to authenticate to OCI
+        # The config used to authenticate to OCI.
         #
         # @return [OCI::Config]
-        #
         attr_reader :config
 
+        # Creates a new instance of OCI::Config to be used to authenticate to OCI.
+        #
+        # @return [OCI::Config]
         def oci_config
           # OCI::Config is missing this
           OCI::Config.class_eval { attr_accessor :security_token_file } if @driver_config[:use_token_auth]
@@ -46,6 +49,12 @@ module Kitchen
           conf
         end
 
+        # The ocid of the compartment where the Kitchen instance will be created.
+        # * If <b>compartment_id</b> is specified in the kitchen.yml, that will be returned.
+        # * If <b>compartment_name</b> is specified in the kitchen.yml, lookup with the Identity API to find the ocid by the compartment name.
+        #
+        # @return [String] the ocid of the compartment where instances will be created.
+        # @raise [StandardError] if neither <b>compartment_id</b> nor <b>compartment_name</b> are specified OR if lookup by name fails to find a match.
         def compartment
           @compartment ||= @compartment_id
           return @compartment if @compartment
@@ -58,12 +67,19 @@ module Kitchen
 
         private
 
+        # Sets up instance variables from the driver config (parsed kitchen.yml) and compartment.
+        #
+        # @param config [Hash] the parsed config from the kitchen.yml.
         def setup_driver_config(config)
           @driver_config = config
           @compartment_id = config[:compartment_id]
           @compartment_name = config[:compartment_name]
         end
 
+        # Creates a new instance of OCI::Config either by loading the config from a file or returning a new instance that will be set.
+        #
+        # @param opts [Hash]
+        # @return [OCI::Config]
         def config_loader(opts = {})
           # this is to accommodate old versions of ruby that do not have a compact method on a Hash
           opts.reject! { |_, v| v.nil? }
@@ -72,6 +88,9 @@ module Kitchen
           OCI::Config.new
         end
 
+        # Returns the ocid of the tenancy from either the provided ocid or from your instance principals.
+        #
+        # @return [String]
         def tenancy
           if @driver_config[:use_instance_principals]
             sign = OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
@@ -81,11 +100,17 @@ module Kitchen
           end
         end
 
+        # Looks up the compartment ocid by name by recursively querying the list of compartments with the Identity API.
+        #
+        # @return [String] the ocid of the compartment.
         def compartment_id_by_name(name)
           api = Oci::Api.new(config, @driver_config).identity
           all_compartments(api, config.tenancy).select { |c| c.name == name }&.first&.id
         end
 
+        # Pages through all of the compartments in the tenancy. This has to be a recursive process because the list_compartments API only returns 99 entries at a time.
+        #
+        # @return [Array] An array of OCI::Identity::Models::Compartment
         def all_compartments(api, tenancy, compartments = [], page = nil)
           current_compartments = api.list_compartments(tenancy, page: page)
           next_page = current_compartments.next_page

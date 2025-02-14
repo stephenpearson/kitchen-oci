@@ -116,6 +116,10 @@ module Kitchen
         raise UserError, "#{driver.class}<#{driver.instance.name}>#config#{message}"
       end
 
+      # Creates an instance.
+      # (see Kitchen::Driver::Base#create)
+      #
+      # @param state [Hash] (see Kitchen::StateFile)
       def create(state)
         return if state[:server_id]
 
@@ -128,6 +132,10 @@ module Kitchen
         reboot(state, inst)
       end
 
+      # Destorys an instance.
+      # (see Kitchen::Driver::Base#destroy)
+      #
+      # @param state [Hash] (see Kitchen::StateFile)
       def destroy(state)
         return unless state[:server_id]
 
@@ -143,6 +151,10 @@ module Kitchen
       include Kitchen::Driver::Oci::Mixin::Models
       include Kitchen::Driver::Oci::Mixin::Volumes
 
+      # Creates the OCI config and API clients.
+      #
+      # @param action [Symbol] the name of the method that called this method.
+      # @return [Oci::Config, Oci::Api]
       def auth(action)
         oci = Oci::Config.new(config)
         api = Oci::Api.new(oci.config, config)

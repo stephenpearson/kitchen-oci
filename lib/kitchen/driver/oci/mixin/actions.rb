@@ -21,13 +21,23 @@ module Kitchen
   module Driver
     class Oci
       module Mixin
+        # Actions that can be performed on an instance.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         module Actions
+          # Launches an instance.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param inst [Class] the specific class of instance being launched.
           def launch(state, inst)
             state_details = inst.launch
             state.merge!(state_details)
             instance.transport.connection(state).wait_until_ready
           end
 
+          # Executes the post script on the instance.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
           def process_post_script(state)
             return if config[:post_create_script].nil?
 
@@ -36,6 +46,10 @@ module Kitchen
             instance.transport.connection(state).execute(script)
           end
 
+          # Reboots an instance.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param inst [Class] the specific class of instance being rebooted.
           def reboot(state, inst)
             return unless config[:post_create_reboot]
 
@@ -44,6 +58,10 @@ module Kitchen
             instance.transport.connection(state).wait_until_ready
           end
 
+          # Terminates an instance.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param inst [Class] the specific class of instance being launched.
           def terminate(state, inst)
             instance.transport.connection(state).close
             inst.terminate

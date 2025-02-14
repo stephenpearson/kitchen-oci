@@ -20,14 +20,20 @@ module Kitchen
   module Driver
     class Oci
       class Instance
-        # setter methods that populate the details of OCI::Core::Models::LaunchInstanceDetails
+        # Setter methods that populate the details of OCI::Core::Models::LaunchInstanceDetails.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         module ComputeLaunchDetails
+          # Assigns the display_name and create_vnic_details to the launch_details.
+          # * display_name is either the literal display_name provided in the kitchen config or a randomly generated one.
+          # * create_vnic_details is a populated instance of OCI::Core::Models::CreateVnicDetails.
           def hostname_display_name
             display_name = config[:display_name] || hostname
             launch_details.display_name = display_name
             launch_details.create_vnic_details = create_vnic_details(display_name)
           end
 
+          # Adds the preemptible_instance_config property tot he launch_details by creating a new instance of OCI::Core::Models::PreemptibleInstanceConfigDetails.
           def preemptible_instance_config
             return unless config[:preemptible_instance]
 
@@ -39,6 +45,7 @@ module Kitchen
             )
           end
 
+          # Adds the shape_config property to the launch_details by creating a new instance of OCI::Core::Models::LaunchInstanceShapeConfigDetails.
           def shape_config
             return if config[:shape_config].empty?
 
@@ -49,10 +56,12 @@ module Kitchen
             )
           end
 
+          # Adds the capacity_reservation_id property to the launch_details if an ocid is provided.
           def capacity_reservation
             launch_details.capacity_reservation_id = config[:capacity_reservation_id]
           end
 
+          # Adds the agent_config property to the launch_details.
           def agent_config
             launch_details.agent_config = OCI::Core::Models::LaunchInstanceAgentConfigDetails.new(
               are_all_plugins_disabled: config[:all_plugins_disabled],
@@ -61,6 +70,7 @@ module Kitchen
             )
           end
 
+          # Adds the source_details property to the launch_details for an instance that is being created from an image.
           def instance_source_via_image
             return if config[:boot_volume_id]
 
@@ -71,6 +81,7 @@ module Kitchen
             )
           end
 
+          # Adds the source_details property to the launch_details for an instance that is being created from a boot volume.
           def instance_source_via_boot_volume
             return unless config[:boot_volume_id]
 
@@ -80,6 +91,7 @@ module Kitchen
             )
           end
 
+          # Adds the metadata property to the launch_details.
           def instance_metadata
             launch_details.metadata = metadata
           end

@@ -21,8 +21,16 @@ module Kitchen
   module Driver
     class Oci
       module Mixin
-        # mixin for working with volumes and attachments
+        # Mixins for working with volumes and attachments.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         module Volumes
+          # Create and attach volumes.
+          #
+          # @param config [Kitchen::LazyHash] The config provided by the driver.
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param oci [Kitchen::Driver::Oci::Config] a populated OCI config class.
+          # @param api [Kitchen::Driver::Oci::Api] an authenticated API class.
           def create_and_attach_volumes(config, state, oci, api)
             return if config[:volumes].empty?
 
@@ -30,6 +38,11 @@ module Kitchen
             state.merge!(volume_state)
           end
 
+          # Detatch and delete volumes.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param oci [Kitchen::Driver::Oci::Config] a populated OCI config class.
+          # @param api [Kitchen::Driver::Oci::Api] an authenticated API class.
           def detatch_and_delete_volumes(state, oci, api)
             return unless state[:volumes]
 
@@ -38,6 +51,13 @@ module Kitchen
             state[:volumes].each { |vol| bls.delete_volume(vol) }
           end
 
+          # Process volumes specified in the kitchen config.
+          #
+          # @param config [Kitchen::LazyHash] The config provided by the driver.
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param oci [Kitchen::Driver::Oci::Config] a populated OCI config class.
+          # @param api [Kitchen::Driver::Oci::Api] an authenticated API class.
+          # @return [Hash] the finalized state after the volume(s) have been created and attached.
           def process_volumes(config, state, oci, api)
             volume_state = { volumes: [], volume_attachments: [] }
             config[:volumes].each do |volume|
@@ -50,6 +70,10 @@ module Kitchen
             volume_state
           end
 
+          # Creates or clones the volume.
+          #
+          # @param vol [OCI::Core::Models::Volume] the volume that has been created.
+          # @param volume [Hash] the state of the current volume being cloned.
           def create_volume(vol, volume)
             if volume.key?(:volume_id)
               vol.create_clone_volume(volume)

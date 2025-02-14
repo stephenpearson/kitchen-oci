@@ -21,20 +21,26 @@ module Kitchen
   module Driver
     class Oci
       module Models
-        # paravirtual attachment model
+        # Paravirtual volume model.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         class Paravirtual < Blockstorage
           def initialize(opts = {})
             super
             @attachment_type = "paravirtual"
           end
 
-          #
-          # The type of attachment being created
+          # The type of attachment being created.
           #
           # @return [String]
-          #
           attr_reader :attachment_type
 
+          # Creates the attachment details for a Paravirtual volume.
+          #
+          # @param volume_details [OCI::Core::Models::Volume]
+          # @param server_id [String] the ocid of the compute instance to which the volume will be attached.
+          # @param volume_config [Hash] the state of the current volume being processed as specified in the kitchen.yml.
+          # @return [OCI::Core::Models::AttachParavirtualizedVolumeDetails]
           def attachment_details(volume_details, server_id, volume_config)
             device = volume_config[:device] unless server_os(server_id).downcase =~ /windows/
             OCI::Core::Models::AttachParavirtualizedVolumeDetails.new(
@@ -45,6 +51,10 @@ module Kitchen
             )
           end
 
+          # Adds the volume attachment info into the state.
+          #
+          # @param response [OCI::Core::Models::VolumeAttachment]
+          # @return [Hash]
           def final_volume_attachment_state(response)
             volume_attachment_state.store(:id, response.id)
             volume_attachment_state.store(:display_name, response.display_name)

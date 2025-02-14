@@ -22,8 +22,10 @@ module Kitchen
   module Driver
     class Oci
       module Models
-        # dbaas model
-        class Dbaas < Instance # rubocop:disable Metrics/ClassLength
+        # Database system model.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
+        class Dbaas < Instance
           include DbaasLaunchDetails
 
           def initialize(opts = {})
@@ -33,27 +35,24 @@ module Kitchen
             @db_home_details = OCI::Database::Models::CreateDbHomeDetails.new
           end
 
-          #
-          # The details model that describes the db system
+          # The details model that describes the db system.
           #
           # @return [OCI::Database::Models::LaunchDbSystemDetails]
-          #
           attr_accessor :launch_details
 
-          #
-          # The details model that describes the database
+          # The details model that describes the database.
           #
           # @return [OCI::Database::Models::CreateDatabaseDetails]
-          #
           attr_accessor :database_details
 
-          #
-          # The details model that describes the database home
+          # The details model that describes the database home.
           #
           # @return [OCI::Database::Models::CreateDbHomeDetails]
-          #
           attr_accessor :db_home_details
 
+          # Launches a database system.
+          #
+          # @return [Hash] the finalized state after the instance has been launched and is running.
           def launch
             response = api.dbaas.launch_db_system(launch_instance_details)
             instance_id = response.data.id
@@ -63,12 +62,14 @@ module Kitchen
             final_state(state, instance_id)
           end
 
+          # Terminates a DBaaS system.
           def terminate
             api.dbaas.terminate_db_system(state[:server_id])
             api.dbaas.get_db_system(state[:server_id]).wait_until(:lifecycle_state, OCI::Database::Models::DbSystem::LIFECYCLE_STATE_TERMINATING,
                                                                   max_interval_seconds: 900, max_wait_seconds: 21_600)
           end
 
+          # Reboots a DBaaS node.
           def reboot
             db_node_id = dbaas_node(state[:server_id]).first.id
             api.dbaas.db_node_action(db_node_id, "SOFTRESET")
@@ -77,6 +78,10 @@ module Kitchen
 
           private
 
+          # Get the IP address of the instance from the vnic.
+          #
+          # @param instance_id [String] the ocid of the instance.
+          # @return [String]
           def instance_ip(instance_id)
             vnic = dbaas_node(instance_id).select(&:vnic_id).first.vnic_id
             if public_ip_allowed?
@@ -86,18 +91,30 @@ module Kitchen
             end
           end
 
+          # Get the ocid of the database node associated with the database system.
+          #
+          # @param instance_id [String] the ocid of the database system.
           def dbaas_node(instance_id)
             api.dbaas.list_db_nodes(oci.compartment, db_system_id: instance_id).data
           end
 
+          # Sets the hostname_prefix as defined in the kitchen config.
+          #
+          # @return [String]
           def hostname_prefix
             config[:hostname_prefix]
           end
 
+          # Generates a random suffix to the hostname prefix.
+          #
+          # @return [String]
           def long_hostname_suffix
             [random_string(25 - hostname_prefix.length), random_string(3)].compact.join("-")
           end
 
+          # Read in the public ssh key.
+          #
+          # @return [String]
           def read_public_key
             if config[:ssh_keygen]
               logger.info("Generating public/private rsa key pair")
