@@ -221,7 +221,7 @@ module Kitchen
             File.readlines(public_key_file).first.chomp
           end
 
-          # Add our special sauce to the instance metadata to be executed by cloud_init.
+          # Add our special sauce to the instance metadata to be executed by cloud-init.
           def metadata
             md = {}
             inject_powershell
@@ -262,7 +262,7 @@ module Kitchen
             tpl.result(binding)
           end
 
-          # Inject all of the winrm setup stuff into cloud_init.
+          # Inject all of the winrm setup stuff into cloud-init.
           #
           # @return [Hash] the user_data config hash with the winrm stuff injected.
           def inject_powershell

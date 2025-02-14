@@ -193,7 +193,7 @@ module Kitchen
           fft
         end
 
-        # Encodes specified user_data to be added to cloud_init.
+        # Encodes specified user_data to be added to cloud-init.
         #
         # @return [Base64]
         def user_data
