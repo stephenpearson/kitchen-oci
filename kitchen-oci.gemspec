@@ -18,7 +18,7 @@ lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "kitchen/driver/oci_version"
 
-Gem::Specification.new do |spec|
+Gem::Specification.new do |spec| # rubocop: disable Metrics/BlockLength
   spec.name          = "kitchen-oci"
   spec.version       = Kitchen::Driver::OCI_VERSION
   spec.authors       = ["Stephen Pearson", "Justin Steele"]
@@ -31,13 +31,20 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files`.split($/).grep(/LICENSE|^lib|^tpl/)
   spec.executables   = []
   spec.require_paths = ["lib"]
-
+  spec.metadata = {
+    "bug_tracker_uri" => "https://github.com/stephenpearson/kitchen-oci/issues",
+    "changelog_uri" => "https://github.com/stephenpearson/kitchen-oci/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://github.com/stephenpearson/kitchen-oci/blob/master/README.md",
+    "homepage_uri" => "https://github.com/stephenpearson/kitchen-oci",
+    "source_code_uri" => "https://github.com/stephenpearson/kitchen-oci",
+    "rubygems_mfa_required" => "true",
+  }
   spec.add_dependency "oci", "~> 2.18"
   spec.add_dependency "test-kitchen"
-
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "chefstyle"
   spec.add_development_dependency "pry"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
-end
+  spec.add_development_dependency "yard"
+end # rubocop: enable Metrics/BlockLength

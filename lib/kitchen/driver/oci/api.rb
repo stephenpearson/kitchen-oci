@@ -20,49 +20,66 @@
 module Kitchen
   module Driver
     class Oci
-      # Api class that defines the various API classes used to interact with OCI
+      # Defines the various API classes used to interact with OCI.
+      #
+      # @author Justin Steele <justin.steele@oracle.com>
       class Api
         def initialize(oci_config, config)
           @oci_config = oci_config
           @config = config
         end
 
-        #
-        # The config used to authenticate to OCI
+        # The config used to authenticate to OCI.
         #
         # @return [OCI::Config]
-        #
         attr_reader :oci_config
 
-        #
-        # The config provided by the driver
+        # The config provided by the driver.
         #
         # @return [Kitchen::LazyHash]
-        #
         attr_reader :config
 
+        # Creates a Compute API client.
+        #
+        # @return [OCI::Core::ComputeClient]
         def compute
           generic_api(OCI::Core::ComputeClient)
         end
 
+        # Creates a Network API client.
+        #
+        # @return [OCI::Core::VirtualNetworkClient]
         def network
           generic_api(OCI::Core::VirtualNetworkClient)
         end
 
+        # Creates a Database API client.
+        #
+        # @return [OCI::Core::DatabaseClient]
         def dbaas
           generic_api(OCI::Database::DatabaseClient)
         end
 
+        # Creates an Identity API client.
+        #
+        # @return [OCI::Core::IdentityClient]
         def identity
           generic_api(OCI::Identity::IdentityClient)
         end
 
+        # Creates a Blockstorage API client.
+        #
+        # @return [OCI::Core::BlockstorageClient]
         def blockstorage
           generic_api(OCI::Core::BlockstorageClient)
         end
 
         private
 
+        # Instantiates the specified client class.
+        #
+        # @param klass [Class] The client class to instantiate.
+        # @return [Object] an instance of <b>klass</b>.
         def generic_api(klass)
           params = {}
           params[:proxy_settings] = api_proxy if api_proxy
@@ -73,6 +90,9 @@ module Kitchen
           klass.new(**params)
         end
 
+        # Determines the signing method if one is specified.
+        #
+        # @return [OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner, OCI::Auth::Signers::SecurityTokenSigner] an instance of the specified token signer.
         def signer
           if config[:use_instance_principals]
             OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
@@ -81,6 +101,9 @@ module Kitchen
           end
         end
 
+        # Creates the token signer with a provided key.
+        #
+        # @return [OCI::Auth::Signers::SecurityTokenSigner]
         def token_signer
           pkey_content = oci_config.key_content || File.read(oci_config.key_file).strip
           pkey = OpenSSL::PKey::RSA.new(pkey_content, oci_config.pass_phrase)
@@ -89,6 +112,9 @@ module Kitchen
           OCI::Auth::Signers::SecurityTokenSigner.new(token, pkey)
         end
 
+        # Parse any specified proxy from either the kitchen config or the environment.
+        #
+        # @return [URI] a parsed proxy host.
         def proxy_config
           if config[:proxy_url]
             URI.parse(config[:proxy_url])
@@ -97,6 +123,9 @@ module Kitchen
           end
         end
 
+        # Create the proxy settings for the OCI API.
+        #
+        # @return [OCI::ApiClientProxySettings]
         def api_proxy
           prx = proxy_config
           return unless prx

@@ -23,69 +23,85 @@ module Kitchen
   module Driver
     class Oci
       class Instance
-        # setter methods that populate the details of OCI::Database::Models::LaunchDbSystemDetails
+        # Setter methods that populate the details of OCI::Database::Models::LaunchDbSystemDetails.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         module DbaasLaunchDetails
           include DatabaseDetails
           include DbHomeDetails
           #
           # TODO: add support for the #domain property
           #
+
+          # Adds the db_home property to the launch_details.
           def db_home
             launch_details.db_home = db_home_details
           end
 
+          # Adds the subnet_id property to the launch_details.
           def subnet_id
             launch_details.subnet_id = config[:subnet_id]
           end
 
+          # Adds the nsg_ids property to the launch_details.
           def nsg_ids
             launch_details.nsg_ids = config[:nsg_ids]
           end
 
+          # Adds the hostname property to the launch_details.
+          # The hostname must begin with an alphabetic character, and can contain alphanumeric characters and hyphens (-).
+          # The maximum length of the hostname is 16 characters.
           def hostname
-            # The hostname must begin with an alphabetic character, and can contain alphanumeric characters and hyphens (-).
-            # The maximum length of the hostname is 16 characters
             long_name = [hostname_prefix, long_hostname_suffix].compact.join("-")
             trimmed_name = [hostname_prefix[0, 12], random_string(3)].compact.join("-")
             launch_details.hostname = [long_name, trimmed_name].min { |l, t| l.size <=> t.size }
           end
 
+          # Adds the display_name property to the launch details.
+          # The user-friendly name for the DB system. The name does not have to be unique.
           def display_name
-            # The user-friendly name for the DB system. The name does not have to be unique.
             launch_details.display_name = [config[:hostname_prefix], random_string(4), random_number(2)].compact.join("-")
           end
 
+          # Adds the node_count property to the launch_details.
           def node_count
             launch_details.node_count = 1
           end
 
+          # Adds the ssh_public_keys property to the launch_details.
           def pubkey
             result = []
             result << read_public_key
             launch_details.ssh_public_keys = result
           end
 
+          # Adds the cpu_core_count property to the launch_details.
           def cpu_core_count
             launch_details.cpu_core_count = config[:dbaas][:cpu_core_count] ||= 2
           end
 
+          # Adds the license_model property to the launch_details.
           def license_model
             license = config[:dbaas][:license_model] ||= OCI::Database::Models::DbSystem::LICENSE_MODEL_BRING_YOUR_OWN_LICENSE
             launch_details.license_model = license
           end
 
+          # Adds the initial_data_size_in_gb property to the launch_details.
           def initial_data_storage_size_in_gb
             launch_details.initial_data_storage_size_in_gb = config[:dbaas][:initial_data_storage_size_in_gb] ||= 256
           end
 
+          # Adds the database_edition property to the launch_details.
           def database_edition
             db_edition = config[:dbaas][:database_edition] ||= OCI::Database::Models::DbSystem::DATABASE_EDITION_ENTERPRISE_EDITION
             launch_details.database_edition = db_edition
           end
 
+          # Adds the cluster_name property to the launch_details.
+          # 11 character limit for cluster_name in DBaaS.
           def cluster_name
             prefix = config[:hostname_prefix].split("-")[0]
-            # 11 character limit for cluster_name in DBaaS
+
             cn = if prefix.length >= 11
                    prefix[0, 11]
                  else
@@ -98,4 +114,3 @@ module Kitchen
     end
   end
 end
-

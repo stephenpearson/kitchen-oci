@@ -20,24 +20,31 @@ module Kitchen
   module Driver
     class Oci
       class Instance
-        # setter methods that populate launch details common to all instance models
+        # Setter methods that populate launch details common to all instance models.
+        #
+        # @author Justin Steele <justin.steele@oracle.com>
         module CommonLaunchDetails
+          # Assigns the ocid of the compartment to the launch details.
           def compartment_id
             launch_details.compartment_id = oci.compartment
           end
 
+          # Assigns the availability_domain to the launch details.
           def availability_domain
             launch_details.availability_domain = config[:availability_domain]
           end
 
+          # Assigns the defined_tags to the launch details.
           def defined_tags
             launch_details.defined_tags = config[:defined_tags]
           end
 
+          # Assigns the shape to the launch_details.
           def shape
             launch_details.shape = config[:shape]
           end
 
+          # Assigns the freeform_tags to the launch_details.
           def freeform_tags
             launch_details.freeform_tags = process_freeform_tags
           end
@@ -46,4 +53,3 @@ module Kitchen
     end
   end
 end
-
