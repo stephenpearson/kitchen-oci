@@ -1,5 +1,7 @@
 # Kitchen::OCI
 
+[![Gem Version](https://badge.fury.io/rb/kitchen-oci.svg)](https://badge.fury.io/rb/kitchen-oci)
+
 A Test Kitchen Driver for Oracle Cloud Infrastructure (OCI)
 
 `kitchen-oci` can create two types of instances: 
@@ -51,7 +53,7 @@ The following driver parameters are common to both instance types, but are not r
    - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file [[more](#use-without-oci-config-file)]
    - `ssh_keypath`, SSH public key (default: `~/.ssh/id_rsa.pub`)
    - `ssh_keygen`, Automatically generate the rsa key pair for an instance (default: `false`) [[more](#ssh-keygen)]
-   - `post_create_script`, run a script on an instance after deployment
+   - `post_create_script`, run a script on an instance after deployment [[more](#post-create-script)]
    - `post_create_reboot`, reboot the instance after instance creation (default: `false`)
    - `proxy_url`, Connect via the specified proxy URL [[more](#proxy-support)]
    - `defined_tags`, Hash containing tag name(s) and values(s). Each key must be predefined and scoped into a namespace.
@@ -152,7 +154,6 @@ Optional settings for WinRM support in Windows [[more](#windows-support)]:
     custom_metadata:
       key1: value1
       key2: value2
-    post_create_script: >-
 ```
 
 ## DBaaS Instance Type
@@ -274,6 +275,32 @@ Alternately, if you simply pass a string to the user_data, it will be base64 enc
     uid: 1000
     gid: 1000
 ```
+
+## Post Create Script
+
+The `post_create_script` property is another means of executing a command or series of commands on the instance.  The scripts or commands specified in `post_create_script` are executed after `cloud-init`, but before `post_create` lifecycle hooks.
+
+This property accepts both inline scripts and list of files.  Examples:
+
+Passing a command as a string:
+
+```yml
+  driver:
+    name: oci
+    post_create_script: echo "here i am running a post_create_script"
+```
+
+Passing a list of script files:
+
+```yml
+  driver:
+    name: oci
+    post_create_script:
+      - ./path/to/my/fixture/script.sh
+      - ./path/to/a/second/fixture/script.sh 
+```
+
+These scripts are executed by the user specified as the transport username (most likely `opc` or `ubuntu`) so any privilege elevation would need to be gained via `sudo` or the `elevated: true` property of the `WinRM` transport.
 
 ## SSH Keygen
 
@@ -481,9 +508,8 @@ WIN_IMAGE_ID
 
 These environment variables should align with your tenancy and the region in which you intend to test.
 
-There is a kitchen.yml file in the `test/integration/fixtures` directory in this project that can be used to test the gem. From this
-directory, execute `bundle exec kitchen list` to see a list of instances.  All normal kitchen commands work within the `bundle exec`
-context from here.
+There is a [kitchen.yml](test/integration/fixtures/kitchen.yml) in this project that can be used to test the gem. From the same directory as the [kitchen.yml](test/integration/fixtures/kitchen.yml),
+execute `bundle exec kitchen list` to see a list of instances.  All normal kitchen commands work within the `bundle exec` context from here.
 
 ## Maintainer
 

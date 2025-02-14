@@ -1,5 +1,12 @@
 # kitchen-oci CHANGELOG
 
+# 1.27.0
+- feat: extend `post_create_script` to accept a list of script files
+- doc: add YARD tags to all methods and classes and add `metadata` to the gemspec
+
+# 1.26.0
+- feat: generate rsa key pair automatically per instance
+
 # 1.25.0
 - feat: allow `image_name` to function the same for ARM as it does for Linux
 
