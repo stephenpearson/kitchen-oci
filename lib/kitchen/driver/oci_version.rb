@@ -22,6 +22,6 @@ module Kitchen
     # Version string for Oracle OCI Kitchen driver
     #
     # @author Stephen Pearson (<stephen.pearson@oracle.com>)
-    OCI_VERSION = "1.27.0"
+    OCI_VERSION = "1.28.0"
   end
 end

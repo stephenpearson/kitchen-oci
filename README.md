@@ -121,6 +121,10 @@ These settings are optional:
      - `volume_id`, If you wish to clone your volume from an existing volume set this to the source volume's ID. They must be in the same Availability Domain.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
    - `custom_metadata`, Add metadata to the compute instance request
+   - `instance_options`, A hash of optional mutable instance options
+      - `are_legacy_imds_endpoints_disabled`, Whether the IMDSv1 endpoint is disabled on the instance.
+        Customers who have [migrated to IMDSv2](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm#upgrading-v2)
+        should set this to `true`
    - `all_plugins_disabled`, Whether Oracle Cloud Agent can run all the available plugins (default: `false`)
    - `management_disabled`, Whether Oracle Cloud Agent can run all the available management plugins (default: `false`)
    - `monitoring_disabled`, Whether Oracle Cloud Agent can gather performance metrics and monitor the instance using the monitoring plugins (default: `false`)
