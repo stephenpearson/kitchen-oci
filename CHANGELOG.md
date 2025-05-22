@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 1.28.0
+- feat: add instance_options to compute instance type
+
 # 1.27.0
 - feat: extend `post_create_script` to accept a list of script files
 - doc: add YARD tags to all methods and classes and add `metadata` to the gemspec
