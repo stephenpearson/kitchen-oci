@@ -83,7 +83,7 @@ module Kitchen
 
           # Adds the instance options property to the launch details.
           def instance_options
-            return if config[:instance_options].empty?
+            config[:instance_options].merge!(are_legacy_imds_endpoints_disabled: true) unless config[:instance_options].key?(:are_legacy_imds_endpoints_disabled)
 
             launch_details.instance_options = OCI::Core::Models::InstanceOptions.new(config[:instance_options])
           end
