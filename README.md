@@ -121,11 +121,10 @@ These settings are optional:
      - `volume_id`, If you wish to clone your volume from an existing volume set this to the source volume's ID. They must be in the same Availability Domain.
    - `nsg_ids`, The option to connect up to 5 Network Security Groups to compute instance.
    - `custom_metadata`, Add metadata to the compute instance request
-   - `instance_options`, A hash of optional mutable instance options.
-     Initially, the only option [supported in the Ruby SDK](https://docs.oracle.com/en-us/iaas/tools/ruby/latest/OCI/Core/Models/InstanceOptions.html)
-     is `are_legacy_imds_endpoints_disabled`.
-     Customers who have [migrated to IMDSv2](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm#upgrading-v2) 
-     should set this to `true`
+   - `instance_options`, A hash of optional mutable instance options.\
+     Available options [supported in the Ruby SDK](https://docs.oracle.com/en-us/iaas/tools/ruby/latest/OCI/Core/Models/InstanceOptions.html)
+     - `are_legacy_imds_endpoints_disabled`, Boolean (default: `true`)\
+        > Customers who have not [migrated to IMDSv2](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm#upgrading-v2) will need to set this to `false`. [[more](#imdsv2)]
    - `all_plugins_disabled`, Whether Oracle Cloud Agent can run all the available plugins (default: `false`)
    - `management_disabled`, Whether Oracle Cloud Agent can run all the available management plugins (default: `false`)
    - `monitoring_disabled`, Whether Oracle Cloud Agent can gather performance metrics and monitor the instance using the monitoring plugins (default: `false`)
@@ -405,6 +404,19 @@ driver:
     - name: vol02
       size_in_gbs: 100
       vpus_per_gb: 30
+```
+
+## IMDSv2
+In accordance with [OCI security guidelines](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm), the driver is disabling the IMDSv1 endpoint by default. This overrides the current default setting
+in OCI and could cause issues with [unsupported images](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm#upgrading-v2__supported-images). In the event legacy IMDS support is required,
+the option can be provided to the driver:
+
+```yml
+---
+driver:
+  name: oci
+  instance_options:
+    are_legacy_imds_endpoints_disabled: false
 ```
 
 ## Windows Support
