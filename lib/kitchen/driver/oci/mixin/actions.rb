@@ -33,6 +33,7 @@ module Kitchen
             state_details = inst.launch
             state.merge!(state_details)
             instance.transport.connection(state).wait_until_ready
+            instance_options(state, inst) if config[:instance_type] == "compute"
           end
 
           # Executes the post script on the instance.
@@ -66,6 +67,26 @@ module Kitchen
               script = File.read script
               instance.transport.connection(state).execute(script)
             end
+          end
+
+          # Applies instance options.
+          #
+          # @param state [Hash] (see Kitchen::StateFile)
+          # @param inst [Class] the specific class of instance being rebooted.
+          def instance_options(state, inst)
+            return unless instance_options?
+
+            inst.logger.info("Applying the following instance options:")
+            config[:instance_options].each { |o, v| inst.logger.info("- #{o}: #{v}") }
+            inst.api.compute.update_instance(state[:server_id], OCI::Core::Models::UpdateInstanceDetails.new(instance_options: OCI::Core::Models::InstanceOptions.new(config[:instance_options])))
+          end
+
+          # Attempts to disable IMDSv1 even if not explicitly specified in the config. This is in line with current security guidance from OCI.
+          # Acts as a guard for setting instance options.
+          def instance_options?
+            config[:instance_options].merge!(are_legacy_imds_endpoints_disabled: true) unless config[:instance_options].key?(:are_legacy_imds_endpoints_disabled)
+            # Basically tell me if there's more stuff in there than `are_legacy_imds_endpoints_disabled: false`. If so, then proceed to setting it.
+            config[:instance_options].reject { |o, v| o == :are_legacy_imds_endpoints_disabled && !v }.any?
           end
 
           # Reboots an instance.
