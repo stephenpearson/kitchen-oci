@@ -21,7 +21,8 @@ RSpec.shared_context "create", :create do
   let(:compute_response) do
     OCI::Response.new(200, nil, OCI::Core::Models::Instance.new(id: instance_ocid,
                                                                 image_id: image_ocid,
-                                                                lifecycle_state: Lifecycle.compute("running")))
+                                                                lifecycle_state: Lifecycle.compute("running"),
+                                                                instance_options: OCI::Core::Models::InstanceOptions.new(are_legacy_imds_endpoints_disabled: true)))
   end
   let(:dbaas_response) do
     OCI::Response.new(200, nil, OCI::Database::Models::DbSystem.new(id: db_system_ocid, lifecycle_state: Lifecycle.dbaas("available")))
