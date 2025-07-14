@@ -123,7 +123,7 @@ These settings are optional:
    - `custom_metadata`, Add metadata to the compute instance request
    - `instance_options`, A hash of optional mutable instance options.\
      Available options [supported in the Ruby SDK](https://docs.oracle.com/en-us/iaas/tools/ruby/latest/OCI/Core/Models/InstanceOptions.html)
-     - `are_legacy_imds_endpoints_disabled`, Boolean (default: `true`)\
+     - `are_legacy_imds_endpoints_disabled`, Boolean (default: `true`)
         > Customers who have not [migrated to IMDSv2](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm#upgrading-v2) will need to set this to `false`. [[more](#imdsv2)]
    - `all_plugins_disabled`, Whether Oracle Cloud Agent can run all the available plugins (default: `false`)
    - `management_disabled`, Whether Oracle Cloud Agent can run all the available management plugins (default: `false`)
