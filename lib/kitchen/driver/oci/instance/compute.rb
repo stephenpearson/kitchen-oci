@@ -81,13 +81,6 @@ module Kitchen
             )
           end
 
-          # Adds the instance options property to the launch details.
-          def instance_options
-            return if config[:instance_options].empty?
-
-            launch_details.instance_options = OCI::Core::Models::InstanceOptions.new(config[:instance_options])
-          end
-
           # Adds the source_details property to the launch_details for an instance that is being created from a boot volume.
           def instance_source_via_boot_volume
             return unless config[:boot_volume_id]

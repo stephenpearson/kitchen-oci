@@ -23,8 +23,13 @@ RSpec.shared_context "compute", :compute do
   include_context "oci"
   include_context "net"
 
-  let(:compute_driver_config) { base_driver_config.merge!({ capacity_reservation_id: capacity_reservation }) }
+  let(:compute_driver_config) { base_driver_config.merge!(capacity_reservation_id: capacity_reservation) }
   let(:instance_ocid) { "ocid1.instance.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
+  let(:instance_options) {
+    OCI::Core::Models::UpdateInstanceDetails.new(
+      instance_options: OCI::Core::Models::InstanceOptions.new(are_legacy_imds_endpoints_disabled: true)
+    )
+  }
   let(:instance_metadata) do
     {
       "ssh_authorized_keys" => ssh_pub_key,
@@ -111,5 +116,6 @@ RSpec.shared_context "compute", :compute do
     allow(compute_client).to receive(:get_volume_attachment).with(pv_attachment_ocid).and_return(pv_attachment_response)
     allow(compute_client).to receive(:detach_volume).with(iscsi_attachment_ocid).and_return(nil_response)
     allow(compute_client).to receive(:detach_volume).with(pv_attachment_ocid).and_return(nil_response)
+    allow(compute_client).to receive(:update_instance).with(instance_ocid, instance_options).and_return(nil_response)
   end
 end
