@@ -53,6 +53,7 @@ The following driver parameters are common to both instance types, but are not r
    - `oci_config`, Hash of additional `OCI::Config` settings. Allows you to test without an oci config file [[more](#use-without-oci-config-file)]
    - `ssh_keypath`, SSH public key (default: `~/.ssh/id_rsa.pub`)
    - `ssh_keygen`, Automatically generate the rsa key pair for an instance (default: `false`) [[more](#ssh-keygen)]
+   - `ssh_keytype`, Specify the type of ssh key to generate (valid values: `rsa`, `ed25519`) (default: `rsa`) [[more](#ssh-keygen)]
    - `post_create_script`, run a script on an instance after deployment [[more](#post-create-script)]
    - `post_create_reboot`, reboot the instance after instance creation (default: `false`)
    - `proxy_url`, Connect via the specified proxy URL [[more](#proxy-support)]
@@ -309,7 +310,8 @@ These scripts are executed by the user specified as the transport username (most
 ## SSH Keygen
 
 The driver can generate an ssh key pair for an instance during creation.  In order to turn this feature on, add the `ssh_keygen` property to the `driver` and set the value to `true`. This can be set in the `driver` section on a 
-per-platform or per-suite basis, but can also be enabled globally for the entire kitchen.yml in the top-level `driver` section.
+per-platform or per-suite basis, but can also be enabled globally for the entire kitchen.yml in the top-level `driver` section. By default, the driver will create a 4096 bit RSA key. For additional security, the driver can also create
+a `ED25519` OpenSSH key. In order to enable this, utilize the `ssh_keytype: ed25519` parameter (see example below).
 
 Ensure that the `transport` section does not contain a path to a private key (the `ssh_key` property). If the `transport` has a value in `ssh_key` property, this will mismatch with the key pair that the driver will create causing your 
 instance creation to be stuck in an endless loop waiting for `transport` to receive a confirmed ssh connection.
@@ -321,6 +323,7 @@ Upon instance termination (`kitchen destroy`), the generated key pair will be re
 ```yml
   driver:
     ssh_keygen: true
+    ssh_keytype: ed25519
 
   transport:
     username: opc

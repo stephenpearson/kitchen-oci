@@ -66,6 +66,7 @@ module Kitchen
       default_keypath = File.expand_path(File.join(%w{~ .ssh id_rsa.pub}))
       default_config :ssh_keypath, default_keypath
       default_config :ssh_keygen, false
+      default_config :ssh_keytype, "rsa"
       default_config :post_create_script, nil
       default_config :proxy_url, nil
       default_config :user_data, nil

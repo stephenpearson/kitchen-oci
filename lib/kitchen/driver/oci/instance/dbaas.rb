@@ -69,7 +69,7 @@ module Kitchen
           end
 
           # Adds the ssh_public_keys property to the launch_details.
-          def pubkey
+          def ssh_public_keys
             result = []
             result << read_public_key
             launch_details.ssh_public_keys = result

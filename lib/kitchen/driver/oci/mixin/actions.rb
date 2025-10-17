@@ -25,6 +25,16 @@ module Kitchen
         #
         # @author Justin Steele <justin.steele@oracle.com>
         module Actions
+          # Coersces config values to standardized formats.
+          #
+          # @param instance [Kitchen::Instance]
+          def finalize_config!(instance)
+            super
+            %i{instance_type ssh_keytype}.each do |k|
+              config[k] = config[k].downcase
+            end
+          end
+
           # Launches an instance.
           #
           # @param state [Hash] (see Kitchen::StateFile)
