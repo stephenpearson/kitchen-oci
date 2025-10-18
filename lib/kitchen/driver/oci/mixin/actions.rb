@@ -25,7 +25,7 @@ module Kitchen
         #
         # @author Justin Steele <justin.steele@oracle.com>
         module Actions
-          # Coersces config values to standardized formats.
+          # Coerces config values to standardized formats.
           #
           # @param instance [Kitchen::Instance]
           def finalize_config!(instance)
