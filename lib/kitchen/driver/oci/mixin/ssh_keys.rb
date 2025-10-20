@@ -57,14 +57,7 @@ module Kitchen
           # Generates the public/private key pair in the format specified in the config.
           def generate_keys
             FileUtils.mkdir_p("#{config[:kitchen_root]}/.kitchen/.ssh")
-
-            if config[:ssh_keytype] == "rsa"
-              extend RSA
-            elsif config[:ssh_keytype] == "ed25519"
-              extend ED25519
-            else
-              raise "Unsupported ssh key type: #{config[:ssh_keytype]}"
-            end
+            extend SshKeys.const_get(config[:ssh_keytype].upcase)
             generate_key_pair
           end
 
@@ -95,22 +88,13 @@ module Kitchen
             #
             # @param rsa_key [OpenSSL::PKey::RSA] the generated RSA key.
             def write_public_key(rsa_key)
-              File.open(public_key_file, "wb") { |k| k.write("#{ALGORITHM} #{encode_private_key(rsa_key)} #{config[:instance_name]}") }
+              public_key = ["#{[7].pack("N")}#{ALGORITHM}#{rsa_key.e.to_s(0)}#{rsa_key.n.to_s(0)}"].pack("m0")
+              File.open(public_key_file, "wb") { |k| k.write("#{ALGORITHM} #{public_key} #{config[:instance_name]}") }
               File.chmod(0600, public_key_file)
-            end
-
-            # Encodes the private key.
-            #
-            # @param rsa_key [OpenSSL::PKey::RSA] the generated RSA key.
-            def encode_private_key(rsa_key)
-              prefix = "#{[7].pack("N")}#{ALGORITHM}"
-              exponent = rsa_key.e.to_s(0)
-              modulus = rsa_key.n.to_s(0)
-              ["#{prefix}#{exponent}#{modulus}"].pack("m0")
             end
           end
 
-          # Mixins required to generate a RSA key pair.
+          # Mixins required to generate a ED25519 key pair.
           #
           # @author Justin Steele <justin.steele@oracle.com>
           module ED25519
@@ -206,7 +190,6 @@ module Kitchen
             # Encodes the public key.
             #
             # @param public_key [String] the byte representation of the <code>Ed25519::VerifyKey</code>.
-            # @param private_seed [String] the byte representation of the <code>Ed25519::SigningKey</code>.
             # @return [String]
             def encode_public_key(public_key)
               blob = [ALGORITHM.bytesize].pack("N") + ALGORITHM + [public_key.bytesize].pack("N") + public_key
