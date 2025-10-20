@@ -210,23 +210,12 @@ module Kitchen
             )
           end
 
-          # Read in the public ssh key.
-          #
-          # @return [String]
-          def pubkey
-            if config[:ssh_keygen]
-              logger.info("Generating public/private rsa key pair")
-              gen_key_pair
-            end
-            File.readlines(public_key_file).first.chomp
-          end
-
           # Add our special sauce to the instance metadata to be executed by cloud-init.
           def metadata
             md = {}
             inject_powershell
             config[:custom_metadata]&.each { |k, v| md.store(k, v) }
-            md.store("ssh_authorized_keys", pubkey) unless config[:setup_winrm]
+            md.store("ssh_authorized_keys", read_public_key) unless config[:setup_winrm]
             md.store("user_data", user_data) if user_data?
             md
           end

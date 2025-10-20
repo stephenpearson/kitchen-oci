@@ -41,6 +41,7 @@ Gem::Specification.new do |spec| # rubocop: disable Metrics/BlockLength
   }
   spec.add_dependency "oci", "~> 2.18"
   spec.add_dependency "test-kitchen"
+  spec.add_dependency "ed25519"
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "chefstyle"
   spec.add_development_dependency "pry"

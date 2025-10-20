@@ -1,5 +1,8 @@
 # kitchen-oci CHANGELOG
 
+# 2.1.0
+- feat: add support for `ED25519` ssh keys.
+
 # 2.0.0
 - feat: set default value for `are_legacy_imds_endpoints_disabled` to `true`
   > BREAKING CHANGE: This overrides the default value to `true` in accordance with latest [OCI secuirty guidelines](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm)

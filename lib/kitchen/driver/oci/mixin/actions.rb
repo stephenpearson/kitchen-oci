@@ -25,6 +25,17 @@ module Kitchen
         #
         # @author Justin Steele <justin.steele@oracle.com>
         module Actions
+          # Creates the OCI config and API clients.
+          #
+          # @param action [Symbol] the name of the method that called this method.
+          # @return [Oci::Config, Oci::Api]
+          def auth(action)
+            oci = Oci::Config.new(config)
+            api = Oci::Api.new(oci.config, config)
+            oci.compartment if action == :create
+            [oci, api]
+          end
+
           # Launches an instance.
           #
           # @param state [Hash] (see Kitchen::StateFile)

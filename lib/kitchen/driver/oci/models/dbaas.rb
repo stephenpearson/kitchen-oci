@@ -111,17 +111,6 @@ module Kitchen
           def long_hostname_suffix
             [random_string(25 - hostname_prefix.length), random_string(3)].compact.join("-")
           end
-
-          # Read in the public ssh key.
-          #
-          # @return [String]
-          def read_public_key
-            if config[:ssh_keygen]
-              logger.info("Generating public/private rsa key pair")
-              gen_key_pair
-            end
-            File.readlines(public_key_file).first.chomp
-          end
         end
       end
     end
