@@ -36,14 +36,14 @@ module Kitchen
             File.readlines(public_key_file).first.chomp
           end
 
-          # Returns the location of the private ssh key.
+          # The location of the private ssh key.
           #
           # @return [String]
           def private_key_file
             public_key_file.gsub(".pub", "")
           end
 
-          # Returns the location of the public ssh key.
+          # The location of the public ssh key.
           #
           # @return [String]
           def public_key_file
@@ -52,6 +52,13 @@ module Kitchen
             else
               config[:ssh_keypath]
             end
+          end
+
+          # Algorithm used when encoding the private and public keys.
+          #
+          # @return [String]
+          def algorithm
+            "ssh-#{config[:ssh_keytype]}"
           end
 
           # Generates the public/private key pair in the format specified in the config.
@@ -65,9 +72,6 @@ module Kitchen
           #
           # @author Justin Steele <justin.steele@oracle.com>
           module RSA
-            # Algorithm used when encoding the private and public keys.
-            ALGORITHM = "ssh-rsa"
-
             # Generates an RSA key pair to be used to SSH to the instance and updates the state with the full path to the private key.
             def generate_key_pair
               rsa_key = OpenSSL::PKey::RSA.new(4096)
@@ -88,8 +92,8 @@ module Kitchen
             #
             # @param rsa_key [OpenSSL::PKey::RSA] the generated RSA key.
             def write_public_key(rsa_key)
-              public_key = ["#{[7].pack("N")}#{ALGORITHM}#{rsa_key.e.to_s(0)}#{rsa_key.n.to_s(0)}"].pack("m0")
-              File.open(public_key_file, "wb") { |k| k.write("#{ALGORITHM} #{public_key} #{config[:instance_name]}") }
+              public_key = ["#{[7].pack("N")}#{algorithm}#{rsa_key.e.to_s(0)}#{rsa_key.n.to_s(0)}"].pack("m0")
+              File.open(public_key_file, "wb") { |k| k.write("#{algorithm} #{public_key} #{config[:instance_name]}") }
               File.chmod(0600, public_key_file)
             end
           end
@@ -100,9 +104,6 @@ module Kitchen
           module ED25519
             require "ed25519"
             require "securerandom" unless defined?(SecureRandom)
-
-            # Algorithm used when encoding the private and public keys.
-            ALGORITHM = "ssh-ed25519"
 
             # Generates an ED25519 key pair to be used to SSH to the instance and updates the state with the full path to the private key.
             def generate_key_pair
@@ -180,7 +181,7 @@ module Kitchen
               checkint = SecureRandom.random_number(2**32)
               [
                 [checkint, checkint].pack("N*"),
-                pack_string(ALGORITHM),
+                pack_string(algorithm),
                 pack_string(public_key),
                 pack_string(private_seed + public_key),
                 pack_string(config[:instance_name] || ""),
@@ -192,8 +193,8 @@ module Kitchen
             # @param public_key [String] the byte representation of the <code>Ed25519::VerifyKey</code>.
             # @return [String]
             def encode_public_key(public_key)
-              blob = [ALGORITHM.bytesize].pack("N") + ALGORITHM + [public_key.bytesize].pack("N") + public_key
-              [ALGORITHM, Base64.strict_encode64(blob), config[:instance_name]].compact.join(" ")
+              blob = [algorithm.bytesize].pack("N") + algorithm + [public_key.bytesize].pack("N") + public_key
+              [algorithm, Base64.strict_encode64(blob), config[:instance_name]].compact.join(" ")
             end
 
             # SSH public key blob: string keytype + string key (32 bytes).
@@ -201,7 +202,7 @@ module Kitchen
             # @param public_key [String] the byte representation of the <code>Ed25519::VerifyKey</code>.
             # @return [String]
             def pub_blob(public_key)
-              pack_string(ALGORITHM) + pack_string(public_key)
+              pack_string(algorithm) + pack_string(public_key)
             end
           end
         end
