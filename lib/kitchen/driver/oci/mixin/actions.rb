@@ -25,14 +25,15 @@ module Kitchen
         #
         # @author Justin Steele <justin.steele@oracle.com>
         module Actions
-          # Coerces config values to standardized formats.
+          # Creates the OCI config and API clients.
           #
-          # @param instance [Kitchen::Instance]
-          def finalize_config!(instance)
-            super
-            %i{instance_type ssh_keytype}.each do |k|
-              config[k] = config[k].downcase
-            end
+          # @param action [Symbol] the name of the method that called this method.
+          # @return [Oci::Config, Oci::Api]
+          def auth(action)
+            oci = Oci::Config.new(config)
+            api = Oci::Api.new(oci.config, config)
+            oci.compartment if action == :create
+            [oci, api]
           end
 
           # Launches an instance.

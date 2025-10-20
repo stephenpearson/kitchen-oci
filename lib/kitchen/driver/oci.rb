@@ -34,9 +34,14 @@ module Kitchen
     # @author Stephen Pearson <stephen.pearson@oracle.com>
     class Oci < Kitchen::Driver::Base
       require_relative "oci_version"
+      require_relative "oci/validations"
       require_relative "oci/mixin/actions"
       require_relative "oci/mixin/models"
       require_relative "oci/mixin/volumes"
+
+      include Kitchen::Driver::Oci::Mixin::Actions
+      include Kitchen::Driver::Oci::Mixin::Models
+      include Kitchen::Driver::Oci::Mixin::Volumes
 
       plugin_version Kitchen::Driver::OCI_VERSION
       kitchen_driver_api_version 2
@@ -96,28 +101,6 @@ module Kitchen
       # dbaas configs
       default_config :dbaas, {}
 
-      validations[:instance_type] = lambda do |attr, val, driver|
-        validation_error("[:#{attr}] #{val} is not a valid instance_type. must be either compute or dbaas.", driver) unless %w{compute dbaas}.include?(val.downcase)
-      end
-
-      validations[:nsg_ids] = lambda do |attr, val, driver|
-        unless val.nil?
-          validation_error("[:#{attr}] list cannot be longer than 5 items", driver) if val.length > 5
-        end
-      end
-
-      validations[:volumes] = lambda do |attr, val, driver|
-        val.each do |vol_attr|
-          unless ["iscsi", "paravirtual", nil].include?(vol_attr[:type])
-            validation_error("[:#{attr}][:type] #{vol_attr[:type]} is not a valid volume type for #{vol_attr[:name]}", driver)
-          end
-        end
-      end
-
-      def self.validation_error(message, driver)
-        raise UserError, "#{driver.class}<#{driver.instance.name}>#config#{message}"
-      end
-
       # Creates an instance.
       # (see Kitchen::Driver::Base#create)
       #
@@ -145,23 +128,6 @@ module Kitchen
         inst = instance_class(config, state, oci, api, __method__)
         detatch_and_delete_volumes(state, oci, api)
         terminate(state, inst)
-      end
-
-      private
-
-      include Kitchen::Driver::Oci::Mixin::Actions
-      include Kitchen::Driver::Oci::Mixin::Models
-      include Kitchen::Driver::Oci::Mixin::Volumes
-
-      # Creates the OCI config and API clients.
-      #
-      # @param action [Symbol] the name of the method that called this method.
-      # @return [Oci::Config, Oci::Api]
-      def auth(action)
-        oci = Oci::Config.new(config)
-        api = Oci::Api.new(oci.config, config)
-        oci.compartment if action == :create
-        [oci, api]
       end
     end
   end
