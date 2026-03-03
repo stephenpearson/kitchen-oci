@@ -100,10 +100,10 @@ module Kitchen
           # This ensures IMDSv2 is enabled from instance creation, which is required by OCI security policies
           # that deny instance creation when areLegacyEndpointsDisabled='false'.
           def launch_instance_options
-            opts = config[:instance_options] || {}
-            opts[:are_legacy_imds_endpoints_disabled] = true unless opts.key?(:are_legacy_imds_endpoints_disabled)
-            return if opts.empty?
+            opts = config[:instance_options].dup
+            return if opts.delete(:post_create)
 
+            opts[:are_legacy_imds_endpoints_disabled] = true unless opts.key?(:are_legacy_imds_endpoints_disabled)
             launch_details.instance_options = OCI::Core::Models::InstanceOptions.new(opts)
           end
         end

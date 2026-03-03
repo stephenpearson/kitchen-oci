@@ -1,5 +1,10 @@
 # kitchen-oci CHANGELOG
 
+# 3.0.0
+- feat: default value for `are_legacy_imds_endpoints_disabled` of `true` set at instance provisioning time
+  > BREAKING CHANGE: This change creates a situation where older images can get stuck in a `wait_until_ready` loop
+  > Please see README for documentation about the new option to apply instance options in the post-create phase
+
 # 2.1.0
 - feat: add support for `ED25519` ssh keys.
 

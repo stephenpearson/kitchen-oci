@@ -422,6 +422,22 @@ driver:
     are_legacy_imds_endpoints_disabled: false
 ```
 
+In some rare circumstances with older Windows images, disabling IMDSv1 at launch time has observed to interfere with the initial WinRM transport verification such that `kitchen-oci` never receives a success or failure handhsake
+and the `kitchen create` process never completes successfully. In the event you find yourself in this situation, the driver now offers the following option to restore `kitchen-oci 2.x` functionality where the instance options are
+applied in a post-create phase:
+
+```yml
+---
+driver:
+  name: oci
+  instance_options:
+    post_create: true
+    are_legacy_imds_endpoints_disabled: true
+```
+
+Note that this option should only be used for scenarios that specifically require it. If you are provisioning into a tenancy where IMDSv1 being enabled at launch time is explicitly forbidden, this option will not work. In that case,
+using the default `kitchen-oci 3.x` behavior is the only option.
+
 ## Windows Support
 
 When launching Oracle provided Windows images, it may be helpful to allow kitchen-oci to inject powershell to configure WinRM and to set a randomized password that does not need to be changed on first login.  If the `setup_winrm` parameter is set to true then the following steps will happen:
