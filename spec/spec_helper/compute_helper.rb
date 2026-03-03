@@ -55,6 +55,9 @@ RSpec.shared_context "compute", :compute do
         nsg_ids: driver_config[:nsg_ids],
         subnet_id: subnet_ocid
       )
+      l.instance_options = OCI::Core::Models::InstanceOptions.new(
+        are_legacy_imds_endpoints_disabled: true
+      )
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
       l.metadata = instance_metadata
@@ -82,6 +85,9 @@ RSpec.shared_context "compute", :compute do
         hostname_label: hostname,
         nsg_ids: driver_config[:nsg_ids],
         subnet_id: subnet_ocid
+      )
+      l.instance_options = OCI::Core::Models::InstanceOptions.new(
+        are_legacy_imds_endpoints_disabled: true
       )
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
