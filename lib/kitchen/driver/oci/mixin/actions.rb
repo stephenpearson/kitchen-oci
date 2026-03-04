@@ -97,10 +97,12 @@ module Kitchen
           # Acts as a guard for setting instance options.
           def instance_options?
             return false unless config[:instance_type] == "compute"
+            return false unless config[:instance_options].delete(:post_create)
 
-            config[:instance_options].merge!(are_legacy_imds_endpoints_disabled: true) unless config[:instance_options].key?(:are_legacy_imds_endpoints_disabled)
+            opts = config[:instance_options]
+            opts.merge!(are_legacy_imds_endpoints_disabled: true) unless opts.key?(:are_legacy_imds_endpoints_disabled)
             # Basically tell me if there's more stuff in there than `are_legacy_imds_endpoints_disabled: false`. If so, then proceed to setting it.
-            config[:instance_options].reject { |o, v| o == :are_legacy_imds_endpoints_disabled && !v }.any?
+            opts.reject { |o, v| o == :are_legacy_imds_endpoints_disabled && !v }.any?
           end
 
           # Checks if legacy metadata is disabled.

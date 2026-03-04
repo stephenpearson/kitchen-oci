@@ -36,27 +36,18 @@ RSpec.shared_context "compute", :compute do
     }
   end
   let(:capacity_reservation) { "ocid1.capacityreservation.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
-  let(:launch_instance_request) do
+  let(:launch_instance_request_base) do
     OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
       l.availability_domain = availability_domain
       l.compartment_id = compartment_ocid
       l.display_name = hostname
-      l.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
-        sourceType: "image",
-        imageId: image_ocid,
-        bootVolumeSizeInGBs: nil
-      )
       l.shape = shape
-      l.capacity_reservation_id = capacity_reservation
       l.create_vnic_details = OCI::Core::Models::CreateVnicDetails.new(
         assign_public_ip: false,
         display_name: hostname,
         hostname_label: hostname,
         nsg_ids: driver_config[:nsg_ids],
         subnet_id: subnet_ocid
-      )
-      l.instance_options = OCI::Core::Models::InstanceOptions.new(
-        are_legacy_imds_endpoints_disabled: true
       )
       l.freeform_tags = { kitchen: true }
       l.defined_tags = {}
@@ -67,35 +58,41 @@ RSpec.shared_context "compute", :compute do
         are_all_plugins_disabled: false
       )
     end
+
   end
 
-  let(:launch_instance_from_bv_request) do
-    OCI::Core::Models::LaunchInstanceDetails.new.tap do |l|
-      l.availability_domain = availability_domain
-      l.compartment_id = compartment_ocid
-      l.display_name = hostname
-      l.source_details = OCI::Core::Models::InstanceSourceViaBootVolumeDetails.new(
-        sourceType: "bootVolume",
-        boot_volume_id: clone_boot_volume_ocid
-      )
-      l.shape = shape
-      l.create_vnic_details = OCI::Core::Models::CreateVnicDetails.new(
-        assign_public_ip: false,
-        display_name: hostname,
-        hostname_label: hostname,
-        nsg_ids: driver_config[:nsg_ids],
-        subnet_id: subnet_ocid
+  let(:launch_instance_request) do
+    launch_instance_request_base.tap do |l|
+      l.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
+        sourceType: "image",
+        imageId: image_ocid,
+        bootVolumeSizeInGBs: nil
       )
       l.instance_options = OCI::Core::Models::InstanceOptions.new(
         are_legacy_imds_endpoints_disabled: true
       )
-      l.freeform_tags = { kitchen: true }
-      l.defined_tags = {}
-      l.metadata = instance_metadata
-      l.agent_config = OCI::Core::Models::LaunchInstanceAgentConfigDetails.new(
-        is_monitoring_disabled: false,
-        is_management_disabled: false,
-        are_all_plugins_disabled: false
+      l.capacity_reservation_id = capacity_reservation
+    end
+  end
+
+  let(:launch_instance_from_bv_request) do
+    launch_instance_request_base.tap do |l|
+      l.source_details = OCI::Core::Models::InstanceSourceViaBootVolumeDetails.new(
+        sourceType: "bootVolume",
+        boot_volume_id: clone_boot_volume_ocid
+      )
+      l.instance_options = OCI::Core::Models::InstanceOptions.new(
+        are_legacy_imds_endpoints_disabled: true
+      )
+    end
+  end
+
+  let(:launch_instance_request_backward_compat) do
+    launch_instance_request_base.tap do |l|
+      l.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
+        sourceType: "image",
+        imageId: image_ocid,
+        bootVolumeSizeInGBs: nil
       )
     end
   end

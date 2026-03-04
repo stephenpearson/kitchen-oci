@@ -61,6 +61,28 @@ describe Kitchen::Driver::Oci::Models::Compute do
       end
     end
 
+    context "standard compute (Windows) with post-create instance options" do
+      let(:driver_config) do
+        base_driver_config.merge!({
+                                    instance_options: {
+                                      post_create: true,
+                                      are_legacy_imds_endpoints_disabled: true,
+                                    },
+                                  })
+      end
+
+      it "creates a compute instance without launch-time instance options" do
+        expect(compute_client).to receive(:launch_instance).with(launch_instance_request_backward_compat)
+        driver.create(state)
+        expect(state).to match(
+                           {
+                             hostname: private_ip,
+                             server_id: instance_ocid,
+                           }
+                         )
+      end
+    end
+
     context "standard compute (Windows) with custom metadata" do
       # kitchen.yml driver config section
       let(:driver_config) do
