@@ -422,9 +422,9 @@ driver:
     are_legacy_imds_endpoints_disabled: false
 ```
 
-In some rare circumstances with older Windows images, disabling IMDSv1 at launch time has observed to interfere with the initial WinRM transport verification such that `kitchen-oci` never receives a success or failure handhsake
-and the `kitchen create` process never completes successfully. In the event you find yourself in this situation, the driver now offers the following option to restore `kitchen-oci 2.x` functionality where the instance options are
-applied in a post-create phase:
+In some rare circumstances with older Windows images, disabling IMDSv1 at launch time has been observed to interfere with the initial WinRM transport verification such that `kitchen-oci` never receives a success or failure handshake. As a result, the `kitchen create` process never completes successfully.
+
+If you encounter this behavior, the driver provides an option to apply instance options in a post-create phase, matching the behavior of `kitchen-oci 2.x`. The following example demonstrates how to disable IMDSv1 after the instance has been created:
 
 ```yml
 ---
