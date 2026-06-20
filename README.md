@@ -104,6 +104,7 @@ as the `image_id`. Both require you to do some work up front.  The trade-off bet
 These settings are optional:
 
    - `boot_volume_size_in_gbs`, The size of the boot volume, in GB (range: 50GB - 32TB)
+   - `kms_key_id`, OCID of the customer-managed (Vault) key used to encrypt the boot volume. [[more](#boot-volume-encryption)]
    - `user_data`, Add user data scripts to cloud-init [[more](#support-for-user-data-scripts-and-cloud-init)]
    - `display_name`, Overrides the display name and hostname randomaization provided by the `hostname_prefix` setting
    - `hostname_prefix`, Prefix for the generated hostnames (note that OCI doesn't like underscores)
@@ -230,6 +231,8 @@ platforms:
       use_token_auth: true
       ...
 ```
+
+Security token (session) authentication is also detected automatically: if the selected profile contains a `security_token_file` entry, the driver will use it to build a `SecurityTokenSigner` even when `use_token_auth` is not set. This makes ephemeral RPST sessions (such as those issued in CI by an OCI session exchange) work without any additional configuration. Setting `use_token_auth: true` explicitly remains supported and is equivalent.
 
 ## Use without OCI config file
 
@@ -408,6 +411,20 @@ driver:
       size_in_gbs: 100
       vpus_per_gb: 30
 ```
+
+## Boot Volume Encryption
+
+By default OCI encrypts boot volumes with an Oracle-managed key. Compartments that are governed by a [Security Zone](https://docs.oracle.com/en-us/iaas/security-zone/using/security-zone-policies.htm) often require that resources be encrypted with a customer-managed key from the OCI Vault service. Provide the OCID of the key with `kms_key_id` and the driver will encrypt the instance boot volume with it at launch time:
+
+```yml
+---
+driver:
+  name: oci
+  ...
+  kms_key_id: ocid1.key.oc1..aaaaaaaa...
+```
+
+This applies when launching an instance from an image (`image_id`/`image_name`). When unset, OCI's default encryption behavior is used.
 
 ## IMDSv2
 In accordance with [OCI security guidelines](https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm), the driver is disabling the IMDSv1 endpoint by default. This overrides the current default setting

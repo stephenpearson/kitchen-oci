@@ -92,13 +92,26 @@ module Kitchen
 
         # Determines the signing method if one is specified.
         #
+        # Security token (session) authentication is used when <b>use_token_auth</b> is set explicitly or
+        # when the selected OCI profile contains a <b>security_token_file</b>. The latter allows sessions
+        # created by <tt>oci session authenticate</tt> (RPST) to be detected automatically.
+        #
         # @return [OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner, OCI::Auth::Signers::SecurityTokenSigner] an instance of the specified token signer.
         def signer
           if config[:use_instance_principals]
             OCI::Auth::Signers::InstancePrincipalsSecurityTokenSigner.new
-          elsif config[:use_token_auth]
+          elsif config[:use_token_auth] || security_token_file?
             token_signer
           end
+        end
+
+        # Whether the loaded OCI config contains a security_token_file pointing at an existing token.
+        #
+        # @return [Boolean]
+        def security_token_file?
+          oci_config.respond_to?(:security_token_file) &&
+            !oci_config.security_token_file.to_s.empty? &&
+            File.exist?(oci_config.security_token_file)
         end
 
         # Creates the token signer with a provided key.

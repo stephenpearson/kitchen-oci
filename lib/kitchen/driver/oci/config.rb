@@ -40,8 +40,10 @@ module Kitchen
         #
         # @return [OCI::Config]
         def oci_config
-          # OCI::Config is missing this
-          OCI::Config.class_eval { attr_accessor :security_token_file } if @driver_config[:use_token_auth]
+          # OCI::Config is missing this attribute. It is always added so that a security_token_file
+          # present in the selected profile is loaded, which enables auto-detection of session
+          # (RPST) token authentication even when use_token_auth is not explicitly set.
+          OCI::Config.class_eval { attr_accessor :security_token_file } unless OCI::Config.instance_methods.include?(:security_token_file)
           conf = config_loader(config_file_location: @driver_config[:oci_config_file], profile_name: @driver_config[:oci_profile_name])
           @driver_config[:oci_config].each do |key, value|
             conf.send("#{key}=", value) unless value.nil? || value.empty?

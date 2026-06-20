@@ -375,6 +375,25 @@ describe Kitchen::Driver::Oci::Models::Compute do
       end
     end
 
+    context "standard compute (Linux) with kms_key_id" do
+      let(:driver_config) do
+        compute_driver_config.merge!({
+                                       kms_key_id: kms_key_ocid,
+                                     })
+      end
+
+      it "creates a compute instance with the boot volume encrypted by the kms key" do
+        expect(compute_client).to receive(:launch_instance).with(launch_instance_request_with_kms)
+        driver.create(state)
+        expect(state).to match(
+          {
+            hostname: private_ip,
+            server_id: instance_ocid,
+          }
+        )
+      end
+    end
+
     context "standard compute (Linux) from boot volume" do
       let(:driver_config) do
         base_driver_config.merge!({

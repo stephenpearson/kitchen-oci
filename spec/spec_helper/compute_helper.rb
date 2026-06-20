@@ -75,6 +75,23 @@ RSpec.shared_context "compute", :compute do
     end
   end
 
+  let(:kms_key_ocid) { "ocid1.key.oc1.fake.aaaaaaaaaabcdefghijklmnopqrstuvwxyz12345" }
+
+  let(:launch_instance_request_with_kms) do
+    launch_instance_request_base.tap do |l|
+      l.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
+        sourceType: "image",
+        imageId: image_ocid,
+        bootVolumeSizeInGBs: nil,
+        kmsKeyId: kms_key_ocid
+      )
+      l.instance_options = OCI::Core::Models::InstanceOptions.new(
+        are_legacy_imds_endpoints_disabled: true
+      )
+      l.capacity_reservation_id = capacity_reservation
+    end
+  end
+
   let(:launch_instance_from_bv_request) do
     launch_instance_request_base.tap do |l|
       l.source_details = OCI::Core::Models::InstanceSourceViaBootVolumeDetails.new(

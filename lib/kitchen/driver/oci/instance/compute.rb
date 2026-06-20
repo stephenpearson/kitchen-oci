@@ -71,13 +71,16 @@ module Kitchen
           end
 
           # Adds the source_details property to the launch_details for an instance that is being created from an image.
+          # When <b>kms_key_id</b> is specified the boot volume is encrypted with the provided customer-managed key,
+          # which is required by compartments governed by a Security Zone that mandates customer-managed encryption.
           def instance_source_via_image
             return if config[:boot_volume_id]
 
             launch_details.source_details = OCI::Core::Models::InstanceSourceViaImageDetails.new(
               sourceType: "image",
               imageId: image_id,
-              bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs]
+              bootVolumeSizeInGBs: config[:boot_volume_size_in_gbs],
+              kmsKeyId: config[:kms_key_id]
             )
           end
 

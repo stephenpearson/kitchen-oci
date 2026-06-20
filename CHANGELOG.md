@@ -1,5 +1,9 @@
 # kitchen-oci CHANGELOG
 
+# 3.1.0
+- feat: add `kms_key_id` to encrypt the compute boot volume with a customer-managed (Vault) key
+- feat: auto-detect security token (RPST) authentication when a `security_token_file` is present in the selected profile
+
 # 3.0.0
 - feat: default value for `are_legacy_imds_endpoints_disabled` of `true` set at instance provisioning time
   > BREAKING CHANGE: This change creates a situation where older images can get stuck in a `wait_until_ready` loop

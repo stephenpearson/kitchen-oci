@@ -96,6 +96,7 @@ module Kitchen
       default_config :preemptible_instance, false
       default_config :boot_volume_size_in_gbs, nil
       default_config :use_private_ip, false
+      default_config :kms_key_id, nil
       default_config :volumes, {}
 
       # dbaas configs
